@@ -1,111 +1,113 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
-const productSchema = new mongoose.Schema(
+const productSchema = new Schema(
   {
-    name: {
-      type: String,
+    influencerId: {
+      type: Schema.Types.ObjectId,
+      required: [true, "Influencer ID is required."],
     },
-    code: {
-      type: String,
-    },
-    status: {
-      type: String,
-    },
-    isFeatured: {
-      type: Boolean,
-    },
-    brand: {
-      type: mongoose.Types.ObjectId,
-      ref: 'Brand',
-    },
-    likes: {
-      type: Number,
-    },
-    description: {
-      type: String,
-    },
-    metaTitle: {
-      type: String,
-    },
-    metaDescription: {
-      type: String,
+    shop: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Shop",
+      required: true,
     },
     slug: {
       type: String,
+      required: [true, "Box slug is required."],
       unique: true,
+      maxlength: [100, "Box slug cannot exceed 100 characters."],
     },
-    category: {
-      type: mongoose.Types.ObjectId,
-      ref: 'Category',
-      required: [true, 'please provide a category id'],
-    },
-    subCategory: {
-      type: mongoose.Types.ObjectId,
-      ref: 'SubCategory',
-      required: [true, 'please provide a sub category id'],
-    },
-    gender: {
+    title: {
       type: String,
+      required: [true, "Title is required."],
+      maxlength: [150, "Title cannot exceed 150 characters."],
     },
-    tags: [String],
-    sku: {
+    description: {
       type: String,
-      required: [true, 'SKU is required.'],
+      required: [true, "Description is required."],
+      maxlength: [1000, "Description cannot exceed 1000 characters."],
     },
     price: {
-      type: Number,
-      required: [true, 'Price is required.'],
+      amount: {
+        type: Number,
+        required: [true, "Price amount is required."],
+        min: [0, "Price amount cannot be negative."],
+        max: [100000, "Price amount cannot exceed 100,000."],
+      },
+      currency: {
+        type: String,
+        required: [true, "Currency is required."],
+        maxlength: [3, "Currency code must be 3 characters."],
+        default: "USD",
+      },
     },
-    priceSale: {
-      type: Number,
-      required: [true, 'Sale price is required.'],
+    status: {
+      type: String,
+      enum: {
+        values: ["draft", "active", "paused", "archived"],
+        message: "Status must be one of: draft, active, paused, or archived.",
+      },
+      default: "draft",
     },
-    oldPriceSale: {
-      type: Number,
-    },
-    available: {
-      type: Number,
-      required: [true, 'Available quantity is required.'],
-    },
-    sold: {
-      type: Number,
-      default: 0,
-    },
-    reviews: [
+    items: [
       {
-        type: mongoose.Types.ObjectId,
-        ref: 'ProductReview',
+        name: {
+          type: String,
+          required: [true, "Item name is required."],
+          maxlength: [100, "Item name cannot exceed 100 characters."],
+        },
+        slug: {
+          type: String,
+          required: [true, "Item slug is required."],
+          unique: true,
+          maxlength: [100, "Item slug cannot exceed 100 characters."],
+        },
+        imageUrl: {
+          type: String,
+          required: [true, "Item image URL is required."],
+          maxlength: [500, "Image URL cannot exceed 500 characters."],
+        },
+        value: {
+          type: Number,
+          required: [true, "Item value is required."],
+          min: [0, "Item value cannot be negative."],
+          max: [100000, "Item value cannot exceed 100,000."],
+        },
+        weight: {
+          type: Number,
+          required: [true, "Item weight is required."],
+          min: [0, "Weight cannot be negative."],
+          max: [100, "Weight percentage cannot exceed 100."],
+        },
+        status: {
+          type: String,
+          enum: {
+            values: ["available", "sold"],
+            message:
+              "Status must be one of: draft, active, paused, or archived.",
+          },
+          default: "available",
+        },
+        // rangeStart: {
+        //   type: Number,
+        //   required: [true, "Range start is required."],
+        //   min: [0, "Range start cannot be less than 0."],
+        //   max: [1, "Range start cannot exceed 1."],
+        // },
+        // rangeEnd: {
+        //   type: Number,
+        //   required: [true, "Range end is required."],
+        //   min: [0, "Range end cannot be less than 0."],
+        //   max: [1, "Range end cannot exceed 1."],
+        // },
       },
     ],
-
-    shop: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Shop',
-      required: true,
-    },
-    images: [
-      {
-        url: {
-          type: String,
-          required: [true],
-        },
-        _id: {
-          type: String,
-          required: [true],
-        },
-        blurDataURL: {
-          type: String,
-          required: [true, 'image-blur-data-url-required-error'],
-        },
-      },
-    ],
-
-    colors: [String],
-    sizes: [String],
   },
-  { timestamps: true, strict: true }
+  { timestamps: true }
 );
 
 const Product =
-  mongoose.models.Product || mongoose.model('Product', productSchema);
+  mongoose.models.Product || mongoose.model("Product", productSchema);
+
 module.exports = Product;
