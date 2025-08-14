@@ -71,6 +71,7 @@ const registerUser = async (req, res) => {
     });
 
     // Email options
+
     let mailOptions = {
       from: process.env.RECEIVING_EMAIL, // Your Gmail email
       to: user.email, // User's email
@@ -78,8 +79,10 @@ const registerUser = async (req, res) => {
       html: htmlContent, // HTML content with OTP and user email
     };
 
+    // Sen EMIL WILL ACTIVE Later
     // Send email
-    await transporter.sendMail(mailOptions);
+    // await transporter.sendMail(mailOptions);
+
     res.status(201).json({
       success: true,
       message: "Created User Successfully",
