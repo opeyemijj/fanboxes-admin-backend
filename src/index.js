@@ -1,9 +1,9 @@
-'use strict';
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const bodyParser = require('body-parser');
+"use strict";
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const bodyParser = require("body-parser");
 // Load environment variables from .env file
 dotenv.config();
 
@@ -17,14 +17,15 @@ app.use(bodyParser.json());
 // Connect to MongoDB
 mongoose
   .connect(process.env.MONGODB_URI, {
+    dbName: process.env.DB_NAME,
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
   .then(() => {
-    console.log('Connected to MongoDB');
+    console.log("Connected to MongoDB");
   })
   .catch((error) => {
-    console.error('Error connecting to MongoDB:', error);
+    console.error("Error connecting to MongoDB:", error);
   });
 
 // Routes
@@ -35,55 +36,55 @@ mongoose
 //   console.log('running a task every minute');
 // });
 
-const homeRoutes = require('./routes/home');
-const authRoutes = require('./routes/auth');
-const brandRoutes = require('./routes/brand');
-const categoryRoutes = require('./routes/category');
-const subcategoryRoutes = require('./routes/subcategory');
-const newsletterRoutes = require('./routes/newsletter');
-const productRoutes = require('./routes/product');
-const dashboardRoutes = require('./routes/dashboard');
-const searchRoutes = require('./routes/search');
-const userRoutes = require('./routes/user');
-const cartRoutes = require('./routes/cart');
-const couponCodeRoutes = require('./routes/coupon-code');
-const productReviewRoutes = require('./routes/product-review');
-const reviewRoutes = require('./routes/review');
-const wishlistRoutes = require('./routes/wishlist');
-const OrderRoutes = require('./routes/order');
-const paymentRoutes = require('./routes/payment-intents');
-const delete_fileRoutes = require('./routes/file-delete');
-const shopRoutes = require('./routes/shop');
-const payment = require('./routes/payment');
-const currency = require('./routes/currencies');
-const compaign = require('./routes/compaign');
+const homeRoutes = require("./routes/home");
+const authRoutes = require("./routes/auth");
+const brandRoutes = require("./routes/brand");
+const categoryRoutes = require("./routes/category");
+const subcategoryRoutes = require("./routes/subcategory");
+const newsletterRoutes = require("./routes/newsletter");
+const productRoutes = require("./routes/product");
+const dashboardRoutes = require("./routes/dashboard");
+const searchRoutes = require("./routes/search");
+const userRoutes = require("./routes/user");
+const cartRoutes = require("./routes/cart");
+const couponCodeRoutes = require("./routes/coupon-code");
+const productReviewRoutes = require("./routes/product-review");
+const reviewRoutes = require("./routes/review");
+const wishlistRoutes = require("./routes/wishlist");
+const OrderRoutes = require("./routes/order");
+const paymentRoutes = require("./routes/payment-intents");
+const delete_fileRoutes = require("./routes/file-delete");
+const shopRoutes = require("./routes/shop");
+const payment = require("./routes/payment");
+const currency = require("./routes/currencies");
+const compaign = require("./routes/compaign");
 
-app.use('/api', homeRoutes);
-app.use('/api', authRoutes);
-app.use('/api', brandRoutes);
-app.use('/api', categoryRoutes);
-app.use('/api', subcategoryRoutes);
-app.use('/api', newsletterRoutes);
-app.use('/api', productRoutes);
-app.use('/api', dashboardRoutes);
-app.use('/api', searchRoutes);
-app.use('/api', userRoutes);
-app.use('/api', cartRoutes);
-app.use('/api', couponCodeRoutes);
-app.use('/api', productReviewRoutes);
-app.use('/api', reviewRoutes);
-app.use('/api', wishlistRoutes);
-app.use('/api', OrderRoutes);
-app.use('/api', paymentRoutes);
-app.use('/api', delete_fileRoutes);
-app.use('/api', shopRoutes);
-app.use('/api', payment);
-app.use('/api', currency);
-app.use('/api', compaign);
+app.use("/api", homeRoutes);
+app.use("/api", authRoutes);
+app.use("/api", brandRoutes);
+app.use("/api", categoryRoutes);
+app.use("/api", subcategoryRoutes);
+app.use("/api", newsletterRoutes);
+app.use("/api", productRoutes);
+app.use("/api", dashboardRoutes);
+app.use("/api", searchRoutes);
+app.use("/api", userRoutes);
+app.use("/api", cartRoutes);
+app.use("/api", couponCodeRoutes);
+app.use("/api", productReviewRoutes);
+app.use("/api", reviewRoutes);
+app.use("/api", wishlistRoutes);
+app.use("/api", OrderRoutes);
+app.use("/api", paymentRoutes);
+app.use("/api", delete_fileRoutes);
+app.use("/api", shopRoutes);
+app.use("/api", payment);
+app.use("/api", currency);
+app.use("/api", compaign);
 
 // GET API
-app.get('/', (req, res) => {
-  res.send('This is a GET API');
+app.get("/", (req, res) => {
+  res.send("This is a GET API");
 });
 
 // Start the server

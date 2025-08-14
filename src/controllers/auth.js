@@ -1,13 +1,13 @@
 // controllers/userController.js
-const User = require('../models/User');
-const Products = require('../models/Product');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const otpGenerator = require('otp-generator');
-const nodemailer = require('nodemailer');
-const fs = require('fs');
-const path = require('path');
-const { getUser } = require('../config/getUser');
+const User = require("../models/User");
+const Products = require("../models/Product");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const otpGenerator = require("otp-generator");
+const nodemailer = require("nodemailer");
+const fs = require("fs");
+const path = require("path");
+const { getUser } = require("../config/getUser");
 const registerUser = async (req, res) => {
   try {
     // Create user in the database
@@ -19,7 +19,7 @@ const registerUser = async (req, res) => {
       return res.status(400).json({
         UserCount,
         success: false,
-        message: 'User With This Email Already Exists',
+        message: "User With This Email Already Exists",
       });
     }
 
@@ -33,7 +33,7 @@ const registerUser = async (req, res) => {
     const user = await User.create({
       ...request,
       otp,
-      role: Boolean(UserCount) ? request.role || 'user' : 'super admin',
+      role: Boolean(UserCount) ? request.role || "user" : "super admin",
     });
 
     // Generate JWT token
@@ -44,18 +44,18 @@ const registerUser = async (req, res) => {
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: '7d',
+        expiresIn: "7d",
       }
     );
     // Path to the HTML file
     const htmlFilePath = path.join(
       process.cwd(),
-      'src/email-templates',
-      'otp.html'
+      "src/email-templates",
+      "otp.html"
     );
 
     // Read HTML file content
-    let htmlContent = fs.readFileSync(htmlFilePath, 'utf8');
+    let htmlContent = fs.readFileSync(htmlFilePath, "utf8");
 
     // Replace the placeholder with the OTP and user email
     htmlContent = htmlContent.replace(/<h1>[\s\d]*<\/h1>/g, `<h1>${otp}</h1>`);
@@ -63,7 +63,7 @@ const registerUser = async (req, res) => {
 
     // Create nodemailer transporter
     let transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
         user: process.env.RECEIVING_EMAIL, // Your Gmail email
         pass: process.env.EMAIL_PASSWORD, // Your Gmail password
@@ -74,7 +74,7 @@ const registerUser = async (req, res) => {
     let mailOptions = {
       from: process.env.RECEIVING_EMAIL, // Your Gmail email
       to: user.email, // User's email
-      subject: 'Verify your email',
+      subject: "Verify your email",
       html: htmlContent, // HTML content with OTP and user email
     };
 
@@ -82,7 +82,7 @@ const registerUser = async (req, res) => {
     await transporter.sendMail(mailOptions);
     res.status(201).json({
       success: true,
-      message: 'Created User Successfully',
+      message: "Created User Successfully",
       otp,
       token,
       user,
@@ -97,18 +97,18 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = await req.body;
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
       return res
         .status(404)
-        .json({ success: false, message: 'User Not Found' });
+        .json({ success: false, message: "User Not Found" });
     }
 
     if (!user.password) {
       return res
         .status(404)
-        .json({ success: false, message: 'User Password Not Found' });
+        .json({ success: false, message: "User Password Not Found" });
     }
 
     const isPasswordMatch = await bcrypt.compare(password, user.password);
@@ -116,7 +116,7 @@ const loginUser = async (req, res) => {
     if (!isPasswordMatch) {
       return res
         .status(400)
-        .json({ success: false, message: 'Incorrect Password' });
+        .json({ success: false, message: "Incorrect Password" });
     }
 
     const token = jwt.sign(
@@ -126,7 +126,7 @@ const loginUser = async (req, res) => {
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: '7d',
+        expiresIn: "7d",
       }
     );
 
@@ -138,21 +138,21 @@ const loginUser = async (req, res) => {
       },
       {
         $lookup: {
-          from: 'productreviews',
-          localField: 'productreviews',
-          foreignField: '_id',
-          as: 'productreviews',
+          from: "productreviews",
+          localField: "productreviews",
+          foreignField: "_id",
+          as: "productreviews",
         },
       },
       {
         $addFields: {
-          averageRating: { $avg: '$productreviews.rating' },
-          image: { $arrayElemAt: ['$images', 0] },
+          averageRating: { $avg: "$productreviews.rating" },
+          image: { $arrayElemAt: ["$images", 0] },
         },
       },
       {
         $project: {
-          image: { url: '$image.url', blurDataURL: '$image.blurDataURL' },
+          image: { url: "$image.url", blurDataURL: "$image.blurDataURL" },
           name: 1,
           slug: 1,
           colors: 1,
@@ -170,7 +170,7 @@ const loginUser = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Login Successfully',
+      message: "Login Successfully",
       token,
       user: {
         _id: user._id,
@@ -203,11 +203,11 @@ const forgetPassword = async (req, res) => {
     if (!user) {
       return res
         .status(404)
-        .json({ success: false, message: 'User Not Found ' });
+        .json({ success: false, message: "User Not Found " });
     }
 
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '7d',
+      expiresIn: "7d",
     });
     // Constructing the link with the token
     const resetPasswordLink = `${request.origin}/auth/reset-password/${token}`;
@@ -215,12 +215,12 @@ const forgetPassword = async (req, res) => {
     // Path to the HTML file
     const htmlFilePath = path.join(
       process.cwd(),
-      'src/email-templates',
-      'forget.html'
+      "src/email-templates",
+      "forget.html"
     );
 
     // Read HTML file content
-    let htmlContent = fs.readFileSync(htmlFilePath, 'utf8');
+    let htmlContent = fs.readFileSync(htmlFilePath, "utf8");
 
     // Replace the href attribute of the <a> tag with the reset password link
     // htmlContent = htmlContent.replace(
@@ -233,7 +233,7 @@ const forgetPassword = async (req, res) => {
     );
     // Create nodemailer transporter
     let transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
         user: process.env.RECEIVING_EMAIL, // Your Gmail email
         pass: process.env.EMAIL_PASSWORD, // Your Gmail password
@@ -244,7 +244,7 @@ const forgetPassword = async (req, res) => {
     let mailOptions = {
       from: process.env.RECEIVING_EMAIL, // Your Gmail email
       to: user.email, // User's email
-      subject: 'Verify your email',
+      subject: "Verify your email",
       html: htmlContent, // HTML content with OTP and user email
     };
 
@@ -253,7 +253,7 @@ const forgetPassword = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Forgot Password Email Sent Successfully.',
+      message: "Forgot Password Email Sent Successfully.",
       token,
     });
   } catch (error) {
@@ -272,24 +272,24 @@ const resetPassword = async (req, res) => {
     } catch (err) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid Or Expired Token. Please Request A New One.',
+        message: "Invalid Or Expired Token. Please Request A New One.",
       });
     }
 
     // Find the user by ID from the token
-    const user = await User.findById(decoded._id).select('password');
+    const user = await User.findById(decoded._id).select("password");
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User Not Found ',
+        message: "User Not Found ",
       });
     }
     if (!newPassword || !user.password) {
       return res.status(400).json({
         success: false,
         message:
-          'Invalid Data. Both NewPassword And User Password Are Required.',
+          "Invalid Data. Both NewPassword And User Password Are Required.",
       });
     }
 
@@ -298,7 +298,7 @@ const resetPassword = async (req, res) => {
     if (isSamePassword) {
       return res.status(400).json({
         success: false,
-        message: 'New Password Must Be Different From The Old Password.',
+        message: "New Password Must Be Different From The Old Password.",
       });
     }
     // Update the user's password
@@ -310,7 +310,7 @@ const resetPassword = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Password Updated Successfully.',
+      message: "Password Updated Successfully.",
       user,
     });
   } catch (error) {
@@ -320,50 +320,50 @@ const resetPassword = async (req, res) => {
 const verifyOtp = async (req, res) => {
   try {
     const { otp } = req.body;
-    const user = await getUser(req, res, 'not-verified');
+    const user = await getUser(req, res, "not-verified");
     if (!user) {
       return res
         .status(404)
-        .json({ success: false, message: 'User Not Found' });
+        .json({ success: false, message: "User Not Found" });
     }
     // Check if OTP has already been verified
     if (user.isVerified) {
       return res
         .status(400)
-        .json({ success: false, message: 'OTP Has Already Been Verified' });
+        .json({ success: false, message: "OTP Has Already Been Verified" });
     }
 
-    let message = '';
+    let message = "";
     // Verify the OTP
     if (otp === user.otp) {
       user.isVerified = true;
       await user.save();
-      message = 'OTP Verified Successfully';
+      message = "OTP Verified Successfully";
       return res.status(200).json({ success: true, message });
     } else {
-      message = 'Invalid OTP';
+      message = "Invalid OTP";
       return res.status(400).json({ success: false, message });
     }
   } catch (error) {
     return res
       .status(500)
-      .json({ success: false, message: 'Internal Server Error' });
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
 
 const resendOtp = async (req, res) => {
   try {
-    const user = await getUser(req, res, 'not-verified');
+    const user = await getUser(req, res, "not-verified");
 
     if (!user) {
       return res
         .status(404)
-        .json({ success: false, message: 'User Not Found' });
+        .json({ success: false, message: "User Not Found" });
     }
     if (user.isVerified) {
       return res.status(400).json({
         success: false,
-        message: 'OTP Has Already Been Verified',
+        message: "OTP Has Already Been Verified",
       });
     }
     // Generate new OTP
@@ -381,12 +381,12 @@ const resendOtp = async (req, res) => {
     // Path to the HTML file
     const htmlFilePath = path.join(
       process.cwd(),
-      'src/email-templates',
-      'otp.html'
+      "src/email-templates",
+      "otp.html"
     );
 
     // Read HTML file content
-    let htmlContent = fs.readFileSync(htmlFilePath, 'utf8');
+    let htmlContent = fs.readFileSync(htmlFilePath, "utf8");
 
     // Replace the placeholder with the OTP and user email
     htmlContent = htmlContent.replace(/<h1>[\s\d]*<\/h1>/g, `<h1>${otp}</h1>`);
@@ -394,7 +394,7 @@ const resendOtp = async (req, res) => {
 
     // Create nodemailer transporter
     let transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
         user: process.env.RECEIVING_EMAIL, // Your Gmail email
         pass: process.env.EMAIL_PASSWORD, // Your Gmail password
@@ -405,7 +405,7 @@ const resendOtp = async (req, res) => {
     let mailOptions = {
       from: process.env.RECEIVING_EMAIL, // Your Gmail email
       to: user.email, // User's email
-      subject: 'Verify your email',
+      subject: "Verify your email",
       html: htmlContent, // HTML content with OTP and user email
     };
 
@@ -415,7 +415,7 @@ const resendOtp = async (req, res) => {
     // Return the response
     return res.status(200).json({
       success: true,
-      message: 'OTP Resent Successfully',
+      message: "OTP Resent Successfully",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
