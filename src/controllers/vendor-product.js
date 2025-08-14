@@ -138,7 +138,7 @@ const createProductByVendor = async (req, res) => {
     });
     res.status(201).json({
       success: true,
-      message: "Product Created",
+      message: "Box Created",
       data: data,
     });
   } catch (error) {
