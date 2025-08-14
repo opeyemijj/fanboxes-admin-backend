@@ -1,8 +1,8 @@
-const User = require('../models/User');
-const Categories = require('../models/Category');
-const SubCategories = require('../models/SubCategory');
-const { singleFileDelete } = require('../config/uploader');
-const getBlurDataURL = require('../config/getBlurDataURL');
+const User = require("../models/User");
+const Categories = require("../models/Category");
+const SubCategories = require("../models/SubCategory");
+const { singleFileDelete } = require("../config/uploader");
+const getBlurDataURL = require("../config/getBlurDataURL");
 
 const createCategory = async (req, res) => {
   try {
@@ -20,7 +20,7 @@ const createCategory = async (req, res) => {
       },
     });
 
-    res.status(201).json({ success: true, message: 'Category Created' });
+    res.status(201).json({ success: true, message: "Category Created" });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -34,8 +34,8 @@ const getAllHeaderCategories = async (req, res) => {
       .sort({
         createdAt: -1,
       })
-      .select(['name', 'slug', 'subCategories'])
-      .populate({ path: 'subCategories', select: ['name', 'slug'] });
+      .select(["name", "slug", "subCategories"])
+      .populate({ path: "subCategories", select: ["name", "slug"] });
 
     res.status(201).json({
       success: true,
@@ -55,9 +55,8 @@ const getAllCategories = async (req, res) => {
       .sort({
         createdAt: -1,
       })
-      .select(['name', 'slug'])
-      .populate({ path: 'subCategories', select: ['name', 'slug'] });
-
+      .select(["name", "slug"])
+      .populate({ path: "subCategories", select: ["name", "slug"] });
 
     res.status(201).json({
       success: true,
@@ -74,7 +73,7 @@ const getCategoriesByAdmin = async (req, res) => {
       .sort({
         createdAt: -1,
       })
-      .select(['name', 'slug']);
+      .select(["name", "slug"]);
 
     res.status(201).json({
       success: true,
@@ -93,7 +92,7 @@ const getCategoryByAdmin = async (req, res) => {
     if (!category) {
       return res.status(400).json({
         success: false,
-        message: 'Category Not Found',
+        message: "Category Not Found",
       });
     }
 
@@ -109,18 +108,18 @@ const getCategoryBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
     const category = await Categories.findOne({ slug }).select([
-      'name',
-      'description',
-      'metaTitle',
-      'metaDescription',
-      'cover',
-      'slug',
+      "name",
+      "description",
+      "metaTitle",
+      "metaDescription",
+      "cover",
+      "slug",
     ]);
 
     if (!category) {
       return res.status(400).json({
         success: false,
-        message: 'Category Not Found',
+        message: "Category Not Found",
       });
     }
 
@@ -152,7 +151,7 @@ const updateCategoryBySlug = async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    res.status(201).json({ success: true, message: 'Category Updated' });
+    res.status(201).json({ success: true, message: "Category Updated" });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -167,28 +166,28 @@ const deleteCategoryBySlug = async (req, res) => {
     if (!category) {
       return res.status(400).json({
         success: false,
-        message: 'Category Not Found',
+        message: "Category Not Found",
       });
     }
 
     res
       .status(201)
-      .json({ success: true, message: 'Category Deleted Successfully' });
+      .json({ success: true, message: "Category Deleted Successfully" });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
 };
 const getCategories = async (req, res) => {
   try {
-    const { limit = 10, page = 1, search = '' } = req.query;
+    const { limit = 10, page = 1, search = "" } = req.query;
 
     const skip = parseInt(limit) || 10;
     const totalCategories = await Categories.find({
-      name: { $regex: search, $options: 'i' },
+      name: { $regex: search, $options: "i" },
     });
     const categories = await Categories.find(
       {
-        name: { $regex: search, $options: 'i' },
+        name: { $regex: search, $options: "i" },
       },
       null,
       {
@@ -210,7 +209,7 @@ const getCategories = async (req, res) => {
 };
 const getCategoriesSlugs = async (req, res) => {
   try {
-    const categories = await Categories.find().select('slug');
+    const categories = await Categories.find().select("slug");
 
     res.status(201).json({
       success: true,
@@ -223,8 +222,8 @@ const getCategoriesSlugs = async (req, res) => {
 const getSubCategoriesSlugs = async (req, res) => {
   try {
     const categories = await SubCategories.find()
-      .select('slug')
-      .populate({ path: 'parentCategory', select: ['slug'] });
+      .select("slug")
+      .populate({ path: "parentCategory", select: ["slug"] });
 
     res.status(201).json({
       success: true,
@@ -238,7 +237,7 @@ const getCategoryNameBySlug = async (req, res) => {
   try {
     const category = await Categories.findOne({
       slug: req.params.slug,
-    }).select(['name', 'slug']);
+    }).select(["name", "slug"]);
 
     res.status(201).json({
       success: true,
