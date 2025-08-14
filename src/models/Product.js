@@ -18,29 +18,25 @@ const productSchema = new Schema(
       unique: true,
       maxlength: [100, "Box slug cannot exceed 100 characters."],
     },
-    title: {
+    name: {
       type: String,
-      required: [true, "Title is required."],
-      maxlength: [150, "Title cannot exceed 150 characters."],
+      required: [true, "Name is required."],
+      maxlength: [150, "Name cannot exceed 150 characters."],
     },
     description: {
       type: String,
       required: [true, "Description is required."],
       maxlength: [1000, "Description cannot exceed 1000 characters."],
     },
-    price: {
-      amount: {
-        type: Number,
-        required: [true, "Price amount is required."],
-        min: [0, "Price amount cannot be negative."],
-        max: [100000, "Price amount cannot exceed 100,000."],
-      },
-      currency: {
-        type: String,
-        required: [true, "Currency is required."],
-        maxlength: [3, "Currency code must be 3 characters."],
-        default: "USD",
-      },
+    priceSale: {
+      type: Number,
+      required: [true, "Sale price is required."],
+    },
+    currency: {
+      type: String,
+      required: [true, "Currency is required."],
+      maxlength: [3, "Currency code must be 3 characters."],
+      default: "USD",
     },
     status: {
       type: String,
@@ -50,6 +46,21 @@ const productSchema = new Schema(
       },
       default: "draft",
     },
+    image: {
+      type: String,
+      required: [true, "Item image URL is required."],
+      maxlength: [500, "Image URL cannot exceed 500 characters."],
+    },
+    category: {
+      type: mongoose.Types.ObjectId,
+      ref: "Category",
+      required: [true, "please provide a category id"],
+    },
+    // subCategory: {
+    //   type: mongoose.Types.ObjectId,
+    //   ref: "SubCategory",
+    //   required: [true, "please provide a sub category id"],
+    // },
     items: [
       {
         name: {

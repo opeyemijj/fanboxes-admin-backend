@@ -102,7 +102,7 @@ const createProductByVendor = async (req, res) => {
 
     const { images, ...body } = req.body;
 
-    console.log(user._id, "Get the request body");
+    console.log(body, "Get the request body");
 
     const shop = await Shop.findOne({
       vendor: vendor._id.toString(),
@@ -127,6 +127,7 @@ const createProductByVendor = async (req, res) => {
 
     const data = await Product.create({
       ...body,
+      image: images[0]?.url,
       influencerId: user._id,
       shop: shop._id,
       likes: 0,
