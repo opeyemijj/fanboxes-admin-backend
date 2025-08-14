@@ -17,9 +17,18 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
+// Enhanced Middleware
+app.use(helmet()); // Security headers
+app.use(compression()); // Compress responses
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 
 // Connect to MongoDB
 mongoose
