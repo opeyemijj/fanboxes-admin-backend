@@ -5,7 +5,7 @@ const Brand = require("../models/Brand");
 const _ = require("lodash");
 const { multiFilesDelete } = require("../config/uploader");
 const blurDataUrl = require("../config/getBlurDataURL");
-const { getVendor } = require("../config/getUser");
+const { getVendor, getUser } = require("../config/getUser");
 
 const getProductsByVendor = async (req, res) => {
   try {
@@ -98,10 +98,11 @@ const getProductsByVendor = async (req, res) => {
 const createProductByVendor = async (req, res) => {
   try {
     const vendor = await getVendor(req, res);
+    const user = await getUser(req, res);
 
     const { images, ...body } = req.body;
 
-    console.log(req.body, "Get the request body");
+    console.log(user._id, "Get the request body");
 
     const shop = await Shop.findOne({
       vendor: vendor._id.toString(),
@@ -126,6 +127,7 @@ const createProductByVendor = async (req, res) => {
 
     const data = await Product.create({
       ...body,
+      influencerId: user._id,
       shop: shop._id,
       likes: 0,
     });
