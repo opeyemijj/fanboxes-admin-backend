@@ -102,6 +102,12 @@ const productSchema = new Schema(
           min: [0, "Weight cannot be negative."],
           max: [100, "Weight percentage cannot exceed 100."],
         },
+        odd: {
+          type: Number,
+          required: [true, "Item odd is required."],
+          min: [0, "Weight cannot be negative."],
+          max: [100, "Weight percentage cannot exceed 100."],
+        },
         status: {
           type: String,
           enum: {
