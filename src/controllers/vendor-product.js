@@ -118,16 +118,16 @@ const createProductByVendor = async (req, res) => {
       });
     }
 
-    // const updatedImages = await Promise.all(
-    //   images?.map(async (image) => {
-    //     const blurDataURL = await blurDataUrl(image.url);
-    //     return { ...image, blurDataURL };
-    //   })
-    // );
+    const updatedImages = await Promise.all(
+      images?.map(async (image) => {
+        const blurDataURL = await blurDataUrl(image.url);
+        return { ...image, blurDataURL };
+      })
+    );
 
     const data = await Product.create({
       ...body,
-      image: images[0]?.url,
+      images: updatedImages,
       influencerId: user._id,
       shop: shop._id,
       likes: 0,

@@ -46,11 +46,22 @@ const productSchema = new Schema(
       },
       default: "draft",
     },
-    image: {
-      type: String,
-      required: [true, "Item image URL is required."],
-      maxlength: [500, "Image URL cannot exceed 500 characters."],
-    },
+    images: [
+      {
+        url: {
+          type: String,
+          required: [true],
+        },
+        _id: {
+          type: String,
+          required: [true],
+        },
+        blurDataURL: {
+          type: String,
+          required: [true, "image-blur-data-url-required-error"],
+        },
+      },
+    ],
     category: {
       type: mongoose.Types.ObjectId,
       ref: "Category",
