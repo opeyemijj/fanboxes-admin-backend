@@ -146,6 +146,47 @@ const createProductByVendor = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
+const createBoxItemByVendor = async (req, res) => {
+  // console.log(req.body, "Come here to create the box");
+  try {
+    const vendor = await getVendor(req, res);
+    const user = await getUser(req, res);
+
+    const { boxSlug } = req.body; // expect productSlug & item object from request
+
+    let item = req.body;
+    const updatedImages = await Promise.all(
+      item?.images?.map(async (image) => {
+        const blurDataURL = await blurDataUrl(image.url);
+        return { ...image, blurDataURL };
+      })
+    );
+    item.images = updatedImages;
+
+    // Find the product by slug and push the new item
+    const updatedProduct = await Product.findOneAndUpdate(
+      { slug: boxSlug },
+      { $push: { items: item } },
+      { new: true, runValidators: true } // return updated doc and validate the item
+    );
+
+    if (!updatedProduct) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Item added to box",
+      data: updatedProduct,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 const getOneProductVendor = async (req, res) => {
   try {
     const vendor = await getVendor(req, res);
@@ -298,4 +339,5 @@ module.exports = {
   getOneProductVendor,
   updateProductByVendor,
   deletedProductByVendor,
+  createBoxItemByVendor,
 };
