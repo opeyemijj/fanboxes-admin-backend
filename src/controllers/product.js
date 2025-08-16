@@ -839,6 +839,7 @@ const getProductsByAdmin = async (request, response) => {
           shop: 1,
           available: 1,
           createdAt: 1,
+          items: 1,
         },
       },
     ]);
