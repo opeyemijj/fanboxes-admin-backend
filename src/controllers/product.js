@@ -970,6 +970,63 @@ const updateProductByAdmin = async (req, res) => {
     return res.status(400).json({ success: false, error: error.message });
   }
 };
+
+const updateBoxItemByAdmin = async (req, res) => {
+  try {
+    const { images, ...body } = req.body;
+
+    // rebuild images with blurDataURL
+    const updatedImages = await Promise.all(
+      images.map(async (image) => {
+        const blurDataURL = await blurDataUrl(image.url);
+        return { ...image, blurDataURL };
+      })
+    );
+
+    // sanitize item fields
+    const updatedItem = { ...body, images: updatedImages };
+    const prodcutSlug = updatedItem.boxSlug;
+    delete updatedItem.boxSlug;
+    delete updatedItem.blob;
+
+    const itemSlug = req.body.slug; // keep this for filter
+    delete updatedItem.slug; // don't overwrite slug
+
+    // build $set dynamically
+    const setOps = Object.fromEntries(
+      Object.entries(updatedItem).map(([key, value]) => [
+        `items.$[elem].${key}`,
+        value,
+      ])
+    );
+
+    const updated = await Product.findOneAndUpdate(
+      { slug: prodcutSlug }, // make sure vendor matches
+      { $set: setOps },
+      {
+        arrayFilters: [{ "elem.slug": itemSlug }],
+        runValidators: true,
+        new: true, // return updated doc
+      }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Box or item not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: updated,
+      message: "Item Updated",
+    });
+  } catch (error) {
+    console.error("Update error:", error);
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
+
 async function deletedProductByAdmin(req, res) {
   try {
     const slug = req.params.slug;
@@ -1414,6 +1471,7 @@ module.exports = {
   createProductByAdmin,
   getOneProductByAdmin,
   updateProductByAdmin,
+  updateBoxItemByAdmin,
   deletedProductByAdmin,
   getFiltersByCategory,
   getFiltersByShop,

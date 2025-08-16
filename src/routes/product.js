@@ -12,6 +12,7 @@ router.post("/admin/products", verifyToken, product.createProductByAdmin);
 router.get("/admin/products", verifyToken, product.getProductsByAdmin);
 router.get("/admin/products/:slug", verifyToken, product.getOneProductByAdmin);
 router.put("/admin/products/:slug", verifyToken, product.updateProductByAdmin);
+router.put("/admin/boxItem/:slug", verifyToken, product.updateBoxItemByAdmin);
 
 router.delete(
   "/admin/products/:slug",

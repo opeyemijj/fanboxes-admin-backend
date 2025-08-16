@@ -85,6 +85,11 @@ const productSchema = new Schema(
           unique: true,
           maxlength: [100, "Item slug cannot exceed 100 characters."],
         },
+        description: {
+          type: String,
+          required: [true, "Description is required."],
+          maxlength: [1000, "Description cannot exceed 1000 characters."],
+        },
         images: [
           {
             url: {
