@@ -52,13 +52,13 @@ const itemSchema = new Schema({
     type: Number,
     required: [true, "Item weight is required."],
     min: [0, "Weight cannot be negative."],
-    max: [100, "Weight percentage cannot exceed 100."],
+    max: [1000, "Weight percentage cannot exceed 100."],
   },
   odd: {
     type: Number,
     required: [true, "Item odd is required."],
     min: [0, "Odd cannot be negative."],
-    max: [100, "Odd percentage cannot exceed 100."],
+    max: [1000, "Odd percentage cannot exceed 100."],
   },
   status: {
     type: String,
