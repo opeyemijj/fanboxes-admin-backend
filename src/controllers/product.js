@@ -861,7 +861,7 @@ const createProductByAdmin = async (req, res) => {
     const admin = await getAdmin(req, res);
 
     const { images, ...body } = req.body;
-    // console.log(req.body, "Check the request body");
+    console.log(req.body, "Check the request body");
 
     const shop = await Shop.findOne({
       _id: req.body.shop,

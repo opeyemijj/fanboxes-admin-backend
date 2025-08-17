@@ -95,14 +95,13 @@ const getProductsByVendor = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
 const createProductByVendor = async (req, res) => {
   try {
     const vendor = await getVendor(req, res);
-    const user = await getUser(req, res);
+    console.log(vendor, "Check the vendor");
 
     const { images, ...body } = req.body;
-
-    console.log(body, "Get the request body");
 
     const shop = await Shop.findOne({
       vendor: vendor._id.toString(),
@@ -119,7 +118,7 @@ const createProductByVendor = async (req, res) => {
     }
 
     const updatedImages = await Promise.all(
-      images?.map(async (image) => {
+      images.map(async (image) => {
         const blurDataURL = await blurDataUrl(image.url);
         return { ...image, blurDataURL };
       })
@@ -127,9 +126,8 @@ const createProductByVendor = async (req, res) => {
 
     const data = await Product.create({
       ...body,
-      images: updatedImages,
-      influencerId: user._id,
       shop: shop._id,
+      images: updatedImages,
       likes: 0,
     });
     await Shop.findByIdAndUpdate(shop._id.toString(), {
@@ -139,7 +137,7 @@ const createProductByVendor = async (req, res) => {
     });
     res.status(201).json({
       success: true,
-      message: "Box Created",
+      message: "Product Created",
       data: data,
     });
   } catch (error) {
@@ -148,14 +146,11 @@ const createProductByVendor = async (req, res) => {
 };
 
 const createBoxItemByVendor = async (req, res) => {
-  // console.log(req.body, "Come here to create the box");
   try {
-    const vendor = await getVendor(req, res);
-    const user = await getUser(req, res);
+    const { boxSlug } = req.body; // product slug
+    let item = { ...req.body };
 
-    const { boxSlug } = req.body; // expect productSlug & item object from request
-
-    let item = req.body;
+    // rebuild images with blurDataURL
     const updatedImages = await Promise.all(
       item?.images?.map(async (image) => {
         const blurDataURL = await blurDataUrl(image.url);
@@ -164,23 +159,29 @@ const createBoxItemByVendor = async (req, res) => {
     );
     item.images = updatedImages;
 
-    // Find the product by slug and push the new item
-    const updatedProduct = await Product.findOneAndUpdate(
-      { slug: boxSlug },
-      { $push: { items: item } },
-      { new: true, runValidators: true } // return updated doc and validate the item
-    );
-
-    if (!updatedProduct) {
+    // Find the product first
+    const product = await Product.findOne({ slug: boxSlug });
+    if (!product)
       return res
         .status(404)
         .json({ success: false, message: "Product not found" });
+
+    // Check for duplicate slug
+    if (product.items.some((i) => i.slug === item.slug)) {
+      return res.status(400).json({
+        success: false,
+        message: "Duplicate item slug in this product",
+      });
     }
+
+    // Push the new item
+    product.items.push(item);
+    await product.save(); // ✅ triggers pre-save validation & hooks
 
     res.status(200).json({
       success: true,
       message: "Item added to box",
-      data: updatedProduct,
+      data: product,
     });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
