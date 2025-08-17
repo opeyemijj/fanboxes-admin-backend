@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 const productSchema = new Schema(
   {
-    influencerId: {
+    vendor: {
       type: Schema.Types.ObjectId,
       required: [true, "Influencer ID is required."],
     },

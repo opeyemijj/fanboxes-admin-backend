@@ -917,7 +917,7 @@ const createProductByAdmin = async (req, res) => {
     const data = await Product.create({
       ...body,
       images: updatedImages,
-      influencerId: shop.vendor,
+      vendor: admin._id,
       influencerDetails: tempInfluencerDetails,
       shopDetails: tempShopDetails,
       categoryDetails: tempCategoryDetails,
