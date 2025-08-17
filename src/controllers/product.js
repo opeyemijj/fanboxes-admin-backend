@@ -1,6 +1,7 @@
 const Brand = require("../models/Brand");
 const Product = require("../models/Product");
 const Shop = require("../models/Shop");
+const User = require("../models/User");
 const Category = require("../models/Category");
 const SubCategory = require("../models/SubCategory");
 const Compaign = require("../models/Compaign");
@@ -866,16 +867,61 @@ const createProductByAdmin = async (req, res) => {
       _id: req.body.shop,
     });
 
+    const influencer = await User.findOne({
+      _id: shop.vendor,
+    });
+
+    const category = await Category.findOne({
+      _id: req.body.category,
+    });
+
+    const subCategory = await SubCategory.findOne({
+      _id: req.body.subCategory,
+    });
+
     const updatedImages = await Promise.all(
       images.map(async (image) => {
         const blurDataURL = await blurDataUrl(image.url);
         return { ...image, blurDataURL };
       })
     );
+
+    const tempShopDetails = {
+      _id: shop._id,
+      title: shop.title,
+      slug: shop.slug,
+      logo: shop.logo,
+      cover: shop.cover,
+    };
+    const tempCategoryDetails = {
+      _id: category._id,
+      name: category.name,
+      slug: category.slug,
+      metaTitle: category.metaTitle,
+      cover: category.cover,
+    };
+    const tempSubCategoryDetails = {
+      _id: subCategory._id,
+      name: subCategory.name,
+      slug: subCategory.slug,
+      metaTitle: subCategory.metaTitle,
+      cover: subCategory.cover,
+    };
+    const tempInfluencerDetails = {
+      _id: influencer._id,
+      firstName: influencer.firstName,
+      lastName: influencer.lastName,
+      gender: influencer.gender,
+    };
+
     const data = await Product.create({
       ...body,
       images: updatedImages,
       influencerId: shop.vendor,
+      influencerDetails: tempInfluencerDetails,
+      shopDetails: tempShopDetails,
+      categoryDetails: tempCategoryDetails,
+      subCategoryDetails: tempSubCategoryDetails,
       likes: 0,
     });
     await Shop.findByIdAndUpdate(req.body.shop, {

@@ -7,11 +7,20 @@ const productSchema = new Schema(
       type: Schema.Types.ObjectId,
       required: [true, "Influencer ID is required."],
     },
+    influencerDetails: {
+      type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
+      default: {},
+    },
     shop: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Shop",
       required: true,
     },
+    shopDetails: {
+      type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
+      default: {},
+    },
+
     slug: {
       type: String,
       required: [true, "Box slug is required."],
@@ -67,11 +76,19 @@ const productSchema = new Schema(
       ref: "Category",
       required: [true, "please provide a category id"],
     },
-    // subCategory: {
-    //   type: mongoose.Types.ObjectId,
-    //   ref: "SubCategory",
-    //   required: [true, "please provide a sub category id"],
-    // },
+    categoryDetails: {
+      type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
+      default: {},
+    },
+    subCategory: {
+      type: mongoose.Types.ObjectId,
+      ref: "SubCategory",
+      required: [true, "please provide a sub category id"],
+    },
+    subCategoryDetails: {
+      type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
+      default: {},
+    },
     items: [
       {
         name: {
