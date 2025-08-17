@@ -6,6 +6,7 @@ const _ = require("lodash");
 const { multiFilesDelete } = require("../config/uploader");
 const blurDataUrl = require("../config/getBlurDataURL");
 const { getVendor, getUser } = require("../config/getUser");
+const SubCategory = require("../models/SubCategory");
 
 const getProductsByVendor = async (req, res) => {
   try {
@@ -99,9 +100,9 @@ const getProductsByVendor = async (req, res) => {
 const createProductByVendor = async (req, res) => {
   try {
     const vendor = await getVendor(req, res);
-    console.log(vendor, "Check the vendor");
 
     const { images, ...body } = req.body;
+    // console.log(vendor, "Check the vendor");
 
     const shop = await Shop.findOne({
       vendor: vendor._id.toString(),
@@ -117,6 +118,14 @@ const createProductByVendor = async (req, res) => {
       });
     }
 
+    const category = await Category.findOne({
+      _id: req.body.category,
+    });
+
+    const subCategory = await SubCategory.findOne({
+      _id: req.body.subCategory,
+    });
+
     const updatedImages = await Promise.all(
       images.map(async (image) => {
         const blurDataURL = await blurDataUrl(image.url);
@@ -124,8 +133,41 @@ const createProductByVendor = async (req, res) => {
       })
     );
 
+    const tempShopDetails = {
+      _id: shop._id,
+      title: shop.title,
+      slug: shop.slug,
+      logo: shop.logo,
+      cover: shop.cover,
+    };
+    const tempCategoryDetails = {
+      _id: category._id,
+      name: category.name,
+      slug: category.slug,
+      metaTitle: category.metaTitle,
+      cover: category.cover,
+    };
+    const tempSubCategoryDetails = {
+      _id: subCategory._id,
+      name: subCategory.name,
+      slug: subCategory.slug,
+      metaTitle: subCategory.metaTitle,
+      cover: subCategory.cover,
+    };
+    const tempVendorDetails = {
+      _id: vendor._id,
+      firstName: vendor.firstName,
+      lastName: vendor.lastName,
+      gender: vendor.gender,
+    };
+
     const data = await Product.create({
       ...body,
+      vendor: vendor._id,
+      vendorDetails: tempVendorDetails,
+      shopDetails: tempShopDetails,
+      categoryDetails: tempCategoryDetails,
+      subCategoryDetails: tempSubCategoryDetails,
       shop: shop._id,
       images: updatedImages,
       likes: 0,
