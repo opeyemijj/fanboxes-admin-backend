@@ -867,10 +867,6 @@ const createProductByAdmin = async (req, res) => {
       _id: req.body.shop,
     });
 
-    const influencer = await User.findOne({
-      _id: shop.vendor,
-    });
-
     const category = await Category.findOne({
       _id: req.body.category,
     });
@@ -907,18 +903,18 @@ const createProductByAdmin = async (req, res) => {
       metaTitle: subCategory.metaTitle,
       cover: subCategory.cover,
     };
-    const tempInfluencerDetails = {
-      _id: influencer._id,
-      firstName: influencer.firstName,
-      lastName: influencer.lastName,
-      gender: influencer.gender,
+    const tempVendorDetails = {
+      _id: admin._id,
+      firstName: admin.firstName,
+      lastName: admin.lastName,
+      gender: admin.gender,
     };
 
     const data = await Product.create({
       ...body,
       images: updatedImages,
       vendor: admin._id,
-      influencerDetails: tempInfluencerDetails,
+      vendorDetails: tempVendorDetails,
       shopDetails: tempShopDetails,
       categoryDetails: tempCategoryDetails,
       subCategoryDetails: tempSubCategoryDetails,
