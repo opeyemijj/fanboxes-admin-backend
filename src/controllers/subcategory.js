@@ -1,21 +1,16 @@
-const SubCategories = require('../models/SubCategory');
-const Category = require('../models/Category');
-const getBlurDataURL = require('../config/getBlurDataURL');
-const { singleFileDelete } = require('../config/uploader');
+const SubCategories = require("../models/SubCategory");
+const Category = require("../models/Category");
+const getBlurDataURL = require("../config/getBlurDataURL");
+const { singleFileDelete } = require("../config/uploader");
 const createSubCategory = async (req, res) => {
   try {
     const { cover, ...others } = req.body;
     // Validate if the 'blurDataURL' property exists in the logo object
 
     // If blurDataURL is not provided, generate it using the 'getBlurDataURL' function
-    const blurDataURL = await getBlurDataURL(cover.url);
 
     const category = await SubCategories.create({
       ...others,
-      cover: {
-        ...cover,
-        blurDataURL,
-      },
     });
     await Category.findByIdAndUpdate(others.parentCategory, {
       $addToSet: {
@@ -23,7 +18,7 @@ const createSubCategory = async (req, res) => {
       },
     });
 
-    res.status(201).json({ success: true, message: 'SubCategory Created' });
+    res.status(201).json({ success: true, message: "SubCategory Created" });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -31,16 +26,16 @@ const createSubCategory = async (req, res) => {
 
 const getAllSubCategories = async (req, res) => {
   try {
-    const { limit = 10, page = 1, search = '', category } = req.query;
+    const { limit = 10, page = 1, search = "", category } = req.query;
     const currentCategory = category
       ? await Category.findOne({ slug: category })
       : null;
     if (category && !currentCategory) {
-      res.status(404).json({ message: 'Category not found!' });
+      res.status(404).json({ message: "Category not found!" });
     }
     const skip = parseInt(limit) || 10;
     const query = {
-      name: { $regex: search, $options: 'i' },
+      name: { $regex: search, $options: "i" },
       ...(currentCategory && { parentCategory: currentCategory._id }),
     };
 
@@ -66,11 +61,11 @@ const getSubCategoriesBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
     const subcategories = await SubCategories.findOne({ slug });
-    const categories = await Category.find().select(['name']);
+    const categories = await Category.find().select(["name"]);
 
     if (!subcategories) {
       return res.status(400).json({
-        message: 'Subcategory Not Found',
+        message: "Subcategory Not Found",
       });
     }
 
@@ -117,7 +112,7 @@ const updateSubCategoriesBySlug = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'SubCategory Updated',
+      message: "SubCategory Updated",
       currentCategory,
     });
   } catch (error) {
@@ -138,13 +133,13 @@ const deleteSubCategoriesBySlug = async (req, res) => {
     if (!subCategory) {
       return res.status(400).json({
         success: false,
-        message: 'Subcategory Not Found',
+        message: "Subcategory Not Found",
       });
     }
 
     res
       .status(201)
-      .json({ success: true, message: 'SubCategory Deleted Successfully' });
+      .json({ success: true, message: "SubCategory Deleted Successfully" });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -167,8 +162,8 @@ const getSubCategories = async (req, res) => {
 const getSubCategoryNameBySlug = async (req, res) => {
   try {
     const subcategory = await SubCategories.findOne({ slug: req.params.slug })
-      .select(['name', 'slug'])
-      .populate({ path: 'parentCategory', select: ['name', 'slug'] });
+      .select(["name", "slug"])
+      .populate({ path: "parentCategory", select: ["name", "slug"] });
 
     res.status(201).json({
       success: true,
