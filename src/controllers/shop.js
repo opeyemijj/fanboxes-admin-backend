@@ -9,6 +9,7 @@ const _ = require("lodash");
 const getBlurDataURL = require("../config/getBlurDataURL");
 const { getVendor, getAdmin, getUser } = require("../config/getUser");
 const { singleFileDelete } = require("../config/uploader");
+const sendEmail = require("../config/mailer");
 // Admin apis
 const getShopsByAdmin = async (req, res) => {
   try {
@@ -62,6 +63,20 @@ const createShopByAdmin = async (req, res) => {
       lastName: admin.lastName,
       gender: admin.gender,
     };
+
+    try {
+      await sendEmail({
+        to: "a.shahadath@shoutty.app",
+        subject: "Welcome to My App 🎉",
+        html:
+          "<h1>Hello!</h1><p>This is a test email from Mailtrap + Node.js</p>",
+      });
+
+      // return res.json({ success: true, message: "Email sent successfully" });
+      return res.status(400).json({ success: false, message: "Testing" });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
+    }
 
     const shop = await Shop.create({
       vendor: admin._id.toString(),
