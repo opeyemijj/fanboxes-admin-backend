@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Product = require("../models/Product");
 const Orders = require("../models/Order");
 const Payment = require("../models/Payment");
+const otpGenerator = require("otp-generator");
 
 const nodemailer = require("nodemailer");
 const _ = require("lodash");
@@ -11,6 +12,7 @@ const { getVendor, getAdmin, getUser } = require("../config/getUser");
 const { singleFileDelete } = require("../config/uploader");
 const sendEmail = require("../config/mailer");
 const getWelcomeEmailContent = require("../email-templates/newVendorAccount");
+const { splitUserName } = require("../helpers/userHelper");
 // Admin apis
 const getShopsByAdmin = async (req, res) => {
   try {
@@ -52,23 +54,63 @@ const getShopsByAdmin = async (req, res) => {
   }
 };
 const createShopByAdmin = async (req, res) => {
+  let newVendorUser = null;
   try {
     const admin = await getAdmin(req, res);
     const { logo, cover, ...others } = req.body;
+    const requestData = req.body;
     const logoBlurDataURL = await getBlurDataURL(logo.url);
     const coverBlurDataURL = await getBlurDataURL(cover.url);
 
+    // console.log(req.body, "Check the req bod");
+
+    const newUserName = splitUserName(requestData?.paymentInfo?.holderName);
+    const newUserEmail = requestData?.paymentInfo?.holderEmail;
+    const newUserPhone = requestData?.phone;
+    const newUserGender = "male";
+
+    const existingUser = await User.findOne({ email: newUserEmail });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User With This Email Already Exists",
+      });
+    }
+
+    const otp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      specialChars: false,
+      lowerCaseAlphabets: false,
+      digits: true,
+    });
+
+    const newUserPassword = `${newUserName.firstName}2025${Math.random()
+      .toString(36)
+      .substring(2, 7)}`;
+
+    newVendorUser = await User.create({
+      firstName: newUserName.firstName,
+      lastName: newUserName.lastName,
+      gender: newUserGender,
+      phone: newUserPhone,
+      email: newUserEmail,
+      otp,
+      role: "user",
+      password: newUserPassword,
+    });
+
     const tempVendorDetails = {
-      _id: admin._id,
-      firstName: admin.firstName,
-      lastName: admin.lastName,
-      gender: admin.gender,
+      _id: newVendorUser._id,
+      firstName: newVendorUser.firstName,
+      lastName: newVendorUser.lastName,
+      gender: newVendorUser.gender,
     };
 
-    const newUserEmail = "newuser@example.com";
-    const newUserPassword = "userpassword123";
-
-    const htmlContent = getWelcomeEmailContent(newUserEmail, newUserPassword);
+    const htmlContent = getWelcomeEmailContent(
+      newUserEmail,
+      newUserPassword,
+      otp
+    );
 
     try {
       await sendEmail({
@@ -80,8 +122,10 @@ const createShopByAdmin = async (req, res) => {
       console.log("Failed email sending: ", err);
     }
 
+    // return res.status(400).json({ success: false, message: "Testing" });
+
     const shop = await Shop.create({
-      vendor: admin._id.toString(),
+      vendor: newVendorUser._id,
       vendorDetails: tempVendorDetails,
       ...others,
       logo: {
@@ -101,6 +145,7 @@ const createShopByAdmin = async (req, res) => {
       message: "Shop created",
     });
   } catch (error) {
+    await User.deleteOne({ _id: newVendorUser._id });
     return res.status(400).json({ success: false, message: error.message });
   }
 };

@@ -1,7 +1,8 @@
 function getWelcomeEmailContent(
   email,
   password,
-  loginUrl = "https://fanbox.app/login"
+  loginUrl = "https://fanbox.app/login",
+  otp
 ) {
   return `
   <!DOCTYPE html>
@@ -59,6 +60,7 @@ function getWelcomeEmailContent(
       <div class="credentials">
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Password:</strong> ${password}</p>
+        <p><strong>OTP:</strong> ${otp}</p>
       </div>
 
       <p>Please keep this information safe and do not share it with anyone.</p>
