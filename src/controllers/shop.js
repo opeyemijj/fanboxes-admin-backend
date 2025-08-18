@@ -308,7 +308,8 @@ const deleteOneShopByAdmin = async (req, res) => {
   try {
     const admin = await getAdmin(req, res);
     const { slug } = req.params;
-    const shop = await Shop.findOne({ slug, vendor: admin._id });
+    // const shop = await Shop.findOne({ slug, vendor: admin._id });
+    const shop = await Shop.findOne({ slug });
     if (!shop) {
       return res.status(404).json({ message: "Shop Not Found" });
     }

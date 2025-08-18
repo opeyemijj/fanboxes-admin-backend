@@ -1,9 +1,10 @@
 function getWelcomeEmailContent(
   email,
   password,
-  loginUrl = "https://fanbox.app/login",
-  otp
+  otp,
+  loginUrl = "https://fanbox.app/login"
 ) {
+  console.log(otp, "OTP is coming here");
   return `
   <!DOCTYPE html>
   <html>
