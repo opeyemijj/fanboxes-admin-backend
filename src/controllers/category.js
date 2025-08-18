@@ -6,18 +6,10 @@ const getBlurDataURL = require("../config/getBlurDataURL");
 
 const createCategory = async (req, res) => {
   try {
-    const { cover, ...others } = req.body;
-    // Validate if the 'blurDataURL' property exists in the logo object
-
-    // If blurDataURL is not provided, generate it using the 'getBlurDataURL' function
-    const blurDataURL = await getBlurDataURL(cover.url);
+    const { ...others } = req.body;
 
     await Categories.create({
       ...others,
-      cover: {
-        ...cover,
-        blurDataURL,
-      },
     });
 
     res.status(201).json({ success: true, message: "Category Created" });
