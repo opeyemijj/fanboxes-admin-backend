@@ -1,14 +1,14 @@
-const Shop = require('../models/Shop');
-const User = require('../models/User');
-const Product = require('../models/Product');
-const Orders = require('../models/Order');
-const Payment = require('../models/Payment');
+const Shop = require("../models/Shop");
+const User = require("../models/User");
+const Product = require("../models/Product");
+const Orders = require("../models/Order");
+const Payment = require("../models/Payment");
 
-const nodemailer = require('nodemailer');
-const _ = require('lodash');
-const getBlurDataURL = require('../config/getBlurDataURL');
-const { getVendor, getAdmin, getUser } = require('../config/getUser');
-const { singleFileDelete } = require('../config/uploader');
+const nodemailer = require("nodemailer");
+const _ = require("lodash");
+const getBlurDataURL = require("../config/getBlurDataURL");
+const { getVendor, getAdmin, getUser } = require("../config/getUser");
+const { singleFileDelete } = require("../config/uploader");
 // Admin apis
 const getShopsByAdmin = async (req, res) => {
   try {
@@ -22,18 +22,18 @@ const getShopsByAdmin = async (req, res) => {
       limit: parseInt(limit),
     })
       .select([
-        'vendor',
-        'logo',
-        'slug',
-        'status',
-        'products',
-        'title',
-        'approvedAt',
-        'approved',
+        "vendor",
+        "logo",
+        "slug",
+        "status",
+        "products",
+        "title",
+        "approvedAt",
+        "approved",
       ])
       .populate({
-        path: 'vendor',
-        select: ['firstName', 'lastName', 'cover'],
+        path: "vendor",
+        select: ["firstName", "lastName", "cover"],
       })
 
       .sort({
@@ -56,8 +56,16 @@ const createShopByAdmin = async (req, res) => {
     const logoBlurDataURL = await getBlurDataURL(logo.url);
     const coverBlurDataURL = await getBlurDataURL(cover.url);
 
+    const tempVendorDetails = {
+      _id: admin._id,
+      firstName: admin.firstName,
+      lastName: admin.lastName,
+      gender: admin.gender,
+    };
+
     const shop = await Shop.create({
       vendor: admin._id.toString(),
+      vendorDetails: tempVendorDetails,
       ...others,
       logo: {
         ...logo,
@@ -67,13 +75,13 @@ const createShopByAdmin = async (req, res) => {
         ...cover,
         blurDataURL: coverBlurDataURL,
       },
-      status: 'approved',
+      status: "approved",
     });
 
     return res.status(200).json({
       success: true,
       data: shop,
-      message: 'Shop created',
+      message: "Shop created",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -86,14 +94,14 @@ async function getTotalEarningsByShopId(shopId) {
     {
       $match: {
         shop: shopId,
-        status: 'paid', // Filter by shop ID and paid status
+        status: "paid", // Filter by shop ID and paid status
       },
     },
     {
       $group: {
         _id: null, // Group all documents (optional, set shop ID for grouping by shop)
-        totalEarnings: { $sum: '$totalIncome' }, // Calculate sum of totalIncome for paid payments
-        totalCommission: { $sum: '$totalCommission' }, // Calculate sum of totalIncome for paid payments
+        totalEarnings: { $sum: "$totalIncome" }, // Calculate sum of totalIncome for paid payments
+        totalCommission: { $sum: "$totalCommission" }, // Calculate sum of totalIncome for paid payments
       },
     },
   ];
@@ -116,7 +124,7 @@ const getOneShopByAdmin = async (req, res) => {
     const { slug } = req.params;
     const shop = await Shop.findOne({ slug: slug });
     if (!shop) {
-      return res.status(404).json({ message: 'Shop Not Found' });
+      return res.status(404).json({ message: "Shop Not Found" });
     }
     const { totalCommission, totalEarnings } = await getTotalEarningsByShopId(
       shop._id
@@ -126,7 +134,7 @@ const getOneShopByAdmin = async (req, res) => {
       shop: shop._id,
     });
     const totalOrders = await Orders.countDocuments({
-      'items.shop': shop._id,
+      "items.shop": shop._id,
     });
 
     return res.status(200).json({
@@ -152,7 +160,7 @@ const updateOneShopByAdmin = async (req, res) => {
     if (!shop) {
       return res
         .status(404)
-        .json({ success: false, message: 'Shop not found' });
+        .json({ success: false, message: "Shop not found" });
     }
 
     const { logo, cover, status, ...others } = req.body;
@@ -175,15 +183,15 @@ const updateOneShopByAdmin = async (req, res) => {
 
     // Email message
     let message;
-    if (status === 'approved') {
-      message = 'Your shop is now approved.';
+    if (status === "approved") {
+      message = "Your shop is now approved.";
     } else {
-      message = 'Your shop is not approved.';
+      message = "Your shop is not approved.";
     }
 
     // Create nodemailer transporter
     let transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
         user: process.env.RECEIVING_EMAIL, // Your Gmail email
         pass: process.env.EMAIL_PASSWORD, // Your Gmail password
@@ -194,14 +202,14 @@ const updateOneShopByAdmin = async (req, res) => {
     let mailOptions = {
       from: process.env.RECEIVING_EMAIL, // Your Gmail email
       to: vendor.email, // User's email
-      subject: 'Shop Status Update', // Email subject
+      subject: "Shop Status Update", // Email subject
       text: message, // Email body
     };
 
     // Send email
     await transporter.sendMail(mailOptions);
 
-    return res.status(200).json({ success: true, message: 'Updated Shop' });
+    return res.status(200).json({ success: true, message: "Updated Shop" });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
@@ -228,7 +236,7 @@ const updateShopStatusByAdmin = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Updated Status',
+      message: "Updated Status",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -240,7 +248,7 @@ const deleteOneShopByAdmin = async (req, res) => {
     const { slug } = req.params;
     const shop = await Shop.findOne({ slug, vendor: admin._id });
     if (!shop) {
-      return res.status(404).json({ message: 'Shop Not Found' });
+      return res.status(404).json({ message: "Shop Not Found" });
     }
     await singleFileDelete(shop.cover._id);
     await singleFileDelete(shop.logo._id);
@@ -248,7 +256,7 @@ const deleteOneShopByAdmin = async (req, res) => {
     await Shop.deleteOne({ slug }); // Corrected to pass an object to deleteOne method
     return res.status(200).json({
       success: true,
-      message: 'Shop Deleted Successfully', // Corrected message typo
+      message: "Shop Deleted Successfully", // Corrected message typo
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -262,8 +270,16 @@ const createShopByVendor = async (req, res) => {
     const logoBlurDataURL = await getBlurDataURL(logo?.url);
     const coverBlurDataURL = await getBlurDataURL(cover?.url);
 
+    const tempVendorDetails = {
+      _id: vendor._id,
+      firstName: vendor.firstName,
+      lastName: vendor.lastName,
+      gender: vendor.gender,
+    };
+
     const shop = await Shop.create({
       vendor: vendor._id.toString(),
+      vendorDetails: tempVendorDetails,
       ...others,
       logo: {
         ...logo,
@@ -273,13 +289,13 @@ const createShopByVendor = async (req, res) => {
         ...cover,
         blurDataURL: coverBlurDataURL,
       },
-      status: 'pending',
+      status: "pending",
     });
 
     return res.status(200).json({
       success: true,
       data: shop,
-      message: 'Shop created',
+      message: "Shop created",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -321,16 +337,16 @@ const createShopByUser = async (req, res) => {
         ...cover,
         blurDataURL: coverBlurDataURL,
       },
-      status: 'pending',
+      status: "pending",
     });
     await User.findByIdAndUpdate(user._id.toString(), {
       shop: createdShop._id.toString(),
-      role: 'vendor',
+      role: "vendor",
     });
 
     return res.status(200).json({
       success: true,
-      message: 'Shop created',
+      message: "Shop created",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -343,7 +359,7 @@ const getOneShopByVendor = async (req, res) => {
 
     const shop = await Shop.findOne({ vendor: vendor._id });
     if (!shop) {
-      return res.status(404).json({ message: 'Shop Not Found' });
+      return res.status(404).json({ message: "Shop Not Found" });
     }
     return res.status(200).json({
       success: true,
@@ -401,7 +417,7 @@ const updateOneShopByVendor = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Updated shop',
+      message: "Updated shop",
       data: updateShop,
     });
   } catch (error) {
@@ -414,13 +430,13 @@ const deleteOneShopByVendor = async (req, res) => {
     const vendor = await getVendor(req, res);
     const shop = await Shop.findOne({ slug: slug, vendor: vendor._id });
     if (!shop) {
-      return res.status(404).json({ message: 'Shop Not Found' });
+      return res.status(404).json({ message: "Shop Not Found" });
     }
     // const dataaa = await singleFileDelete(shop?.logo?._id,shop?.cover?._id);
     await Shop.deleteOne({ _id: slug, vendor: vendor._id }); // Corrected to pass an object to deleteOne method
     return res.status(200).json({
       success: true,
-      message: 'Shop Deleted Successfully', // Corrected message typo
+      message: "Shop Deleted Successfully", // Corrected message typo
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -435,12 +451,12 @@ const getShops = async (req, res) => {
     limit = parseInt(limit) || null; // default limit to null if not provided
 
     let shopsQuery = Shop.find().select([
-      'products',
-      'slug',
-      'title',
-      'logo',
-      'cover',
-      'followers',
+      "products",
+      "slug",
+      "title",
+      "logo",
+      "cover",
+      "followers",
     ]);
 
     // Apply pagination only if limit is provided
@@ -479,7 +495,7 @@ const getShops = async (req, res) => {
 
 const getAllShopsByAdmin = async (req, res) => {
   try {
-    const shops = await Shop.find({}).select(['title', 'slug', '_id']);
+    const shops = await Shop.find({}).select(["title", "slug", "_id"]);
     return res.status(200).json({
       success: true,
       data: shops,
@@ -491,13 +507,13 @@ const getAllShopsByAdmin = async (req, res) => {
 const getAllShops = async (req, res) => {
   try {
     const shops = await Shop.find({}).select([
-      'logo',
-      'cover',
-      'followers',
-      'title',
-      'description',
-      'slug',
-      'address',
+      "logo",
+      "cover",
+      "followers",
+      "title",
+      "description",
+      "slug",
+      "address",
     ]);
     return res.status(200).json({
       success: true,
@@ -513,7 +529,7 @@ const getOneShopByUser = async (req, res) => {
     const { slug } = req.params;
     const shop = await Shop.findOne({ slug: slug });
     if (!shop) {
-      return res.status(404).json({ message: 'Shop Not Found' });
+      return res.status(404).json({ message: "Shop Not Found" });
     }
     return res.status(200).json({
       success: true,
@@ -526,7 +542,7 @@ const getOneShopByUser = async (req, res) => {
 
 const getShopsSlugs = async (req, res) => {
   try {
-    const shops = await Shop.find().select(['slug']);
+    const shops = await Shop.find().select(["slug"]);
 
     res.status(201).json({
       success: true,
@@ -542,14 +558,14 @@ const getShopNameBySlug = async (req, res) => {
     const shop = await Shop.findOne({
       slug: req.params.slug,
     }).select([
-      'cover',
-      'logo',
-      'description',
-      'title',
-      'slug',
-      'address',
-      'phone',
-      'createdAt',
+      "cover",
+      "logo",
+      "description",
+      "title",
+      "slug",
+      "address",
+      "phone",
+      "createdAt",
     ]);
 
     res.status(201).json({
@@ -567,7 +583,7 @@ const getShopStatsByVendor = async (req, res) => {
 
     const shop = await Shop.findOne({ vendor: req.user._id });
     if (!shop) {
-      return res.status(404).json({ message: 'Shop Not Found' });
+      return res.status(404).json({ message: "Shop Not Found" });
     }
     const { totalCommission, totalEarnings } = await getTotalEarningsByShopId(
       shop._id
@@ -577,7 +593,7 @@ const getShopStatsByVendor = async (req, res) => {
       shop: shop._id,
     });
     const totalOrders = await Orders.countDocuments({
-      'items.shop': shop._id,
+      "items.shop": shop._id,
     });
 
     return res.status(200).json({
@@ -602,7 +618,7 @@ const followShop = async (req, res) => {
     if (!shop) {
       return res
         .status(404)
-        .json({ success: false, message: 'Shop not found' });
+        .json({ success: false, message: "Shop not found" });
     }
 
     // Check if userId is already in the followers array
@@ -612,11 +628,11 @@ const followShop = async (req, res) => {
     if (followersIndex === -1) {
       // userId not in followers, add it
       shop.followers.push(userId);
-      message = 'Followed';
+      message = "Followed";
     } else {
       // userId already in followers, remove it
       shop.followers.splice(followersIndex, 1);
-      message = 'Unfollowed';
+      message = "Unfollowed";
     }
 
     // Save the updated shop document

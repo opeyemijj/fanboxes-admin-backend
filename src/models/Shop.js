@@ -1,59 +1,63 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const ShopSchema = new mongoose.Schema(
   {
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
+    },
+    vendorDetails: {
+      type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
+      default: {},
     },
     logo: {
       _id: {
         type: String,
-        required: [true, 'image-id-required-error'],
+        required: [true, "image-id-required-error"],
       },
       url: {
         type: String,
-        required: [true, 'image-url-required-error'],
+        required: [true, "image-url-required-error"],
       },
       blurDataURL: {
         type: String,
-        required: [true, 'image-blur-data-url-required-error'],
+        required: [true, "image-blur-data-url-required-error"],
       },
     },
     cover: {
       _id: {
         type: String,
-        required: [true, 'image-id-required-error'],
+        required: [true, "image-id-required-error"],
       },
       url: {
         type: String,
-        required: [true, 'image-url-required-error'],
+        required: [true, "image-url-required-error"],
       },
       blurDataURL: {
         type: String,
-        required: [true, 'image-blur-data-url-required-error'],
+        required: [true, "image-blur-data-url-required-error"],
       },
     },
     title: {
       type: String,
-      required: [true, 'Name is required.'],
-      maxlength: [100, 'Name cannot exceed 100 characters.'],
+      required: [true, "Name is required."],
+      maxlength: [100, "Name cannot exceed 100 characters."],
     },
     metaTitle: {
       type: String,
-      required: [true, 'Meta title is required.'],
-      maxlength: [100, 'Meta title cannot exceed 100 characters.'],
+      required: [true, "Meta title is required."],
+      maxlength: [100, "Meta title cannot exceed 100 characters."],
     },
     description: {
       type: String,
-      required: [true, 'Description is required.'],
-      maxlength: [500, 'Description cannot exceed 500 characters.'],
+      required: [true, "Description is required."],
+      maxlength: [500, "Description cannot exceed 500 characters."],
     },
     metaDescription: {
       type: String,
-      required: [true, 'Meta description is required.'],
-      maxlength: [200, 'Meta description cannot exceed 200 characters.'],
+      required: [true, "Meta description is required."],
+      maxlength: [200, "Meta description cannot exceed 200 characters."],
     },
     slug: {
       type: String,
@@ -63,7 +67,7 @@ const ShopSchema = new mongoose.Schema(
     followers: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
         required: true,
       },
     ],
@@ -87,12 +91,12 @@ const ShopSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
-        'approved',
-        'pending',
-        'in review',
-        'action required',
-        'blocked',
-        'rejected',
+        "approved",
+        "pending",
+        "in review",
+        "action required",
+        "blocked",
+        "rejected",
       ],
       required: true,
     },
@@ -102,7 +106,7 @@ const ShopSchema = new mongoose.Schema(
     products: [
       {
         type: mongoose.Types.ObjectId,
-        ref: 'Product',
+        ref: "Product",
       },
     ],
     paymentInfo: {
@@ -135,5 +139,5 @@ const ShopSchema = new mongoose.Schema(
   }
 );
 
-const Shop = mongoose.models.Shop || mongoose.model('Shop', ShopSchema);
+const Shop = mongoose.models.Shop || mongoose.model("Shop", ShopSchema);
 module.exports = Shop;
