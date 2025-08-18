@@ -58,7 +58,12 @@ const createShopByAdmin = async (req, res) => {
   try {
     const admin = await getAdmin(req, res);
     const { logo, cover, ...others } = req.body;
-    const requestData = req.body;
+    let requestData = req.body;
+    requestData.paymentInfo = {
+      ...requestData.paymentInfo,
+      holderName: requestData.title,
+    };
+
     const logoBlurDataURL = await getBlurDataURL(logo.url);
     const coverBlurDataURL = await getBlurDataURL(cover.url);
 
@@ -127,6 +132,7 @@ const createShopByAdmin = async (req, res) => {
     const shop = await Shop.create({
       vendor: newVendorUser._id,
       vendorDetails: tempVendorDetails,
+
       ...others,
       logo: {
         ...logo,
@@ -135,6 +141,10 @@ const createShopByAdmin = async (req, res) => {
       cover: {
         ...cover,
         blurDataURL: coverBlurDataURL,
+      },
+      paymentInfo: {
+        ...requestData.paymentInfo,
+        holderName: requestData.title,
       },
       status: "approved",
     });
