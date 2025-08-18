@@ -81,6 +81,7 @@ const getProductsByVendor = async (req, res) => {
           shop: 1,
           available: 1,
           createdAt: 1,
+          items: 1,
         },
       },
     ]);
