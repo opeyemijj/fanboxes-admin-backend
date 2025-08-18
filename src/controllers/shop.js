@@ -10,6 +10,7 @@ const getBlurDataURL = require("../config/getBlurDataURL");
 const { getVendor, getAdmin, getUser } = require("../config/getUser");
 const { singleFileDelete } = require("../config/uploader");
 const sendEmail = require("../config/mailer");
+const getWelcomeEmailContent = require("../email-templates/newVendorAccount");
 // Admin apis
 const getShopsByAdmin = async (req, res) => {
   try {
@@ -64,18 +65,19 @@ const createShopByAdmin = async (req, res) => {
       gender: admin.gender,
     };
 
+    const newUserEmail = "newuser@example.com";
+    const newUserPassword = "userpassword123";
+
+    const htmlContent = getWelcomeEmailContent(newUserEmail, newUserPassword);
+
     try {
       await sendEmail({
         to: "a.shahadath@shoutty.app",
-        subject: "Welcome to My App 🎉",
-        html:
-          "<h1>Hello!</h1><p>This is a test email from Mailtrap + Node.js</p>",
+        subject: "Welcome to Fanbox! 🎉 Your account is ready",
+        html: htmlContent,
       });
-
-      // return res.json({ success: true, message: "Email sent successfully" });
-      return res.status(400).json({ success: false, message: "Testing" });
     } catch (err) {
-      return res.status(500).json({ success: false, error: err.message });
+      console.log("Failed email sending: ", err);
     }
 
     const shop = await Shop.create({

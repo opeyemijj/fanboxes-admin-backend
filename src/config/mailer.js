@@ -15,8 +15,6 @@ const sender = {
   name: "Mailtrap Test",
 };
 
-const recipients = ["a.shahadath@shoutty.app"];
-
 const sendEmail = async ({ to, subject, html }) => {
   transport
     .sendMail({
