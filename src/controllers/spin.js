@@ -1,3 +1,4 @@
+const { getAdmin } = require("../config/getUser");
 const { ProvablyFair } = require("../helpers/spinHelper");
 const Product = require("../models/Product");
 const Spin = require("../models/Spin");
@@ -113,4 +114,23 @@ const spinVerify = async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 };
-module.exports = { createSpinByAdmin, spinVerify };
+
+const getSpinsByAdmin = async (req, res) => {
+  try {
+    const admin = await getAdmin(req, res);
+    if (!admin) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Sorry you don't have access" });
+    }
+    const spin = await Spin.find();
+
+    return res.status(200).json({
+      success: true,
+      data: spin,
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+module.exports = { createSpinByAdmin, spinVerify, getSpinsByAdmin };

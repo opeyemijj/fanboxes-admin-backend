@@ -5,5 +5,6 @@ const verifyToken = require("../config/jwt");
 
 router.post("/admin/spin", verifyToken, spin.createSpinByAdmin);
 router.post("/admin/spin-verify", verifyToken, spin.spinVerify);
+router.get("/admin/get-spins", verifyToken, spin.getSpinsByAdmin);
 
 module.exports = router;
