@@ -1,4 +1,4 @@
-const { SpinHelper } = require("../helpers/spinHelper");
+const { ProvablyFair } = require("../helpers/spinHelper");
 const Product = require("../models/Product");
 const Spin = require("../models/Spin");
 
@@ -6,35 +6,45 @@ const createSpinByAdmin = async (req, res) => {
   try {
     const requestData = req.body;
     const boxId = requestData.boxId;
-    const item = requestData.item;
     const clientSeed = requestData.clientSeed;
 
     const boxDetails = await Product.findOne({ _id: boxId });
+    console.log(boxDetails, "Check teh box details");
 
     if (!boxDetails) {
       return res.status(404).json({ success: false, message: "Box not found" });
     }
 
-    const previousNonce = await Spin.find({ boxId: boxId });
-
-    const winningItem = boxDetails?.items?.find(
-      (it) => String(it._id) === String(item._id)
-    );
-    // console.log(winningItem, "check the winning item");
-    if (!winningItem) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Item not found" });
-    }
+    const previousNonce = await Spin.findOne({ boxId: boxId }).sort({
+      nonce: -1,
+    });
+    const nonce = (previousNonce?.nonce || 0) + 1;
 
     // Generate server seed
-    const serverSeed = SpinHelper.generateServerSeed();
-    const serverSeedHash = SpinHelper.hashServerSeed(serverSeed);
-    const hash = SpinHelper.generateHash({
-      serverSeed: serverSeed,
-      clientSeed: clientSeed,
-      nonce: previousNonce.length + 1,
-    });
+    const serverSeed = ProvablyFair.generateServerSeed();
+    const serverSeedHash = ProvablyFair.hashServerSeed(serverSeed);
+
+    const result = ProvablyFair.generateSpinResult(
+      serverSeed,
+      clientSeed,
+      nonce,
+      boxDetails.items
+    );
+
+    const spinLog = {
+      timestamp: new Date().toISOString(),
+      clientSeed,
+      serverSeed,
+      serverSeedHash,
+      nonce,
+      winningItem: result.winningItem,
+      hash: result.hash,
+      normalized: result.normalized,
+      boxId,
+      itemsUsed: boxDetails.items.length,
+    };
+
+    console.log("📝 Spin log entry:", spinLog);
 
     const desireSpinData = {
       boxId: boxId,
@@ -45,15 +55,15 @@ const createSpinByAdmin = async (req, res) => {
         images: boxDetails.images,
         _id: boxDetails._id,
       },
-      winningItem: winningItem,
-      nonce: previousNonce.length + 1,
+      winningItem: result.winningItem,
+      nonce: nonce,
       clientSeed: clientSeed,
       serverSeed: serverSeed,
       serverSeedHash: serverSeedHash,
-      hash: hash,
+      hash: result.hash,
     };
 
-    console.log(desireSpinData, "Calling the spin data");
+    // console.log(desireSpinData, "Calling the spin data");
 
     const spin = await Spin.create({
       ...desireSpinData,
@@ -70,7 +80,6 @@ const createSpinByAdmin = async (req, res) => {
 const spinVerify = async (req, res) => {
   try {
     const requestData = req.body;
-    console.log(requestData, "Verify data");
     const clientSeed = requestData.clientSeed;
     const serverSeed = requestData.serverSeed;
     const nonce = requestData.nonce;
