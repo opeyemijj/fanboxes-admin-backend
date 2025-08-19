@@ -66,4 +66,42 @@ const createSpinByAdmin = async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 };
-module.exports = { createSpinByAdmin };
+
+const spinVerify = async (req, res) => {
+  try {
+    const requestData = req.body;
+    console.log(requestData, "Verify data");
+    const clientSeed = requestData.clientSeed;
+    const serverSeed = requestData.serverSeed;
+    const nonce = requestData.nonce;
+
+    const spin = await Spin.findOne({
+      clientSeed: clientSeed,
+      serverSeed: serverSeed,
+      nonce: nonce,
+    });
+
+    if (!spin) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Verification failed" });
+    }
+
+    const finalResult = {
+      hash: spin.hash,
+      winningItem: {
+        name: spin.winningItem?.name,
+        value: spin.winningItem?.value,
+        images: spin.winningItem?.images,
+      },
+    };
+
+    return res.status(200).json({
+      success: true,
+      data: finalResult,
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+module.exports = { createSpinByAdmin, spinVerify };
