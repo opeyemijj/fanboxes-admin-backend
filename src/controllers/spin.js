@@ -4,6 +4,12 @@ const Product = require("../models/Product");
 const Spin = require("../models/Spin");
 
 const createSpinByAdmin = async (req, res) => {
+  const admin = await getAdmin(req, res);
+  if (!admin) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Sorry you don't have access" });
+  }
   try {
     const requestData = req.body;
     const boxId = requestData.boxId;
