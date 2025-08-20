@@ -12,7 +12,10 @@ const createCategory = async (req, res) => {
       ...others,
     });
 
-    res.status(201).json({ success: true, message: "Category Created" });
+    res.status(201).json({
+      success: true,
+      message: "Category has been successfully created.",
+    });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -84,7 +87,7 @@ const getCategoryByAdmin = async (req, res) => {
     if (!category) {
       return res.status(400).json({
         success: false,
-        message: "Category Not Found",
+        message: "We couldn't find the category you're looking for",
       });
     }
 
@@ -111,7 +114,7 @@ const getCategoryBySlug = async (req, res) => {
     if (!category) {
       return res.status(400).json({
         success: false,
-        message: "Category Not Found",
+        message: "We couldn't find the category you're looking for",
       });
     }
 
@@ -143,7 +146,10 @@ const updateCategoryBySlug = async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    res.status(201).json({ success: true, message: "Category Updated" });
+    res.status(201).json({
+      success: true,
+      message: "Category details have been successfully updated.",
+    });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -158,13 +164,14 @@ const deleteCategoryBySlug = async (req, res) => {
     if (!category) {
       return res.status(400).json({
         success: false,
-        message: "Category Not Found",
+        message: "We couldn't find the category you're looking for",
       });
     }
 
-    res
-      .status(201)
-      .json({ success: true, message: "Category Deleted Successfully" });
+    res.status(201).json({
+      success: true,
+      message: "Category has been successfully deleted.",
+    });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }

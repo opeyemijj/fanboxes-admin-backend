@@ -8,9 +8,10 @@ const createSpinByAdmin = async (req, res) => {
   const admin = await getAdmin(req, res);
   const user = await getUser(req, res);
   if (!admin) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Sorry you don't have access" });
+    return res.status(401).json({
+      success: false,
+      message: "Sorry, you don't have the necessary access to this.",
+    });
   }
   try {
     const requestData = req.body;
@@ -21,20 +22,24 @@ const createSpinByAdmin = async (req, res) => {
     // console.log(boxDetails, "Check teh box details");
 
     if (!boxDetails) {
-      return res.status(404).json({ success: false, message: "Box not found" });
+      return res.status(404).json({
+        success: false,
+        message: "We couldn't find the box you're looking for.",
+      });
     }
 
     if (!boxDetails?.items || boxDetails?.items.length === 0) {
       return res
         .status(404)
-        .json({ success: false, message: "No item in this box" });
+        .json({ success: false, message: "This box is currently empty." });
     }
 
     const vendorDetails = await User.findOne({ _id: boxDetails.vendor });
     if (!vendorDetails) {
-      return res
-        .status(404)
-        .json({ success: false, message: "No influencer for this box" });
+      return res.status(404).json({
+        success: false,
+        message: "No influencer assigned to this box.",
+      });
     }
 
     const previousNonce = await Spin.findOne({ boxId: boxId }).sort({
@@ -54,9 +59,10 @@ const createSpinByAdmin = async (req, res) => {
     );
 
     if (!result.winningItem || result.winningItem === undefined) {
-      return res
-        .status(403)
-        .json({ success: false, message: "Item calculation failed" });
+      return res.status(403).json({
+        success: false,
+        message: "Failed to calculate item details. Please try again.",
+      });
     }
     const spinLog = {
       timestamp: new Date().toISOString(),
@@ -160,9 +166,10 @@ const getSpinsByAdmin = async (req, res) => {
   try {
     const admin = await getAdmin(req, res);
     if (!admin) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Sorry you don't have access" });
+      return res.status(401).json({
+        success: false,
+        message: "Apologies, you don't have the required access to proceed.",
+      });
     }
     const spin = await Spin.find().sort({
       createdAt: -1,

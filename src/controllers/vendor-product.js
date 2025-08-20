@@ -116,7 +116,7 @@ const createProductByVendor = async (req, res) => {
     if (shop.status !== "approved") {
       return res.status(400).json({
         success: false,
-        message: "No Action Before You’re Approved",
+        message: "You must be approved before taking any action.",
       });
     }
 
@@ -181,7 +181,7 @@ const createProductByVendor = async (req, res) => {
     });
     res.status(201).json({
       success: true,
-      message: "Product Created",
+      message: "Box has been successfully created.",
       data: data,
     });
   } catch (error) {
@@ -206,9 +206,10 @@ const createBoxItemByVendor = async (req, res) => {
     // Find the product first
     const product = await Product.findOne({ slug: boxSlug });
     if (!product)
-      return res
-        .status(404)
-        .json({ success: false, message: "Product not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Sorry, we couldn't find the product you're looking for.",
+      });
 
     // Check for duplicate slug
     if (product.items.some((i) => i.slug === item.slug)) {
@@ -225,7 +226,7 @@ const createBoxItemByVendor = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Item added to box",
+      message: "Item successfully added to your box.",
       data: product,
     });
   } catch (error) {
@@ -240,7 +241,10 @@ const getOneProductVendor = async (req, res) => {
       vendor: vendor._id.toString(),
     });
     if (!shop) {
-      res.status(404).json({ success: false, message: "Shop not found" });
+      res.status(404).json({
+        success: false,
+        message: "Sorry, we couldn't find the shop you’re looking for.",
+      });
     }
 
     const product = await Product.findOne({
@@ -300,7 +304,11 @@ const updateProductByVendor = async (req, res) => {
       vendor: vendor._id.toString(),
     });
     if (!shop) {
-      res.status(404).json({ success: false, message: "Shop not found" });
+      res.status(404).json({
+        success: false,
+        message:
+          "We couldn't locate the shop. Please check your search or try again later.",
+      });
     }
     const { slug } = req.params;
     const { images, ...body } = req.body;
@@ -325,7 +333,7 @@ const updateProductByVendor = async (req, res) => {
     return res.status(201).json({
       success: true,
       data: updated,
-      message: "Product Updated",
+      message: "Box details have been successfully updated.",
     });
   } catch (error) {
     return res.status(400).json({ success: false, error: error.message });
@@ -338,7 +346,11 @@ const deletedProductByVendor = async (req, res) => {
       vendor: vendor._id.toString(),
     });
     if (!shop) {
-      res.status(404).json({ success: false, message: "Shop not found" });
+      res.status(404).json({
+        success: false,
+        message:
+          "We couldn't find the shop. Please ensure the name is correct and try again.",
+      });
     }
     const slug = req.params.slug;
     const product = await Product.findOne({
@@ -348,7 +360,7 @@ const deletedProductByVendor = async (req, res) => {
     if (!product) {
       return res.status(404).json({
         success: false,
-        message: "Vendor Product Not Found",
+        message: "We couldn’t find any products from this influecer.",
       });
     }
     // const length = product?.images?.length || 0;
@@ -367,12 +379,12 @@ const deletedProductByVendor = async (req, res) => {
     if (!deleteProduct) {
       return res.status(400).json({
         success: false,
-        message: "Product Deletion Failed",
+        message: "Failed to delete the box. Please try again later.",
       });
     }
     return res.status(200).json({
       success: true,
-      message: "Product Deleted ",
+      message: "Box has been successfully deleted.",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });

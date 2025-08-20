@@ -18,7 +18,10 @@ const createSubCategory = async (req, res) => {
       },
     });
 
-    res.status(201).json({ success: true, message: "SubCategory Created" });
+    res.status(201).json({
+      success: true,
+      message: "Subcategory has been successfully created.",
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -31,7 +34,10 @@ const getAllSubCategories = async (req, res) => {
       ? await Category.findOne({ slug: category })
       : null;
     if (category && !currentCategory) {
-      res.status(404).json({ message: "Category not found!" });
+      res.status(404).json({
+        message:
+          "We couldn't find the category. Please check your search and try again.",
+      });
     }
     const skip = parseInt(limit) || 10;
     const query = {
@@ -65,7 +71,8 @@ const getSubCategoriesBySlug = async (req, res) => {
 
     if (!subcategories) {
       return res.status(400).json({
-        message: "Subcategory Not Found",
+        message:
+          "We couldn't find the category. Please check your search and try again.",
       });
     }
 
@@ -112,7 +119,7 @@ const updateSubCategoriesBySlug = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: "SubCategory Updated",
+      message: "Subcategory has been successfully updated.",
       currentCategory,
     });
   } catch (error) {
@@ -133,7 +140,8 @@ const deleteSubCategoriesBySlug = async (req, res) => {
     if (!subCategory) {
       return res.status(400).json({
         success: false,
-        message: "Subcategory Not Found",
+        message:
+          "We couldn't find the category. Please check your search and try again.",
       });
     }
 

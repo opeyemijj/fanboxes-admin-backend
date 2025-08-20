@@ -921,7 +921,7 @@ const createProductByAdmin = async (req, res) => {
     });
     res.status(201).json({
       success: true,
-      message: "Product Created",
+      message: "Box has been created successfully.",
       data: data,
     });
   } catch (error) {
@@ -1000,7 +1000,7 @@ const updateProductByAdmin = async (req, res) => {
     return res.status(201).json({
       success: true,
       data: updated,
-      message: "Product Updated",
+      message: "Box has been updated successfully.",
     });
   } catch (error) {
     return res.status(400).json({ success: false, error: error.message });
@@ -1008,7 +1008,6 @@ const updateProductByAdmin = async (req, res) => {
 };
 
 const updateBoxItemByAdmin = async (req, res) => {
-  console.log("is it calling here?");
   try {
     const { images, ...body } = req.body;
 
@@ -1056,7 +1055,7 @@ const updateBoxItemByAdmin = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: updated,
-      message: "Item Updated",
+      message: "Item has been updated successfully.",
     });
   } catch (error) {
     console.error("Update error:", error);
@@ -1065,7 +1064,6 @@ const updateBoxItemByAdmin = async (req, res) => {
 };
 
 const updateBoxItemOddByAdmin = async (req, res) => {
-  console.log("come here to update the odd");
   try {
     const { boxSlug, ...body } = req.body;
     const user = await getUser(req, res);
@@ -1089,7 +1087,7 @@ const updateBoxItemOddByAdmin = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: updatedProduct?.items,
-      message: "Item Updated",
+      message: "Items odd have been updated successfully.",
     });
   } catch (error) {
     console.error("Update error:", error);
@@ -1104,7 +1102,7 @@ async function deletedProductByAdmin(req, res) {
     if (!product) {
       return res.status(404).json({
         success: false,
-        message: "Product Not Found",
+        message: "Box not found. Please check and try again.",
       });
     }
     // const length = product?.images?.length || 0;
@@ -1118,7 +1116,7 @@ async function deletedProductByAdmin(req, res) {
     if (!deleteProduct) {
       return res.status(400).json({
         success: false,
-        message: "Product Deletion Failed",
+        message: "Failed to delete the box. Please try again.",
       });
     }
     await Shop.findByIdAndUpdate(req.body.shop, {
@@ -1128,7 +1126,7 @@ async function deletedProductByAdmin(req, res) {
     });
     return res.status(200).json({
       success: true,
-      message: "Product Deleted ",
+      message: "Box has been deleted successfully.",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -1142,9 +1140,10 @@ const getFiltersByCategory = async (req, res) => {
     const shopData = await Shop.findOne({ slug: shop }).select(["_id"]);
     console.log("Shop Data:", shopData); // Log shop data
     if (!shopData) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Shop Not Found" });
+      return res.status(404).json({
+        success: false,
+        message: "Shop not found. Please check the details and try again.",
+      });
     }
 
     // Fetch category data
@@ -1153,9 +1152,10 @@ const getFiltersByCategory = async (req, res) => {
       "name",
     ]);
     if (!categoryData) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Category Not Found" });
+      return res.status(404).json({
+        success: false,
+        message: "The requested category could not be found.",
+      });
     }
     // Fetch products for the category under the specified shop
     const products = await Product.find({
@@ -1213,18 +1213,22 @@ const getFiltersBySubCategory = async (req, res) => {
     // Fetch shop data
     const shopData = await Shop.findOne({ slug: shop }).select(["_id"]);
     if (!shopData) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Shop Not Found" });
+      return res.status(404).json({
+        success: false,
+        message:
+          "We couldn't find the shop you're looking for. Please check the name or try again later.",
+      });
     }
     const categoryData = await Category.findOne({ slug: category }).select([
       "_id",
       "name",
     ]);
     if (!categoryData) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Category Not Found" });
+      return res.status(404).json({
+        success: false,
+        message:
+          "Sorry, we couldn't locate the category you're searching for. Please check your search and try again.",
+      });
     }
     // Fetch subcategory data
     const subcategoryData = await SubCategory.findOne({
@@ -1232,9 +1236,10 @@ const getFiltersBySubCategory = async (req, res) => {
       parentCategory: categoryData._id,
     }).select(["_id"]);
     if (!subcategoryData) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Subcategory Not Found" });
+      return res.status(404).json({
+        success: false,
+        message: "Oops! We couldn't find the subcategory you're looking for.",
+      });
     }
 
     // Fetch products for the subcategory under the specified shop
@@ -1293,9 +1298,10 @@ const getFiltersByShop = async (req, res) => {
       "slug",
     ]);
     if (!shopData) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Shop Not Found" });
+      return res.status(404).json({
+        success: false,
+        message: "We couldn't find any shops matching your search.",
+      });
     }
 
     // Query the Product collection to find products related to the shop
