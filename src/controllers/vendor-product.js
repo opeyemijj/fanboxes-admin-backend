@@ -212,10 +212,11 @@ const createBoxItemByVendor = async (req, res) => {
 
     // Check for duplicate slug
     if (product.items.some((i) => i.slug === item.slug)) {
-      return res.status(400).json({
-        success: false,
-        message: "Duplicate item slug in this product",
-      });
+      item.slug =
+        item.slug +
+        Math.random()
+          .toString(36)
+          .slice(2, 10);
     }
 
     // Push the new item
