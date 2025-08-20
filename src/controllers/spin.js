@@ -1,4 +1,4 @@
-const { getAdmin } = require("../config/getUser");
+const { getAdmin, getUser } = require("../config/getUser");
 const { ProvablyFair } = require("../helpers/spinHelper");
 const Product = require("../models/Product");
 const Spin = require("../models/Spin");
@@ -6,6 +6,7 @@ const User = require("../models/User");
 
 const createSpinByAdmin = async (req, res) => {
   const admin = await getAdmin(req, res);
+  const user = await getUser(req, res);
   if (!admin) {
     return res
       .status(401)
@@ -74,13 +75,6 @@ const createSpinByAdmin = async (req, res) => {
 
     const desireSpinData = {
       boxId: boxId,
-      vendorId: boxDetails.vendor,
-      vendorDetails: {
-        _id: vendorDetails._id,
-        firstName: vendorDetails.firstName,
-        lastName: vendorDetails.lastName,
-        gender: vendorDetails.gender,
-      },
       boxDetails: {
         _id: boxDetails._id,
         name: boxDetails.name,
@@ -88,6 +82,22 @@ const createSpinByAdmin = async (req, res) => {
         images: boxDetails.images,
         items: boxDetails?.items,
       },
+      vendorId: boxDetails.vendor,
+      vendorDetails: {
+        _id: vendorDetails._id,
+        firstName: vendorDetails.firstName,
+        lastName: vendorDetails.lastName,
+        gender: vendorDetails.gender,
+      },
+      userId: user._id,
+      userDetails: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        gender: user.gender,
+      },
+      shop: boxDetails.shop,
+      shopDetails: boxDetails.shopDetails,
       winningItem: result.winningItem,
       nonce: nonce,
       clientSeed: clientSeed,
