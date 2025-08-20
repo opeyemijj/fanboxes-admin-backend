@@ -17,7 +17,7 @@ const createSpinByAdmin = async (req, res) => {
     const clientSeed = requestData.clientSeed;
 
     const boxDetails = await Product.findOne({ _id: boxId });
-    console.log(boxDetails, "Check teh box details");
+    // console.log(boxDetails, "Check teh box details");
 
     if (!boxDetails) {
       return res.status(404).json({ success: false, message: "Box not found" });
@@ -86,7 +86,7 @@ const createSpinByAdmin = async (req, res) => {
         name: boxDetails.name,
         slug: boxDetails.slug,
         images: boxDetails.images,
-        _id: boxDetails._id,
+        items: boxDetails?.items,
       },
       winningItem: result.winningItem,
       nonce: nonce,
