@@ -13,6 +13,11 @@ router.get("/admin/products", verifyToken, product.getProductsByAdmin);
 router.get("/admin/products/:slug", verifyToken, product.getOneProductByAdmin);
 router.put("/admin/products/:slug", verifyToken, product.updateProductByAdmin);
 router.put("/admin/boxItem/:slug", verifyToken, product.updateBoxItemByAdmin);
+router.put(
+  "/admin/boxItemOdd/:slug",
+  verifyToken,
+  product.updateBoxItemOddByAdmin
+);
 
 router.delete(
   "/admin/products/:slug",

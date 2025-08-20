@@ -8,7 +8,7 @@ const Compaign = require("../models/Compaign");
 const _ = require("lodash");
 const { multiFilesDelete } = require("../config/uploader");
 const blurDataUrl = require("../config/getBlurDataURL");
-const { getAdmin, getVendor } = require("../config/getUser");
+const { getAdmin, getVendor, getUser } = require("../config/getUser");
 const getProducts = async (req, res) => {
   try {
     const query = req.query; // Extract query params from request
@@ -1008,6 +1008,7 @@ const updateProductByAdmin = async (req, res) => {
 };
 
 const updateBoxItemByAdmin = async (req, res) => {
+  console.log("is it calling here?");
   try {
     const { images, ...body } = req.body;
 
@@ -1055,6 +1056,39 @@ const updateBoxItemByAdmin = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: updated,
+      message: "Item Updated",
+    });
+  } catch (error) {
+    console.error("Update error:", error);
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+const updateBoxItemOddByAdmin = async (req, res) => {
+  console.log("come here to update the odd");
+  try {
+    const { boxSlug, ...body } = req.body;
+    const user = await getUser(req, res);
+
+    // sanitize item fields
+    const prodcutSlug = boxSlug;
+    const updatedItem = body;
+
+    console.log(prodcutSlug, user._id);
+    const updatedProduct = await Product.findOneAndUpdate(
+      { slug: prodcutSlug, vendor: user._id },
+      { $set: { items: updatedItem.items } }
+    );
+
+    // console.log(updatedProduct, "OKK SEE THE UPDATED PRODUCT");
+
+    if (!updatedProduct) {
+      return res.status(404).json({ success: false, message: "Box not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: updatedProduct?.items,
       message: "Item Updated",
     });
   } catch (error) {
@@ -1508,6 +1542,7 @@ module.exports = {
   getOneProductByAdmin,
   updateProductByAdmin,
   updateBoxItemByAdmin,
+  updateBoxItemOddByAdmin,
   deletedProductByAdmin,
   getFiltersByCategory,
   getFiltersByShop,
