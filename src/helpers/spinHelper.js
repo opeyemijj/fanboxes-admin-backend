@@ -17,7 +17,6 @@ export class ProvablyFair {
   }
 
   static generateSpinResult(serverSeed, clientSeed, nonce, items) {
-    console.log(items, "check the items is here or not");
     console.log("🎲 Generating spin result with provably fair algorithm");
     console.log("📊 Inputs:", {
       serverSeed: serverSeed.substring(0, 8) + "...",

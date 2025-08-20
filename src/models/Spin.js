@@ -12,6 +12,15 @@ const SpinSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
       default: {},
     },
+    vendorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    vendorDetails: {
+      type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
+      default: {},
+    },
     clientSeed: {
       type: String,
       required: [true, "client seed is required."],
