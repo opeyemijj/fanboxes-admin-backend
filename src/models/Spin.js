@@ -41,6 +41,10 @@ const SpinSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
       default: {},
     },
+    normalized: {
+      type: String,
+      required: [true, "normalized is required."],
+    },
     hash: {
       type: String,
       required: [true, "hash is required."],

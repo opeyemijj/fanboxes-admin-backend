@@ -93,6 +93,7 @@ const createSpinByAdmin = async (req, res) => {
       clientSeed: clientSeed,
       serverSeed: serverSeed,
       serverSeedHash: serverSeedHash,
+      normalized: result.normalized,
       hash: result.hash,
     };
 
