@@ -47,7 +47,6 @@ const ShopSchema = new mongoose.Schema(
 
     description: {
       type: String,
-      required: [true, "Description is required."],
       maxlength: [500, "Description cannot exceed 500 characters."],
     },
 
@@ -112,18 +111,18 @@ const ShopSchema = new mongoose.Schema(
       },
       bankName: {
         type: String,
-        required: true,
+        required: false,
       },
       AccountNo: {
         type: Number,
-        required: true,
+        required: false,
       },
     },
     address: {
-      country: { type: String, required: true },
-      city: { type: String, required: true },
-      state: { type: String, required: true },
-      streetAddress: { type: String, required: true },
+      country: { type: String, required: false },
+      city: { type: String, required: false },
+      state: { type: String, required: false },
+      streetAddress: { type: String, required: false },
     },
   },
   {
