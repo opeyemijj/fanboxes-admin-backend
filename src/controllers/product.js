@@ -1096,6 +1096,46 @@ const updateBoxItemOddByAdmin = async (req, res) => {
   }
 };
 
+const deleteBoxItemByAdmin = async (req, res) => {
+  try {
+    const admin = await getAdmin(req, res);
+
+    const boxSlug = req.params.boxSlug;
+    const itemSlug = req.params.itemSlug;
+
+    // ✅ await the DB call
+    const particularProduct = await Product.findOne({
+      slug: boxSlug,
+      vendor: admin._id,
+    });
+
+    if (!particularProduct) {
+      return res.status(404).json({ success: false, message: "Box not found" });
+    }
+
+    // ✅ always filter from an array
+    const remainingItems = (particularProduct.items || []).filter(
+      (item) => item.slug !== itemSlug
+    );
+
+    // ✅ update product with remaining items
+    const updatedProduct = await Product.findOneAndUpdate(
+      { slug: boxSlug, vendor: admin._id },
+      { $set: { items: remainingItems } },
+      { new: true } // return the updated document
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: updatedProduct?.items || [],
+      message: "Item has been deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Update error:", error);
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
+
 async function deletedProductByAdmin(req, res) {
   try {
     const slug = req.params.slug;
@@ -1550,6 +1590,7 @@ module.exports = {
   updateProductByAdmin,
   updateBoxItemByAdmin,
   updateBoxItemOddByAdmin,
+  deleteBoxItemByAdmin,
   deletedProductByAdmin,
   getFiltersByCategory,
   getFiltersByShop,
