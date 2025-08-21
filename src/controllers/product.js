@@ -975,6 +975,7 @@ const getOneProductByAdmin = async (req, res) => {
     return res.status(400).json({ success: false, error: error.message });
   }
 };
+
 const updateProductByAdmin = async (req, res) => {
   try {
     const admin = await getAdmin(req, res);
@@ -1009,6 +1010,7 @@ const updateProductByAdmin = async (req, res) => {
 
 const updateBoxItemByAdmin = async (req, res) => {
   try {
+    const admin = await getAdmin(req, res);
     const { images, ...body } = req.body;
 
     // rebuild images with blurDataURL
@@ -1037,7 +1039,7 @@ const updateBoxItemByAdmin = async (req, res) => {
     );
 
     const updated = await Product.findOneAndUpdate(
-      { slug: prodcutSlug }, // make sure vendor matches
+      { slug: prodcutSlug, vendor: admin._id }, // make sure vendor matches
       { $set: setOps },
       {
         arrayFilters: [{ "elem.slug": itemSlug }],
@@ -1065,16 +1067,15 @@ const updateBoxItemByAdmin = async (req, res) => {
 
 const updateBoxItemOddByAdmin = async (req, res) => {
   try {
+    const admin = await getAdmin(req, res);
     const { boxSlug, ...body } = req.body;
-    const user = await getUser(req, res);
 
     // sanitize item fields
     const prodcutSlug = boxSlug;
     const updatedItem = body;
 
-    console.log(prodcutSlug, user._id);
     const updatedProduct = await Product.findOneAndUpdate(
-      { slug: prodcutSlug, vendor: user._id },
+      { slug: prodcutSlug, vendor: admin._id },
       { $set: { items: updatedItem.items } }
     );
 
