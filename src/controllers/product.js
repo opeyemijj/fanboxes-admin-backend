@@ -128,6 +128,7 @@ const getProducts = async (req, res) => {
             (query.top && { averageRating: Number(query.top) }) || {
               averageRating: -1,
             }),
+          createdAt: -1,
         },
       },
       {
