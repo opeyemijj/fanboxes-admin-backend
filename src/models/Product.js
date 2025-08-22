@@ -149,7 +149,7 @@ const productSchema = new Schema(
     subCategory: {
       type: mongoose.Types.ObjectId,
       ref: "SubCategory",
-      required: [true, "please provide a sub category id"],
+      required: [false, "please provide a sub category id"],
     },
     subCategoryDetails: {
       type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
