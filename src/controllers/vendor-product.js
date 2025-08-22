@@ -218,7 +218,15 @@ const createBoxItemByVendor = async (req, res) => {
         Math.random()
           .toString(36)
           .slice(2, 10);
+    } else if (product.items.length === 0) {
+      item.slug =
+        item.slug +
+        Math.random()
+          .toString(36)
+          .slice(2, 10);
     }
+
+    console.log(item, "Get the item");
 
     // Push the new item
     product.items.push(item);

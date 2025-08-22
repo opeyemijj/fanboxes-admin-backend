@@ -115,6 +115,8 @@ const getProducts = async (req, res) => {
           averageRating: 1,
           vendor: 1,
           shop: 1,
+          shopDetails: 1,
+          items: 1,
           createdAt: 1,
         },
       },
@@ -128,6 +130,7 @@ const getProducts = async (req, res) => {
             (query.top && { averageRating: Number(query.top) }) || {
               averageRating: -1,
             }),
+          createdAt: -1,
         },
       },
       {
@@ -912,6 +915,7 @@ const createProductByAdmin = async (req, res) => {
       shopDetails: tempShopDetails,
       categoryDetails: tempCategoryDetails,
       subCategoryDetails: tempSubCategoryDetails,
+      items: [],
       likes: 0,
     });
     await Shop.findByIdAndUpdate(req.body.shop, {
@@ -975,6 +979,7 @@ const getOneProductByAdmin = async (req, res) => {
     return res.status(400).json({ success: false, error: error.message });
   }
 };
+
 const updateProductByAdmin = async (req, res) => {
   try {
     const admin = await getAdmin(req, res);
@@ -1009,6 +1014,7 @@ const updateProductByAdmin = async (req, res) => {
 
 const updateBoxItemByAdmin = async (req, res) => {
   try {
+    const admin = await getAdmin(req, res);
     const { images, ...body } = req.body;
 
     // rebuild images with blurDataURL
@@ -1037,7 +1043,7 @@ const updateBoxItemByAdmin = async (req, res) => {
     );
 
     const updated = await Product.findOneAndUpdate(
-      { slug: prodcutSlug }, // make sure vendor matches
+      { slug: prodcutSlug, vendor: admin._id }, // make sure vendor matches
       { $set: setOps },
       {
         arrayFilters: [{ "elem.slug": itemSlug }],
@@ -1065,16 +1071,15 @@ const updateBoxItemByAdmin = async (req, res) => {
 
 const updateBoxItemOddByAdmin = async (req, res) => {
   try {
+    const admin = await getAdmin(req, res);
     const { boxSlug, ...body } = req.body;
-    const user = await getUser(req, res);
 
     // sanitize item fields
     const prodcutSlug = boxSlug;
     const updatedItem = body;
 
-    console.log(prodcutSlug, user._id);
     const updatedProduct = await Product.findOneAndUpdate(
-      { slug: prodcutSlug, vendor: user._id },
+      { slug: prodcutSlug, vendor: admin._id },
       { $set: { items: updatedItem.items } }
     );
 
@@ -1088,6 +1093,46 @@ const updateBoxItemOddByAdmin = async (req, res) => {
       success: true,
       data: updatedProduct?.items,
       message: "Items odd have been updated successfully.",
+    });
+  } catch (error) {
+    console.error("Update error:", error);
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+const deleteBoxItemByAdmin = async (req, res) => {
+  try {
+    const admin = await getAdmin(req, res);
+
+    const boxSlug = req.params.boxSlug;
+    const itemSlug = req.params.itemSlug;
+
+    // ✅ await the DB call
+    const particularProduct = await Product.findOne({
+      slug: boxSlug,
+      vendor: admin._id,
+    });
+
+    if (!particularProduct) {
+      return res.status(404).json({ success: false, message: "Box not found" });
+    }
+
+    // ✅ always filter from an array
+    const remainingItems = (particularProduct.items || []).filter(
+      (item) => item.slug !== itemSlug
+    );
+
+    // ✅ update product with remaining items
+    const updatedProduct = await Product.findOneAndUpdate(
+      { slug: boxSlug, vendor: admin._id },
+      { $set: { items: remainingItems } },
+      { new: true } // return the updated document
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: updatedProduct?.items || [],
+      message: "Item has been deleted successfully.",
     });
   } catch (error) {
     console.error("Update error:", error);
@@ -1549,6 +1594,7 @@ module.exports = {
   updateProductByAdmin,
   updateBoxItemByAdmin,
   updateBoxItemOddByAdmin,
+  deleteBoxItemByAdmin,
   deletedProductByAdmin,
   getFiltersByCategory,
   getFiltersByShop,

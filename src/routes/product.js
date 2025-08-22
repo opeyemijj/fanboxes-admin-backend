@@ -24,6 +24,12 @@ router.delete(
   verifyToken,
   product.deletedProductByAdmin
 );
+
+router.delete(
+  "/admin/product-item/:boxSlug/:itemSlug",
+  verifyToken,
+  product.deleteBoxItemByAdmin
+);
 //Vendor routes
 router.post(
   "/vendor/products",
