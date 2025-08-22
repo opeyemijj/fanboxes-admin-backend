@@ -115,6 +115,8 @@ const getProducts = async (req, res) => {
           averageRating: 1,
           vendor: 1,
           shop: 1,
+          shopDetails: 1,
+          items: 1,
           createdAt: 1,
         },
       },
