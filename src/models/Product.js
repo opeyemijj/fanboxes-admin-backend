@@ -26,7 +26,7 @@ const itemSchema = new Schema({
   },
   slug: {
     type: String,
-    required: [true, "Item slug is required."],
+    required: false,
   },
   description: {
     type: String,
@@ -158,16 +158,18 @@ const productSchema = new Schema(
 
     items: {
       type: [itemSchema],
+      default: [], // allows empty array
       validate: {
         validator: function(items) {
-          const slugs = items.map((i) => i.slug);
-          return slugs.length === new Set(slugs).size; // unique slugs
+          if (!items || items.length === 0) return true;
+          const slugs = items.map((i) => i.slug).filter(Boolean);
+          return slugs.length === new Set(slugs).size;
         },
         message: "Duplicate item slugs found within product.",
       },
     },
   },
-  { timestamps: true }
+  { timestamps: true, autoIndex: false }
 );
 
 const Product =

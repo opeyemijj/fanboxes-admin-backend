@@ -915,6 +915,7 @@ const createProductByAdmin = async (req, res) => {
       shopDetails: tempShopDetails,
       categoryDetails: tempCategoryDetails,
       subCategoryDetails: tempSubCategoryDetails,
+      items: [],
       likes: 0,
     });
     await Shop.findByIdAndUpdate(req.body.shop, {
