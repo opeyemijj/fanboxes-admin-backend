@@ -155,7 +155,8 @@ const createShopByAdmin = async (req, res) => {
       message: "Shop has been successfully created.",
     });
   } catch (error) {
-    await User.deleteOne({ _id: newVendorUser._id });
+    console.log(error)
+    try { await User.deleteOne({ _id: newVendorUser._id }); } catch (e) {}
     return res.status(400).json({ success: false, message: error.message });
   }
 };
