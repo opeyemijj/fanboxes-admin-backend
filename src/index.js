@@ -22,7 +22,8 @@ app.use(helmet()); // Security headers
 app.use(compression()); // Compress responses
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "*",
+    //origin: process.env.CORS_ORIGIN || "*",
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
