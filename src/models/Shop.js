@@ -111,18 +111,17 @@ const ShopSchema = new mongoose.Schema(
       },
       bankName: {
         type: String,
-        required: false,
       },
       AccountNo: {
         type: Number,
-        required: false,
       },
     },
     address: {
-      country: { type: String, required: false },
-      city: { type: String, required: false },
-      state: { type: String, required: false },
-      streetAddress: { type: String, required: false },
+      country: { type: String,  },
+      city: { type: String,  },
+      state: { type: String,  },
+      streetAddress: { type: String,  },
+
     },
   },
   {
