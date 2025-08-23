@@ -865,7 +865,7 @@ const createProductByAdmin = async (req, res) => {
     const admin = await getAdmin(req, res);
 
     const { images, ...body } = req.body;
-    console.log(req.body, "Check the request body");
+    // console.log(req.body, "Check the request body");
 
     const shop = await Shop.findOne({
       _id: req.body.shop,
@@ -875,9 +875,14 @@ const createProductByAdmin = async (req, res) => {
       _id: req.body.category,
     });
 
-    const subCategory = await SubCategory.findOne({
-      _id: req.body.subCategory,
-    });
+    let subCategory = null
+    let tempSubCategoryDetails = null
+
+    if(req.body.subCategory?.length > 10) {
+      subCategory = await SubCategory.findOne({
+        _id: req.body.subCategory,
+      });
+    }
 
     const updatedImages = await Promise.all(
       images.map(async (image) => {
@@ -900,13 +905,16 @@ const createProductByAdmin = async (req, res) => {
       metaTitle: category.metaTitle,
       cover: category.cover,
     };
-    const tempSubCategoryDetails = {
-      _id: subCategory._id,
-      name: subCategory.name,
-      slug: subCategory.slug,
-      metaTitle: subCategory.metaTitle,
-      cover: subCategory.cover,
-    };
+
+    if(subCategory)  {
+        tempSubCategoryDetails = {
+        _id: subCategory._id,
+        name: subCategory.name,
+        slug: subCategory.slug,
+        metaTitle: subCategory.metaTitle,
+        cover: subCategory.cover,
+      };
+    }
 
     const data = await Product.create({
       ...body,
@@ -914,7 +922,9 @@ const createProductByAdmin = async (req, res) => {
       vendor: admin._id,
       shopDetails: tempShopDetails,
       categoryDetails: tempCategoryDetails,
-      subCategoryDetails: tempSubCategoryDetails,
+      subCategoryDetails: subCategory ? tempSubCategoryDetails : null,
+      subCategory: subCategory ? req.body.subCategory : null,
+      slug: `${req.body.slug}-${Math.floor(100 + Math.random() * 900)}`,
       items: [],
       likes: 0,
     });
@@ -993,11 +1003,58 @@ const updateProductByAdmin = async (req, res) => {
       })
     );
 
+        const shop = await Shop.findOne({
+      _id: req.body.shop,
+    });
+
+    const category = await Category.findOne({
+      _id: req.body.category,
+    });
+
+    let subCategory = null
+    let tempSubCategoryDetails = null
+
+    if(req.body.subCategory?.length > 10) {
+      subCategory = await SubCategory.findOne({
+        _id: req.body.subCategory,
+      });
+    }
+
+    const tempShopDetails = {
+      _id: shop._id,
+      title: shop.title,
+      slug: shop.slug,
+      logo: shop.logo,
+      cover: shop.cover,
+    };
+    const tempCategoryDetails = {
+      _id: category._id,
+      name: category.name,
+      slug: category.slug,
+      metaTitle: category.metaTitle,
+      cover: category.cover,
+    };
+
+    if(subCategory)  {
+        tempSubCategoryDetails = {
+        _id: subCategory._id,
+        name: subCategory.name,
+        slug: subCategory.slug,
+        metaTitle: subCategory.metaTitle,
+        cover: subCategory.cover,
+      };
+    }
+
     const updated = await Product.findOneAndUpdate(
       { slug: slug, vendor: admin._id },
       {
         ...body,
         images: updatedImages,
+        vendor: admin._id,
+        shopDetails: tempShopDetails,
+        categoryDetails: tempCategoryDetails,
+        subCategoryDetails: subCategory ? tempSubCategoryDetails : null,
+        subCategory: subCategory ? req.body.subCategory : null,
       },
       { new: true, runValidators: true }
     );
