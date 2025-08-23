@@ -5,14 +5,14 @@ const Spin = require("../models/Spin");
 const User = require("../models/User");
 
 const createSpinByAdmin = async (req, res) => {
-  const admin = await getAdmin(req, res);
+  // const admin = await getAdmin(req, res);
   const user = await getUser(req, res);
-  if (!admin) {
-    return res.status(401).json({
-      success: false,
-      message: "Sorry, you don't have the necessary access to this.",
-    });
-  }
+  // if (!admin) {
+  //   return res.status(401).json({
+  //     success: false,
+  //     message: "Sorry, you don't have the necessary access to this.",
+  //   });
+  // }
   try {
     const requestData = req.body;
     const boxId = requestData.boxId;
