@@ -60,6 +60,7 @@ export class ProvablyFair {
 
     const winningItem = items.find((item, index) => {
       const range = oddsMap[index];
+      console.log("range::", range);
       return normalized >= range.start && normalized < range.end;
     });
 
