@@ -6,7 +6,7 @@ const User = require("../models/User");
 
 const createSpinByAdmin = async (req, res) => {
   // const admin = await getAdmin(req, res);
-  const user = await getUser(req, res);
+
   // if (!admin) {
   //   return res.status(401).json({
   //     success: false,
@@ -14,6 +14,7 @@ const createSpinByAdmin = async (req, res) => {
   //   });
   // }
   try {
+    const user = await getUser(req, res, true);
     const requestData = req.body;
     const boxId = requestData.boxId;
     const clientSeed = requestData.clientSeed;
