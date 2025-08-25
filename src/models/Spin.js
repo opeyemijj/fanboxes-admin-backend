@@ -39,6 +39,10 @@ const SpinSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
       default: {},
     },
+    oddsMap: {
+      type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
+      default: {},
+    },
 
     clientSeed: {
       type: String,

@@ -48,6 +48,8 @@ export class ProvablyFair {
     let cumulativeOdds = 0;
     const oddsMap = items.map((item) => {
       const range = {
+        _id: item._id,
+        slug: item.slug,
         item: item.name,
         start: cumulativeOdds,
         end: cumulativeOdds + item.odd,
@@ -68,6 +70,7 @@ export class ProvablyFair {
     console.log("✅ Spin result generated successfully");
 
     return {
+      oddsMap,
       winningItem,
       hash,
       normalized,

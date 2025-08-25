@@ -75,6 +75,7 @@ const createSpinByAdmin = async (req, res) => {
       normalized: result.normalized,
       boxId,
       itemsUsed: boxDetails.items.length,
+      oddsMap: result.oddsMap,
     };
 
     console.log("📝 Spin log entry:", spinLog);
@@ -111,6 +112,7 @@ const createSpinByAdmin = async (req, res) => {
       serverSeedHash: serverSeedHash,
       normalized: result.normalized,
       hash: result.hash,
+      oddsMap: result.oddsMap,
     };
 
     // console.log(desireSpinData, "Calling the spin data");
