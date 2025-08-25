@@ -100,7 +100,7 @@ const createShopByAdmin = async (req, res) => {
       phone: newUserPhone,
       email: newUserEmail,
       otp,
-      role: "user",
+      role: "vendor",
       password: newUserPassword,
     });
 
@@ -155,8 +155,10 @@ const createShopByAdmin = async (req, res) => {
       message: "Shop has been successfully created.",
     });
   } catch (error) {
-    console.log(error)
-    try { await User.deleteOne({ _id: newVendorUser._id }); } catch (e) {}
+    console.log(error);
+    try {
+      await User.deleteOne({ _id: newVendorUser._id });
+    } catch (e) {}
     return res.status(400).json({ success: false, message: error.message });
   }
 };
