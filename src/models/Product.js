@@ -30,7 +30,7 @@ const itemSchema = new Schema({
   },
   description: {
     type: String,
-    required: [true, "Description is required."],
+    required: [false, "Description is required."],
     maxlength: [1000, "Description cannot exceed 1000 characters."],
   },
   images: {

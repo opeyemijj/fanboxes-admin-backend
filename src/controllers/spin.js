@@ -164,6 +164,11 @@ const spinVerify = async (req, res) => {
 
 const getSpinsByAdmin = async (req, res) => {
   try {
+    const { limit = 10, page = 1 } = req.query;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const totalShop = await Spin.countDocuments();
+
     const admin = await getAdmin(req, res);
     if (!admin) {
       return res.status(401).json({
@@ -171,13 +176,40 @@ const getSpinsByAdmin = async (req, res) => {
         message: "Apologies, you don't have the required access to proceed.",
       });
     }
-    const spin = await Spin.find().sort({
-      createdAt: -1,
-    });
+    const spin = await Spin.find({}, null, {
+      skip: skip,
+      limit: parseInt(limit),
+    })
+      .select([
+        "boxId",
+        "boxDetails",
+        "vendorId",
+        "vendorDetails",
+        "userId",
+        "userDetails",
+        "shop",
+        "shopDetails",
+        "clientSeed",
+        "serverSeed",
+        "serverSeedHash",
+        "nonce",
+        "winningItem",
+        "normalized",
+        "hash",
+        "createdAt",
+      ])
+      .sort({
+        createdAt: -1,
+      });
+
+    // const spin = await Spin.find().sort({
+    //   createdAt: -1,
+    // });
 
     return res.status(200).json({
       success: true,
       data: spin,
+      count: Math.ceil(totalShop / limit),
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
