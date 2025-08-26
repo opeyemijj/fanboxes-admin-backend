@@ -242,7 +242,7 @@ const updateOneShopByAdmin = async (req, res) => {
       });
     }
 
-    const { logo, cover, status, ...others } = req.body;
+    const { logo, cover, status, paymentInfo, ...others } = req.body;
     const logoBlurDataURL = await getBlurDataURL(logo.url);
     const coverBlurDataURL = await getBlurDataURL(cover.url);
 
@@ -252,6 +252,7 @@ const updateOneShopByAdmin = async (req, res) => {
         ...others,
         logo: { ...logo, blurDataURL: logoBlurDataURL },
         cover: { ...cover, blurDataURL: coverBlurDataURL },
+        paymentInfo: shop.paymentInfo,
         status: status, // Update shop status
       },
       { new: true, runValidators: true }
@@ -268,25 +269,7 @@ const updateOneShopByAdmin = async (req, res) => {
       message = "Your shop is not approved.";
     }
 
-    // Create nodemailer transporter
-    let transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.RECEIVING_EMAIL, // Your Gmail email
-        pass: process.env.EMAIL_PASSWORD, // Your Gmail password
-      },
-    });
-
-    // Email options
-    let mailOptions = {
-      from: process.env.RECEIVING_EMAIL, // Your Gmail email
-      to: vendor.email, // User's email
-      subject: "Shop Status Has Been Updated", // Email subject
-      text: message, // Email body
-    };
-
     // Send email
-    await transporter.sendMail(mailOptions);
 
     return res.status(200).json({
       success: true,
