@@ -6,7 +6,7 @@ const User = require("../models/User");
 
 const createSpinByAdmin = async (req, res) => {
   // const admin = await getAdmin(req, res);
-  const user = await getUser(req, res);
+
   // if (!admin) {
   //   return res.status(401).json({
   //     success: false,
@@ -14,6 +14,7 @@ const createSpinByAdmin = async (req, res) => {
   //   });
   // }
   try {
+    const user = await getUser(req, res, true);
     const requestData = req.body;
     const boxId = requestData.boxId;
     const clientSeed = requestData.clientSeed;
@@ -130,12 +131,12 @@ const createSpinByAdmin = async (req, res) => {
 };
 
 const spinVerify = async (req, res) => {
-  const admin = await getAdmin(req, res);
-  if (!admin) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Sorry you don't have access" });
-  }
+  // const admin = await getAdmin(req, res);
+  // if (!admin) {
+  //   return res
+  //     .status(401)
+  //     .json({ success: false, message: "Sorry you don't have access" });
+  // }
   try {
     const requestData = req.body;
     const clientSeed = requestData.clientSeed;

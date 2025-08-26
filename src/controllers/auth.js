@@ -34,6 +34,7 @@ const registerUser = async (req, res) => {
       ...request,
       otp,
       role: Boolean(UserCount) ? request.role || "user" : "super admin",
+      isVerified: true,
     });
 
     // Generate JWT token
