@@ -32,18 +32,44 @@ app.use(bodyParser.json({ limit: "10mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 
 // Connect to MongoDB
-mongoose
-  .connect(process.env.MONGODB_URI, {
-    dbName: process.env.DB_NAME,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("Connected to MongoDB");
-  })
-  .catch((error) => {
-    console.error("Error connecting to MongoDB:", error);
-  });
+const mongoOptions = {
+  dbName: process.env.DB_NAME || "fanboxes_dev",
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  connectTimeoutMS: 30000,
+  maxPoolSize: 50,
+  minPoolSize: 5,
+  retryWrites: true,
+  retryReads: true,
+  heartbeatFrequencyMS: 10000,
+  waitQueueTimeoutMS: 10000,
+};
+
+const connectWithRetry = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, mongoOptions);
+    console.log("✅ Connected to MongoDB");
+
+    mongoose.connection.on("connected", () => {
+      console.log("Mongoose connected to DB");
+    });
+
+    mongoose.connection.on("error", (err) => {
+      console.error("Mongoose connection error:", err);
+    });
+
+    mongoose.connection.on("disconnected", () => {
+      console.warn("Mongoose disconnected from DB");
+    });
+  } catch (err) {
+    console.error("❌ Failed to connect to MongoDB:", err.message);
+    console.log("Retrying connection in 5 seconds...");
+    setTimeout(connectWithRetry, 5000);
+  }
+};
+
+// Initialize connection
+connectWithRetry();
 
 // Routes
 
