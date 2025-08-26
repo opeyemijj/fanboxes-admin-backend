@@ -131,12 +131,12 @@ const createSpinByAdmin = async (req, res) => {
 };
 
 const spinVerify = async (req, res) => {
-  const admin = await getAdmin(req, res);
-  if (!admin) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Sorry you don't have access" });
-  }
+  // const admin = await getAdmin(req, res);
+  // if (!admin) {
+  //   return res
+  //     .status(401)
+  //     .json({ success: false, message: "Sorry you don't have access" });
+  // }
   try {
     const requestData = req.body;
     const clientSeed = requestData.clientSeed;
