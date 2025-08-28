@@ -199,6 +199,7 @@ const createProductByVendor = async (req, res) => {
 };
 
 const createBoxItemByVendor = async (req, res) => {
+  const vendor = await getVendor(req, res);
   try {
     const { boxSlug } = req.body; // product slug
     let item = { ...req.body };
@@ -220,8 +221,15 @@ const createBoxItemByVendor = async (req, res) => {
         message: "Sorry, we couldn't find the product you're looking for.",
       });
 
-    // Check for duplicate slug
+    if (product.vendor != vendor._id) {
+      return res.status(403).json({
+        success: false,
+        message: "Sorry you are not vendor of this box",
+      });
+    }
+
     if (product.items.some((i) => i.slug === item.slug)) {
+      // Check for duplicate slug
       item.slug =
         item.slug +
         Math.random()
@@ -248,6 +256,63 @@ const createBoxItemByVendor = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const updateBoxItemByVendor = async (req, res) => {
+  try {
+    const vendor = await getVendor(req, res);
+    const { images, ...body } = req.body;
+
+    // rebuild images with blurDataURL
+    const updatedImages = await Promise.all(
+      images.map(async (image) => {
+        const blurDataURL = await blurDataUrl(image.url);
+        return { ...image, blurDataURL };
+      })
+    );
+
+    // sanitize item fields
+    const updatedItem = { ...body, images: updatedImages };
+    const prodcutSlug = updatedItem.boxSlug;
+    delete updatedItem.boxSlug;
+    delete updatedItem.blob;
+
+    const itemSlug = req.body.slug; // keep this for filter
+    delete updatedItem.slug; // don't overwrite slug
+
+    // build $set dynamically
+    const setOps = Object.fromEntries(
+      Object.entries(updatedItem).map(([key, value]) => [
+        `items.$[elem].${key}`,
+        value,
+      ])
+    );
+
+    const updated = await Product.findOneAndUpdate(
+      { slug: prodcutSlug, vendor: vendor._id }, // make sure vendor matches
+      { $set: setOps },
+      {
+        arrayFilters: [{ "elem.slug": itemSlug }],
+        runValidators: true,
+        new: true, // return updated doc
+      }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Box or item not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: updated,
+      message: "Item has been updated successfully.",
+    });
+  } catch (error) {
+    console.error("Update error:", error);
+    return res.status(400).json({ success: false, error: error.message });
   }
 };
 
@@ -415,4 +480,5 @@ module.exports = {
   updateProductByVendor,
   deletedProductByVendor,
   createBoxItemByVendor,
+  updateBoxItemByVendor,
 };

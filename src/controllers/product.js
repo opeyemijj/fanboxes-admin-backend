@@ -1152,7 +1152,7 @@ const updateBoxItemByAdmin = async (req, res) => {
     );
 
     const updated = await Product.findOneAndUpdate(
-      { slug: prodcutSlug, vendor: admin._id }, // make sure vendor matches
+      { slug: prodcutSlug }, // make sure vendor matches
       { $set: setOps },
       {
         arrayFilters: [{ "elem.slug": itemSlug }],
