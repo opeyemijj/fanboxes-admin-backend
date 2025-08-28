@@ -1044,7 +1044,6 @@ const getOneProductByAdmin = async (req, res) => {
 
 const updateProductByAdmin = async (req, res) => {
   try {
-    const admin = await getAdmin(req, res);
     const { slug } = req.params;
     const { images, ...body } = req.body;
 
@@ -1098,11 +1097,10 @@ const updateProductByAdmin = async (req, res) => {
     }
 
     const updated = await Product.findOneAndUpdate(
-      { slug: slug, vendor: admin._id },
+      { slug: slug },
       {
         ...body,
         images: updatedImages,
-        vendor: admin._id,
         shopDetails: tempShopDetails,
         categoryDetails: tempCategoryDetails,
         subCategoryDetails: subCategory ? tempSubCategoryDetails : null,
@@ -1123,7 +1121,6 @@ const updateProductByAdmin = async (req, res) => {
 
 const updateBoxItemByAdmin = async (req, res) => {
   try {
-    const admin = await getAdmin(req, res);
     const { images, ...body } = req.body;
 
     // rebuild images with blurDataURL

@@ -56,7 +56,6 @@ const getShopsByAdmin = async (req, res) => {
 const createShopByAdmin = async (req, res) => {
   let newVendorUser = null;
   try {
-    const admin = await getAdmin(req, res);
     const { logo, cover, ...others } = req.body;
     let requestData = req.body;
     requestData.paymentInfo = {
@@ -234,7 +233,6 @@ const getOneShopByAdmin = async (req, res) => {
 const updateOneShopByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
-    const admin = await getAdmin(req, res);
     const shop = await Shop.findOne({ slug });
 
     // Check if the shop exists
@@ -287,12 +285,10 @@ const updateOneShopByAdmin = async (req, res) => {
 const updateShopStatusByAdmin = async (req, res) => {
   try {
     const { sid } = req.params;
-    const admin = await getAdmin(req, res);
     const { status } = req.body;
     const updateStatus = await Shop.findOneAndUpdate(
       {
         _id: sid,
-        vendor: admin._id,
       },
       {
         status,
@@ -313,7 +309,6 @@ const updateShopStatusByAdmin = async (req, res) => {
 };
 const deleteOneShopByAdmin = async (req, res) => {
   try {
-    const admin = await getAdmin(req, res);
     const { slug } = req.params;
     // const shop = await Shop.findOne({ slug, vendor: admin._id });
     const shop = await Shop.findOne({ slug });

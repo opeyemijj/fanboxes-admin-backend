@@ -315,7 +315,6 @@ const updateBoxItemByVendor = async (req, res) => {
 };
 
 const updateBoxItemOddByVendor = async (req, res) => {
-  console.log("Come here to update the odd by vendor");
   try {
     const vendor = await getVendor(req, res);
     const { boxSlug, ...body } = req.body;
