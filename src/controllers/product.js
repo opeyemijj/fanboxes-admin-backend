@@ -875,10 +875,10 @@ const createProductByAdmin = async (req, res) => {
       _id: req.body.category,
     });
 
-    let subCategory = null
-    let tempSubCategoryDetails = null
+    let subCategory = null;
+    let tempSubCategoryDetails = null;
 
-    if(req.body.subCategory?.length > 10) {
+    if (req.body.subCategory?.length > 10) {
       subCategory = await SubCategory.findOne({
         _id: req.body.subCategory,
       });
@@ -906,8 +906,8 @@ const createProductByAdmin = async (req, res) => {
       cover: category.cover,
     };
 
-    if(subCategory)  {
-        tempSubCategoryDetails = {
+    if (subCategory) {
+      tempSubCategoryDetails = {
         _id: subCategory._id,
         name: subCategory.name,
         slug: subCategory.slug,
@@ -919,7 +919,7 @@ const createProductByAdmin = async (req, res) => {
     const data = await Product.create({
       ...body,
       images: updatedImages,
-      vendor: admin._id,
+      vendor: shop.vendor,
       shopDetails: tempShopDetails,
       categoryDetails: tempCategoryDetails,
       subCategoryDetails: subCategory ? tempSubCategoryDetails : null,
@@ -1003,7 +1003,7 @@ const updateProductByAdmin = async (req, res) => {
       })
     );
 
-        const shop = await Shop.findOne({
+    const shop = await Shop.findOne({
       _id: req.body.shop,
     });
 
@@ -1011,10 +1011,10 @@ const updateProductByAdmin = async (req, res) => {
       _id: req.body.category,
     });
 
-    let subCategory = null
-    let tempSubCategoryDetails = null
+    let subCategory = null;
+    let tempSubCategoryDetails = null;
 
-    if(req.body.subCategory?.length > 10) {
+    if (req.body.subCategory?.length > 10) {
       subCategory = await SubCategory.findOne({
         _id: req.body.subCategory,
       });
@@ -1035,8 +1035,8 @@ const updateProductByAdmin = async (req, res) => {
       cover: category.cover,
     };
 
-    if(subCategory)  {
-        tempSubCategoryDetails = {
+    if (subCategory) {
+      tempSubCategoryDetails = {
         _id: subCategory._id,
         name: subCategory.name,
         slug: subCategory.slug,
