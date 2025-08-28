@@ -1211,15 +1211,12 @@ const updateBoxItemOddByAdmin = async (req, res) => {
 
 const deleteBoxItemByAdmin = async (req, res) => {
   try {
-    const admin = await getAdmin(req, res);
-
     const boxSlug = req.params.boxSlug;
     const itemSlug = req.params.itemSlug;
 
     // ✅ await the DB call
     const particularProduct = await Product.findOne({
       slug: boxSlug,
-      vendor: admin._id,
     });
 
     if (!particularProduct) {
@@ -1233,7 +1230,7 @@ const deleteBoxItemByAdmin = async (req, res) => {
 
     // ✅ update product with remaining items
     const updatedProduct = await Product.findOneAndUpdate(
-      { slug: boxSlug, vendor: admin._id },
+      { slug: boxSlug },
       { $set: { items: remainingItems } },
       { new: true } // return the updated document
     );

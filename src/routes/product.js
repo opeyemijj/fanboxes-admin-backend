@@ -53,6 +53,12 @@ router.put(
   vendor_product.updateBoxItemByVendor
 );
 
+router.delete(
+  "/vendor/product-item/:boxSlug/:itemSlug",
+  verifyToken,
+  vendor_product.deleteBoxItemByVendor
+);
+
 router.get("/vendor/products", verifyToken, vendor_product.getProductsByVendor);
 router.get(
   "/vendor/products/:slug",
