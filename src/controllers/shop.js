@@ -152,7 +152,7 @@ const createShopByAdmin = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: shop,
-      message: "Shop has been successfully created.",
+      message: "Influencer has been successfully created.",
     });
   } catch (error) {
     try {
@@ -327,9 +327,19 @@ const deleteOneShopByAdmin = async (req, res) => {
     await singleFileDelete(shop.logo._id);
     // const dataaa = await singleFileDelete(shop?.logo?._id,shop?.cover?._id);
     await Shop.deleteOne({ slug }); // Corrected to pass an object to deleteOne method
+
+    // delete related user of this shop
+    try {
+      if (shop?.vendorDetails) {
+        await User.deleteOne({ _id: shop?.vendorDetails._id });
+      }
+    } catch (e) {
+      console.log(e, "Failed to delte user");
+      // return res.status(400).json({ success: false, message: e.message });
+    }
     return res.status(200).json({
       success: true,
-      message: "Shop has been successfully deleted.", // Corrected message typo
+      message: "Influencer has been successfully deleted.", // Corrected message typo
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
