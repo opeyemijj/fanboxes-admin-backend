@@ -30,6 +30,9 @@ router.delete(
   verifyToken,
   product.deleteBoxItemByAdmin
 );
+
+router.post("/admin/boxItem", verifyToken, product.createBoxItemByAdmin);
+
 //Vendor routes
 router.post(
   "/vendor/products",

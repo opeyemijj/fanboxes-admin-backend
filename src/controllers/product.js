@@ -944,6 +944,57 @@ const createProductByAdmin = async (req, res) => {
   }
 };
 
+const createBoxItemByAdmin = async (req, res) => {
+  try {
+    const { boxSlug } = req.body; // product slug
+    let item = { ...req.body };
+
+    // rebuild images with blurDataURL
+    const updatedImages = await Promise.all(
+      item?.images?.map(async (image) => {
+        const blurDataURL = await blurDataUrl(image.url);
+        return { ...image, blurDataURL };
+      })
+    );
+    item.images = updatedImages;
+
+    // Find the product first
+    const product = await Product.findOne({ slug: boxSlug });
+    if (!product)
+      return res.status(404).json({
+        success: false,
+        message: "Sorry, we couldn't find the product you're looking for.",
+      });
+
+    // Check for duplicate slug
+    if (product.items.some((i) => i.slug === item.slug)) {
+      item.slug =
+        item.slug +
+        Math.random()
+          .toString(36)
+          .slice(2, 10);
+    } else if (product.items.length === 0) {
+      item.slug =
+        item.slug +
+        Math.random()
+          .toString(36)
+          .slice(2, 10);
+    }
+
+    // Push the new item
+    product.items.push(item);
+    await product.save(); // ✅ triggers pre-save validation & hooks
+
+    res.status(200).json({
+      success: true,
+      message: "Item successfully added to your box.",
+      data: product,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 const getOneProductByAdmin = async (req, res) => {
   try {
     const product = await Product.findOne({ slug: req.params.slug });
@@ -1648,6 +1699,7 @@ module.exports = {
   getFilters,
   getProductsByAdmin,
   createProductByAdmin,
+  createBoxItemByAdmin,
   getOneProductByAdmin,
   updateProductByAdmin,
   updateBoxItemByAdmin,
