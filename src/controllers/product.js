@@ -928,6 +928,7 @@ const createProductByAdmin = async (req, res) => {
       items: [],
       likes: 0,
     });
+
     await Shop.findByIdAndUpdate(req.body.shop, {
       $addToSet: {
         products: data._id,

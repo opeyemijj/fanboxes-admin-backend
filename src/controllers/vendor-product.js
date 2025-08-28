@@ -149,13 +149,18 @@ const createProductByVendor = async (req, res) => {
       metaTitle: category.metaTitle,
       cover: category.cover,
     };
-    const tempSubCategoryDetails = {
-      _id: subCategory._id,
-      name: subCategory.name,
-      slug: subCategory.slug,
-      metaTitle: subCategory.metaTitle,
-      cover: subCategory.cover,
-    };
+
+    let tempSubCategoryDetails = null;
+    if (subCategory) {
+      tempSubCategoryDetails = {
+        _id: subCategory._id,
+        name: subCategory.name,
+        slug: subCategory.slug,
+        metaTitle: subCategory.metaTitle,
+        cover: subCategory.cover,
+      };
+    }
+
     const tempVendorDetails = {
       _id: vendor._id,
       firstName: vendor.firstName,
@@ -167,13 +172,17 @@ const createProductByVendor = async (req, res) => {
       ...body,
       vendor: vendor._id,
       vendorDetails: tempVendorDetails,
+      shop: shop._id,
       shopDetails: tempShopDetails,
       categoryDetails: tempCategoryDetails,
       subCategoryDetails: tempSubCategoryDetails,
-      shop: shop._id,
+      subCategory: subCategory ? req.body.subCategory : null,
+      slug: `${req.body.slug}-${Math.floor(100 + Math.random() * 900)}`,
+      items: [],
       images: updatedImages,
       likes: 0,
     });
+
     await Shop.findByIdAndUpdate(shop._id.toString(), {
       $addToSet: {
         products: data._id,
