@@ -221,8 +221,8 @@ const createBoxItemByVendor = async (req, res) => {
         message: "Sorry, we couldn't find the product you're looking for.",
       });
 
-    if (product.vendor != vendor._id) {
-      return res.status(403).json({
+    if (product.vendor?.toString() != vendor._id?.toString()) {
+      return res.status(405).json({
         success: false,
         message: "Sorry you are not vendor of this box",
       });
@@ -242,8 +242,6 @@ const createBoxItemByVendor = async (req, res) => {
           .toString(36)
           .slice(2, 10);
     }
-
-    console.log(item, "Get the item");
 
     // Push the new item
     product.items.push(item);
