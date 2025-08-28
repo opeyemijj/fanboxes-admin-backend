@@ -1180,7 +1180,6 @@ const updateBoxItemByAdmin = async (req, res) => {
 
 const updateBoxItemOddByAdmin = async (req, res) => {
   try {
-    const admin = await getAdmin(req, res);
     const { boxSlug, ...body } = req.body;
 
     // sanitize item fields
@@ -1188,7 +1187,7 @@ const updateBoxItemOddByAdmin = async (req, res) => {
     const updatedItem = body;
 
     const updatedProduct = await Product.findOneAndUpdate(
-      { slug: prodcutSlug, vendor: admin._id },
+      { slug: prodcutSlug },
       { $set: { items: updatedItem.items } }
     );
 

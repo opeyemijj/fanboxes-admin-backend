@@ -314,6 +314,38 @@ const updateBoxItemByVendor = async (req, res) => {
   }
 };
 
+const updateBoxItemOddByVendor = async (req, res) => {
+  console.log("Come here to update the odd by vendor");
+  try {
+    const vendor = await getVendor(req, res);
+    const { boxSlug, ...body } = req.body;
+
+    // sanitize item fields
+    const prodcutSlug = boxSlug;
+    const updatedItem = body;
+
+    const updatedProduct = await Product.findOneAndUpdate(
+      { slug: prodcutSlug, vendor: vendor._id },
+      { $set: { items: updatedItem.items } }
+    );
+
+    // console.log(updatedProduct, "OKK SEE THE UPDATED PRODUCT");
+
+    if (!updatedProduct) {
+      return res.status(404).json({ success: false, message: "Box not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: updatedProduct?.items,
+      message: "Items odd have been updated successfully.",
+    });
+  } catch (error) {
+    console.error("Update error:", error);
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
+
 const deleteBoxItemByVendor = async (req, res) => {
   try {
     const vendor = await getVendor(req, res);
@@ -520,4 +552,5 @@ module.exports = {
   createBoxItemByVendor,
   updateBoxItemByVendor,
   deleteBoxItemByVendor,
+  updateBoxItemOddByVendor,
 };

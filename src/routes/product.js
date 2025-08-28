@@ -71,6 +71,12 @@ router.put(
   vendor_product.updateProductByVendor
 );
 
+router.put(
+  "/vendor/boxItemOdd/:slug",
+  verifyToken,
+  vendor_product.updateBoxItemOddByVendor
+);
+
 router.delete(
   "/vendor/products/:slug",
   verifyToken,
