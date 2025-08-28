@@ -111,21 +111,21 @@ const createShopByAdmin = async (req, res) => {
       gender: newVendorUser.gender,
     };
 
-    const htmlContent = getWelcomeEmailContent(
-      newUserEmail,
-      newUserPassword,
-      otp
-    );
+    // const htmlContent = getWelcomeEmailContent(
+    //   newUserEmail,
+    //   newUserPassword,
+    //   otp
+    // );
 
-    try {
-      await sendEmail({
-        to: "a.shahadath@shoutty.app",
-        subject: "Welcome to Fanbox! 🎉 Your account is ready",
-        html: htmlContent,
-      });
-    } catch (err) {
-      console.log("Failed email sending: ", err);
-    }
+    // try {
+    //   await sendEmail({
+    //     to: "a.shahadath@shoutty.app",
+    //     subject: "Welcome to Fanbox! 🎉 Your account is ready",
+    //     html: htmlContent,
+    //   });
+    // } catch (err) {
+    //   console.log("Failed email sending: ", err);
+    // }
 
     // return res.status(400).json({ success: false, message: "Testing" });
 
@@ -155,10 +155,14 @@ const createShopByAdmin = async (req, res) => {
       message: "Shop has been successfully created.",
     });
   } catch (error) {
-    console.log(error);
     try {
-      await User.deleteOne({ _id: newVendorUser._id });
-    } catch (e) {}
+      if (newVendorUser) {
+        await User.deleteOne({ _id: newVendorUser._id });
+      }
+    } catch (e) {
+      return res.status(400).json({ success: false, message: e.message });
+    }
+
     return res.status(400).json({ success: false, message: error.message });
   }
 };
