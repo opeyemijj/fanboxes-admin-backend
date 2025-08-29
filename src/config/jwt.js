@@ -35,34 +35,34 @@ function verifyToken(req, res, next) {
       req.user = decoded;
 
       // Role-based route protection
-      const path = req.originalUrl.toLowerCase();
+      // const path = req.originalUrl.toLowerCase();
 
-      // Admin route protection
-      if (
-        path.includes("/admin") &&
-        !["admin", "super admin"].includes(decoded.role)
-      ) {
-        res.setHeader("Set-Cookie", [
-          "token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
-          "userRole=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
-        ]);
-        return res.status(403).json({
-          success: false,
-          message: "Admin access required",
-        });
-      }
+      // // Admin route protection
+      // if (
+      //   path.includes("/admin") &&
+      //   !["admin", "super admin"].includes(decoded.role)
+      // ) {
+      //   res.setHeader("Set-Cookie", [
+      //     "token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+      //     "userRole=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+      //   ]);
+      //   return res.status(403).json({
+      //     success: false,
+      //     message: "Admin access required",
+      //   });
+      // }
 
       // Vendor route protection
-      if (path.includes("/vendor") && decoded.role !== "vendor") {
-        res.setHeader("Set-Cookie", [
-          "token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
-          "userRole=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
-        ]);
-        return res.status(403).json({
-          success: false,
-          message: "Vendor access required",
-        });
-      }
+      // if (path.includes("/vendor") && decoded.role !== "vendor") {
+      //   res.setHeader("Set-Cookie", [
+      //     "token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+      //     "userRole=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+      //   ]);
+      //   return res.status(403).json({
+      //     success: false,
+      //     message: "Vendor access required",
+      //   });
+      // }
 
       next();
     }
