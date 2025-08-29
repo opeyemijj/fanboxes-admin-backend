@@ -160,7 +160,6 @@ const deleteCategoryBySlug = async (req, res) => {
     const { slug } = req.params;
 
     const category = await Categories.findOneAndDelete({ slug });
-    const dataaa = await singleFileDelete(category.cover._id);
     if (!category) {
       return res.status(400).json({
         success: false,
@@ -168,12 +167,12 @@ const deleteCategoryBySlug = async (req, res) => {
       });
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Category has been successfully deleted.",
     });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    return res.status(400).json({ success: false, message: error.message });
   }
 };
 const getCategories = async (req, res) => {

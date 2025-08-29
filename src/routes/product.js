@@ -13,6 +13,7 @@ router.get("/admin/products", verifyToken, product.getProductsByAdmin);
 router.get("/admin/products/:slug", verifyToken, product.getOneProductByAdmin);
 router.put("/admin/products/:slug", verifyToken, product.updateProductByAdmin);
 router.put("/admin/boxItem/:slug", verifyToken, product.updateBoxItemByAdmin);
+
 router.put(
   "/admin/boxItemOdd/:slug",
   verifyToken,
@@ -30,6 +31,9 @@ router.delete(
   verifyToken,
   product.deleteBoxItemByAdmin
 );
+
+router.post("/admin/boxItem", verifyToken, product.createBoxItemByAdmin);
+
 //Vendor routes
 router.post(
   "/vendor/products",
@@ -43,6 +47,18 @@ router.post(
   vendor_product.createBoxItemByVendor
 );
 
+router.put(
+  "/vendor/boxItem/:slug",
+  verifyToken,
+  vendor_product.updateBoxItemByVendor
+);
+
+router.delete(
+  "/vendor/product-item/:boxSlug/:itemSlug",
+  verifyToken,
+  vendor_product.deleteBoxItemByVendor
+);
+
 router.get("/vendor/products", verifyToken, vendor_product.getProductsByVendor);
 router.get(
   "/vendor/products/:slug",
@@ -53,6 +69,12 @@ router.put(
   "/vendor/products/:slug",
   verifyToken,
   vendor_product.updateProductByVendor
+);
+
+router.put(
+  "/vendor/boxItemOdd/:slug",
+  verifyToken,
+  vendor_product.updateBoxItemOddByVendor
 );
 
 router.delete(

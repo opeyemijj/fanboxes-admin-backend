@@ -56,7 +56,6 @@ const getShopsByAdmin = async (req, res) => {
 const createShopByAdmin = async (req, res) => {
   let newVendorUser = null;
   try {
-    const admin = await getAdmin(req, res);
     const { logo, cover, ...others } = req.body;
     let requestData = req.body;
     requestData.paymentInfo = {
@@ -111,21 +110,21 @@ const createShopByAdmin = async (req, res) => {
       gender: newVendorUser.gender,
     };
 
-    const htmlContent = getWelcomeEmailContent(
-      newUserEmail,
-      newUserPassword,
-      otp
-    );
+    // const htmlContent = getWelcomeEmailContent(
+    //   newUserEmail,
+    //   newUserPassword,
+    //   otp
+    // );
 
-    try {
-      await sendEmail({
-        to: "a.shahadath@shoutty.app",
-        subject: "Welcome to Fanbox! 🎉 Your account is ready",
-        html: htmlContent,
-      });
-    } catch (err) {
-      console.log("Failed email sending: ", err);
-    }
+    // try {
+    //   await sendEmail({
+    //     to: "a.shahadath@shoutty.app",
+    //     subject: "Welcome to Fanbox! 🎉 Your account is ready",
+    //     html: htmlContent,
+    //   });
+    // } catch (err) {
+    //   console.log("Failed email sending: ", err);
+    // }
 
     // return res.status(400).json({ success: false, message: "Testing" });
 
@@ -152,13 +151,17 @@ const createShopByAdmin = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: shop,
-      message: "Shop has been successfully created.",
+      message: "Influencer has been successfully created.",
     });
   } catch (error) {
-    console.log(error);
     try {
-      await User.deleteOne({ _id: newVendorUser._id });
-    } catch (e) {}
+      if (newVendorUser) {
+        await User.deleteOne({ _id: newVendorUser._id });
+      }
+    } catch (e) {
+      return res.status(400).json({ success: false, message: e.message });
+    }
+
     return res.status(400).json({ success: false, message: error.message });
   }
 };
@@ -230,7 +233,6 @@ const getOneShopByAdmin = async (req, res) => {
 const updateOneShopByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
-    const admin = await getAdmin(req, res);
     const shop = await Shop.findOne({ slug });
 
     // Check if the shop exists
@@ -242,7 +244,7 @@ const updateOneShopByAdmin = async (req, res) => {
       });
     }
 
-    const { logo, cover, status, ...others } = req.body;
+    const { logo, cover, status, paymentInfo, ...others } = req.body;
     const logoBlurDataURL = await getBlurDataURL(logo.url);
     const coverBlurDataURL = await getBlurDataURL(cover.url);
 
@@ -252,6 +254,7 @@ const updateOneShopByAdmin = async (req, res) => {
         ...others,
         logo: { ...logo, blurDataURL: logoBlurDataURL },
         cover: { ...cover, blurDataURL: coverBlurDataURL },
+        paymentInfo: shop.paymentInfo,
         status: status, // Update shop status
       },
       { new: true, runValidators: true }
@@ -268,25 +271,7 @@ const updateOneShopByAdmin = async (req, res) => {
       message = "Your shop is not approved.";
     }
 
-    // Create nodemailer transporter
-    let transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.RECEIVING_EMAIL, // Your Gmail email
-        pass: process.env.EMAIL_PASSWORD, // Your Gmail password
-      },
-    });
-
-    // Email options
-    let mailOptions = {
-      from: process.env.RECEIVING_EMAIL, // Your Gmail email
-      to: vendor.email, // User's email
-      subject: "Shop Status Has Been Updated", // Email subject
-      text: message, // Email body
-    };
-
     // Send email
-    await transporter.sendMail(mailOptions);
 
     return res.status(200).json({
       success: true,
@@ -300,12 +285,10 @@ const updateOneShopByAdmin = async (req, res) => {
 const updateShopStatusByAdmin = async (req, res) => {
   try {
     const { sid } = req.params;
-    const admin = await getAdmin(req, res);
     const { status } = req.body;
     const updateStatus = await Shop.findOneAndUpdate(
       {
         _id: sid,
-        vendor: admin._id,
       },
       {
         status,
@@ -326,7 +309,6 @@ const updateShopStatusByAdmin = async (req, res) => {
 };
 const deleteOneShopByAdmin = async (req, res) => {
   try {
-    const admin = await getAdmin(req, res);
     const { slug } = req.params;
     // const shop = await Shop.findOne({ slug, vendor: admin._id });
     const shop = await Shop.findOne({ slug });
@@ -340,9 +322,19 @@ const deleteOneShopByAdmin = async (req, res) => {
     await singleFileDelete(shop.logo._id);
     // const dataaa = await singleFileDelete(shop?.logo?._id,shop?.cover?._id);
     await Shop.deleteOne({ slug }); // Corrected to pass an object to deleteOne method
+
+    // delete related user of this shop
+    try {
+      if (shop?.vendorDetails) {
+        await User.deleteOne({ _id: shop?.vendorDetails._id });
+      }
+    } catch (e) {
+      console.log(e, "Failed to delte user");
+      // return res.status(400).json({ success: false, message: e.message });
+    }
     return res.status(200).json({
       success: true,
-      message: "Shop has been successfully deleted.", // Corrected message typo
+      message: "Influencer has been successfully deleted.", // Corrected message typo
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
