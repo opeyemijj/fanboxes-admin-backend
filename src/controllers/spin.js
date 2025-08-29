@@ -4,7 +4,7 @@ const Product = require("../models/Product");
 const Spin = require("../models/Spin");
 const User = require("../models/User");
 
-const createSpinByAdmin = async (req, res) => {
+const createSpin = async (req, res) => {
   // const admin = await getAdmin(req, res);
 
   // if (!admin) {
@@ -218,4 +218,4 @@ const getSpinsByAdmin = async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 };
-module.exports = { createSpinByAdmin, spinVerify, getSpinsByAdmin };
+module.exports = { createSpin, spinVerify, getSpinsByAdmin };
