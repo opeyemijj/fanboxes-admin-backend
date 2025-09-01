@@ -906,6 +906,12 @@ const createProductByAdmin = async (req, res) => {
       cover: category.cover,
     };
 
+    const temOwnerDetails = {
+      _id: admin._id,
+      firstName: admin.firstName,
+      lastName: admin.lastName,
+    };
+
     if (subCategory) {
       tempSubCategoryDetails = {
         _id: subCategory._id,
@@ -920,6 +926,9 @@ const createProductByAdmin = async (req, res) => {
       ...body,
       images: updatedImages,
       vendor: shop.vendor,
+      owner: admin._id,
+      ownerRole: admin.role,
+      ownerDetails: temOwnerDetails,
       shopDetails: tempShopDetails,
       categoryDetails: tempCategoryDetails,
       subCategoryDetails: subCategory ? tempSubCategoryDetails : null,
