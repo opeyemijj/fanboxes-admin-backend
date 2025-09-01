@@ -113,6 +113,10 @@ const productSchema = new Schema(
       maxlength: [3, "Currency code must be 3 characters."],
       default: "USD",
     },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: String,
       enum: {
