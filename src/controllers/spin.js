@@ -14,7 +14,14 @@ const createSpin = async (req, res) => {
   //   });
   // }
   try {
-    const user = await getUser(req, res, true);
+    // const user = await getUser(req, res, true);
+    const user = req?.user;
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Please Login To Continue" });
+    }
+
     const requestData = req.body;
     const boxId = requestData.boxId;
     const clientSeed = requestData.clientSeed;
