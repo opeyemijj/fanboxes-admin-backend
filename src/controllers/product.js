@@ -9,6 +9,7 @@ const _ = require("lodash");
 const { multiFilesDelete } = require("../config/uploader");
 const blurDataUrl = require("../config/getBlurDataURL");
 const { getAdmin, getVendor, getUser } = require("../config/getUser");
+const { fanboxesAdminInfluencer } = require("../helpers/const");
 const getProducts = async (req, res) => {
   try {
     const query = req.query; // Extract query params from request
@@ -117,6 +118,7 @@ const getProducts = async (req, res) => {
           shop: 1,
           shopDetails: 1,
           items: 1,
+          ownerType: 1,
           createdAt: 1,
         },
       },
@@ -844,6 +846,7 @@ const getProductsByAdmin = async (request, response) => {
           available: 1,
           createdAt: 1,
           items: 1,
+          ownerType: 1,
           shopDetails: 1,
         },
       },
@@ -906,11 +909,10 @@ const createProductByAdmin = async (req, res) => {
       cover: category.cover,
     };
 
-    const temOwnerDetails = {
-      _id: admin._id,
-      firstName: admin.firstName,
-      lastName: admin.lastName,
-    };
+    const ownerType =
+      shop?.title?.toLowerCase() === fanboxesAdminInfluencer.toLowerCase()
+        ? "admin"
+        : "influencer";
 
     if (subCategory) {
       tempSubCategoryDetails = {
@@ -926,9 +928,7 @@ const createProductByAdmin = async (req, res) => {
       ...body,
       images: updatedImages,
       vendor: shop.vendor,
-      owner: admin._id,
-      ownerRole: admin.role,
-      ownerDetails: temOwnerDetails,
+      ownerType: ownerType,
       shopDetails: tempShopDetails,
       categoryDetails: tempCategoryDetails,
       subCategoryDetails: subCategory ? tempSubCategoryDetails : null,
@@ -1095,6 +1095,11 @@ const updateProductByAdmin = async (req, res) => {
       cover: category.cover,
     };
 
+    const ownerType =
+      shop?.title?.toLowerCase() === fanboxesAdminInfluencer.toLowerCase()
+        ? "Admin"
+        : "Influencer";
+
     if (subCategory) {
       tempSubCategoryDetails = {
         _id: subCategory._id,
@@ -1109,6 +1114,7 @@ const updateProductByAdmin = async (req, res) => {
       { slug: slug },
       {
         ...body,
+        ownerType: ownerType,
         images: updatedImages,
         shopDetails: tempShopDetails,
         categoryDetails: tempCategoryDetails,

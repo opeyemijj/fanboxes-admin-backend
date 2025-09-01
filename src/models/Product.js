@@ -76,17 +76,9 @@ const productSchema = new Schema(
       type: Schema.Types.ObjectId,
       required: [true, "Influencer ID is required."],
     },
-    owner: {
-      type: Schema.Types.ObjectId,
-    },
-    ownerRole: {
+    ownerType: {
       type: String,
     },
-    ownerDetails: {
-      type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
-      default: {},
-    },
-
     shop: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Shop",
