@@ -55,6 +55,10 @@ const ShopSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
     followers: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -117,11 +121,10 @@ const ShopSchema = new mongoose.Schema(
       },
     },
     address: {
-      country: { type: String,  },
-      city: { type: String,  },
-      state: { type: String,  },
-      streetAddress: { type: String,  },
-
+      country: { type: String },
+      city: { type: String },
+      state: { type: String },
+      streetAddress: { type: String },
     },
   },
   {
