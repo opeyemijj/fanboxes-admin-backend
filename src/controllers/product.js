@@ -909,11 +909,6 @@ const createProductByAdmin = async (req, res) => {
       cover: category.cover,
     };
 
-    const ownerType =
-      shop?.title?.toLowerCase() === fanboxesAdminInfluencer.toLowerCase()
-        ? "admin"
-        : "influencer";
-
     if (subCategory) {
       tempSubCategoryDetails = {
         _id: subCategory._id,
@@ -928,7 +923,6 @@ const createProductByAdmin = async (req, res) => {
       ...body,
       images: updatedImages,
       vendor: shop.vendor,
-      ownerType: ownerType,
       shopDetails: tempShopDetails,
       categoryDetails: tempCategoryDetails,
       subCategoryDetails: subCategory ? tempSubCategoryDetails : null,
@@ -1095,11 +1089,6 @@ const updateProductByAdmin = async (req, res) => {
       cover: category.cover,
     };
 
-    const ownerType =
-      shop?.title?.toLowerCase() === fanboxesAdminInfluencer.toLowerCase()
-        ? "Admin"
-        : "Influencer";
-
     if (subCategory) {
       tempSubCategoryDetails = {
         _id: subCategory._id,
@@ -1114,7 +1103,6 @@ const updateProductByAdmin = async (req, res) => {
       { slug: slug },
       {
         ...body,
-        ownerType: ownerType,
         images: updatedImages,
         shopDetails: tempShopDetails,
         categoryDetails: tempCategoryDetails,
