@@ -7,6 +7,7 @@ const Payment = require("../models/Payment");
 const moment = require("moment");
 const { getVendor } = require("../config/getUser");
 const Shop = require("../models/Shop");
+const Spin = require("../models/Spin");
 
 const calculateExpirationDate = (days) => {
   const now = new Date();
@@ -88,6 +89,7 @@ const getDashboardAnalytics = async (req, res) => {
       role: "vendor",
     });
     const totalShops = await Shop.countDocuments();
+    const totalSpins = await Spin.countDocuments();
     const totalPendingOrders = await Order.countDocuments({
       status: "pending",
     });
@@ -154,6 +156,7 @@ const getDashboardAnalytics = async (req, res) => {
       totalUsers,
       totalVendors,
       totalShops,
+      totalSpins,
       totalPendingOrders,
       totalReturnOrders,
       totalProducts,
