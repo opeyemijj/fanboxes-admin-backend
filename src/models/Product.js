@@ -127,6 +127,10 @@ const productSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    isItemOddsHidden: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: String,
       enum: {

@@ -19,6 +19,12 @@ router.put(
 );
 
 router.put(
+  "/admin/item-odds-visibility/:slug",
+  verifyToken,
+  product.updateItemOddHideShowByAdmin
+);
+
+router.put(
   "/admin/product-banned/:slug",
   verifyToken,
   product.bannedProductByAdmin

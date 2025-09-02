@@ -118,6 +118,7 @@ const getProducts = async (req, res) => {
           shop: 1,
           shopDetails: 1,
           items: 1,
+          isItemOddsHidden: 1,
           isActive: 1,
           isBanned: 1,
           status: 1,
@@ -849,6 +850,7 @@ const getProductsByAdmin = async (request, response) => {
           available: 1,
           createdAt: 1,
           items: 1,
+          isItemOddsHidden: 1,
           status: 1,
           isActive: 1,
           isBanned: 1,
@@ -1152,6 +1154,40 @@ const updateProductActiveInactiveByAdmin = async (req, res) => {
       message: isActive
         ? "Box has been activated successfully."
         : "Box is inactive now",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const updateItemOddHideShowByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { isItemOddsHidden } = req.body;
+
+    const updated = await Product.findOneAndUpdate(
+      { slug: slug },
+      {
+        $set: {
+          isItemOddsHidden: isItemOddsHidden,
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Box not found to update item odds visibility",
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: isItemOddsHidden
+        ? "Box item's odds are hidden now."
+        : "Box item's odds are visible now.",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -1761,6 +1797,7 @@ module.exports = {
   getOneProductByAdmin,
   updateProductByAdmin,
   updateProductActiveInactiveByAdmin,
+  updateItemOddHideShowByAdmin,
   bannedProductByAdmin,
   updateBoxItemByAdmin,
   updateBoxItemOddByAdmin,
