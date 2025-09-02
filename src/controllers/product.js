@@ -119,7 +119,8 @@ const getProducts = async (req, res) => {
           shopDetails: 1,
           items: 1,
           isActive: 1,
-          status,
+          isBanned: 1,
+          status: 1,
           ownerType: 1,
           createdAt: 1,
         },
@@ -850,6 +851,7 @@ const getProductsByAdmin = async (request, response) => {
           items: 1,
           status: 1,
           isActive: 1,
+          isBanned: 1,
           ownerType: 1,
           shopDetails: 1,
         },
@@ -1150,6 +1152,32 @@ const updateProductActiveInactiveByAdmin = async (req, res) => {
       message: isActive
         ? "Box has been activated successfully."
         : "Box is inactive now",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const bannedProductByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const updated = await Product.findOneAndUpdate(
+      { slug: slug },
+      { $set: { isBanned: true, status: "draft", isActive: false } },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Box not found to Banned" });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: "Box has been banned successfully.",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -1733,6 +1761,7 @@ module.exports = {
   getOneProductByAdmin,
   updateProductByAdmin,
   updateProductActiveInactiveByAdmin,
+  bannedProductByAdmin,
   updateBoxItemByAdmin,
   updateBoxItemOddByAdmin,
   deleteBoxItemByAdmin,

@@ -17,6 +17,13 @@ router.put(
   verifyToken,
   product.updateProductActiveInactiveByAdmin
 );
+
+router.put(
+  "/admin/product-banned/:slug",
+  verifyToken,
+  product.bannedProductByAdmin
+);
+
 router.put("/admin/boxItem/:slug", verifyToken, product.updateBoxItemByAdmin);
 
 router.put(

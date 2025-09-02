@@ -123,6 +123,10 @@ const productSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: String,
       enum: {
