@@ -87,6 +87,7 @@ const ShopSchema = new mongoose.Schema(
       type: String,
       enum: [
         "approved",
+        "draft",
         "pending",
         "in review",
         "action required",

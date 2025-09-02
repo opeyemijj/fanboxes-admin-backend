@@ -126,7 +126,7 @@ const productSchema = new Schema(
     status: {
       type: String,
       enum: {
-        values: ["draft", "active", "paused", "archived"],
+        values: ["draft", "active", "paused", "archived", "approved"],
         message: "Status must be one of: draft, active, paused, or archived.",
       },
       default: "draft",

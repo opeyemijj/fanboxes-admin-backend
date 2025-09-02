@@ -119,6 +119,7 @@ const getProducts = async (req, res) => {
           shopDetails: 1,
           items: 1,
           isActive: 1,
+          status,
           ownerType: 1,
           createdAt: 1,
         },
@@ -847,6 +848,7 @@ const getProductsByAdmin = async (request, response) => {
           available: 1,
           createdAt: 1,
           items: 1,
+          status: 1,
           isActive: 1,
           ownerType: 1,
           shopDetails: 1,
@@ -1132,7 +1134,7 @@ const updateProductActiveInactiveByAdmin = async (req, res) => {
 
     const updated = await Product.findOneAndUpdate(
       { slug: slug },
-      { $set: { isActive: isActive } },
+      { $set: { isActive: isActive, status: isActive ? "approved" : "draft" } },
       { new: true, runValidators: true }
     );
 
