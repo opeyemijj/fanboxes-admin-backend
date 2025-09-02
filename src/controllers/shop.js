@@ -147,7 +147,7 @@ const createShopByAdmin = async (req, res) => {
         ...requestData.paymentInfo,
         holderName: requestData.title,
       },
-      status: "approved",
+      status: "draft",
     });
 
     return res.status(200).json({
