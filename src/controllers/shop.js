@@ -36,6 +36,7 @@ const getShopsByAdmin = async (req, res) => {
         "approved",
         "isBanned",
         "isActive",
+        "instagramLink",
       ])
       .populate({
         path: "vendor",

@@ -79,6 +79,9 @@ const ShopSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
+    instagramLink: {
+      type: String,
+    },
     approved: {
       type: Boolean,
       required: true,
