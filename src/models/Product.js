@@ -73,16 +73,14 @@ const itemSchema = new Schema({
 const productSchema = new Schema(
   {
     vendor: {
-      type: Schema.Types.ObjectId,
-      required: [true, "Influencer ID is required."],
+      type: Schema.Types.Mixed,
     },
     ownerType: {
       type: String,
     },
     shop: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Shop",
-      required: true,
+      type: Schema.Types.Mixed,
+      required: false,
     },
     shopDetails: {
       type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value

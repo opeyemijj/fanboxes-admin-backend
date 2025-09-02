@@ -877,11 +877,23 @@ const createProductByAdmin = async (req, res) => {
     const admin = await getAdmin(req, res);
 
     const { images, ...body } = req.body;
-    // console.log(req.body, "Check the request body");
 
-    const shop = await Shop.findOne({
-      _id: req.body.shop,
-    });
+    let tempShopDetails = null;
+    let shop = null;
+
+    if (req.body.shop) {
+      shop = await Shop.findOne({
+        _id: req.body.shop,
+      });
+
+      tempShopDetails = {
+        _id: shop._id,
+        title: shop.title,
+        slug: shop.slug,
+        logo: shop.logo,
+        cover: shop.cover,
+      };
+    }
 
     const category = await Category.findOne({
       _id: req.body.category,
@@ -903,13 +915,6 @@ const createProductByAdmin = async (req, res) => {
       })
     );
 
-    const tempShopDetails = {
-      _id: shop._id,
-      title: shop.title,
-      slug: shop.slug,
-      logo: shop.logo,
-      cover: shop.cover,
-    };
     const tempCategoryDetails = {
       _id: category._id,
       name: category.name,
@@ -931,7 +936,7 @@ const createProductByAdmin = async (req, res) => {
     const data = await Product.create({
       ...body,
       images: updatedImages,
-      vendor: shop.vendor,
+      vendor: shop ? shop.vendor : "",
       shopDetails: tempShopDetails,
       categoryDetails: tempCategoryDetails,
       subCategoryDetails: subCategory ? tempSubCategoryDetails : null,
@@ -941,11 +946,14 @@ const createProductByAdmin = async (req, res) => {
       likes: 0,
     });
 
-    await Shop.findByIdAndUpdate(req.body.shop, {
-      $addToSet: {
-        products: data._id,
-      },
-    });
+    if (shop) {
+      await Shop.findByIdAndUpdate(req.body.shop, {
+        $addToSet: {
+          products: data._id,
+        },
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: "Box has been created successfully.",
@@ -1066,9 +1074,22 @@ const updateProductByAdmin = async (req, res) => {
       })
     );
 
-    const shop = await Shop.findOne({
-      _id: req.body.shop,
-    });
+    let tempShopDetails = null;
+    let shop = null;
+
+    if (req.body.shop) {
+      shop = await Shop.findOne({
+        _id: req.body.shop,
+      });
+
+      tempShopDetails = {
+        _id: shop._id,
+        title: shop.title,
+        slug: shop.slug,
+        logo: shop.logo,
+        cover: shop.cover,
+      };
+    }
 
     const category = await Category.findOne({
       _id: req.body.category,
@@ -1083,13 +1104,6 @@ const updateProductByAdmin = async (req, res) => {
       });
     }
 
-    const tempShopDetails = {
-      _id: shop._id,
-      title: shop.title,
-      slug: shop.slug,
-      logo: shop.logo,
-      cover: shop.cover,
-    };
     const tempCategoryDetails = {
       _id: category._id,
       name: category.name,
@@ -1112,6 +1126,7 @@ const updateProductByAdmin = async (req, res) => {
       { slug: slug },
       {
         ...body,
+        vendor: shop ? shop.vendor : "",
         images: updatedImages,
         shopDetails: tempShopDetails,
         categoryDetails: tempCategoryDetails,
