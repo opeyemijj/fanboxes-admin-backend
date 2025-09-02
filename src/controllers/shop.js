@@ -535,7 +535,16 @@ const getShops = async (req, res) => {
     limit = parseInt(limit) || null; // default limit to null if not provided
 
     let shopsQuery = Shop.find()
-      .select(["products", "slug", "title", "logo", "cover", "followers"])
+      .select([
+        "products",
+        "slug",
+        "title",
+        "logo",
+        "cover",
+        "followers",
+        "isFeatured",
+        "visitedCount",
+      ])
       .sort({ createdAt: -1 });
 
     // Apply pagination only if limit is provided
@@ -735,6 +744,48 @@ const followShop = async (req, res) => {
   }
 };
 
+const incrementInfluencerVisitCountBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    console.log({ slug }, "visited...");
+
+    if (!slug) {
+      return res.status(400).json({
+        success: false,
+        message: "Influencer slug is required",
+      });
+    }
+
+    const updatedInfluencer = await Shop.findOneAndUpdate(
+      { slug: slug },
+      { $inc: { visitedCount: 1 } },
+      { new: true }
+    );
+
+    if (!updatedInfluencer) {
+      return res.status(404).json({
+        success: false,
+        message: "Influencer not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Visit count incremented successfully",
+      data: {
+        visitedCount: updatedInfluencer.visitedCount,
+      },
+    });
+  } catch (error) {
+    console.error("Error incrementing visit count:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getShopsByAdmin,
   createShopByAdmin,
@@ -756,4 +807,5 @@ module.exports = {
   getShopStatsByVendor,
   followShop,
   getAllShopsByAdmin,
+  incrementInfluencerVisitCountBySlug,
 };

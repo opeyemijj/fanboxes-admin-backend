@@ -126,6 +126,7 @@ const ShopSchema = new mongoose.Schema(
       state: { type: String },
       streetAddress: { type: String },
     },
+    visitedCount: { type: Number, default: 0 },
   },
   {
     timestamps: true,
