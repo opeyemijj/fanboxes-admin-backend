@@ -73,16 +73,14 @@ const itemSchema = new Schema({
 const productSchema = new Schema(
   {
     vendor: {
-      type: Schema.Types.ObjectId,
-      required: [true, "Influencer ID is required."],
+      type: Schema.Types.Mixed,
     },
     ownerType: {
       type: String,
     },
     shop: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Shop",
-      required: true,
+      type: Schema.Types.Mixed,
+      required: false,
     },
     shopDetails: {
       type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
@@ -119,10 +117,22 @@ const productSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    isActive: {
+      type: Boolean,
+      default: false,
+    },
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
+    isItemOddsHidden: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: String,
       enum: {
-        values: ["draft", "active", "paused", "archived"],
+        values: ["draft", "active", "paused", "archived", "approved"],
         message: "Status must be one of: draft, active, paused, or archived.",
       },
       default: "draft",

@@ -34,6 +34,9 @@ const getShopsByAdmin = async (req, res) => {
         "title",
         "approvedAt",
         "approved",
+        "isBanned",
+        "isActive",
+        "instagramLink",
       ])
       .populate({
         path: "vendor",
@@ -145,7 +148,7 @@ const createShopByAdmin = async (req, res) => {
         ...requestData.paymentInfo,
         holderName: requestData.title,
       },
-      status: "approved",
+      status: "draft",
     });
 
     return res.status(200).json({
@@ -307,6 +310,63 @@ const updateShopStatusByAdmin = async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 };
+
+const updateShopActiveInactiveByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { isActive } = req.body;
+
+    const updated = await Shop.findOneAndUpdate(
+      { slug: slug },
+      { $set: { isActive: isActive, status: isActive ? "approved" : "draft" } },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Influencer not found to update status",
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: isActive
+        ? "Influencer has been activated successfully."
+        : "Influencer is inactive now",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const bannedShopByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const updated = await Shop.findOneAndUpdate(
+      { slug: slug },
+      { $set: { isBanned: true, status: "draft", isActive: false } },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Influencer not found to Banned" });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: "Influencer has been banned successfully.",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 const deleteOneShopByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -367,7 +427,7 @@ const createShopByVendor = async (req, res) => {
         ...cover,
         blurDataURL: coverBlurDataURL,
       },
-      status: "pending",
+      status: "draft",
     });
 
     return res.status(200).json({
@@ -793,6 +853,8 @@ module.exports = {
   updateOneShopByAdmin,
   updateShopStatusByAdmin,
   deleteOneShopByAdmin,
+  updateShopActiveInactiveByAdmin,
+  bannedShopByAdmin,
   createShopByVendor,
   getOneShopByVendor,
   updateOneShopByVendor,

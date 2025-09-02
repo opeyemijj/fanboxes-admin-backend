@@ -59,6 +59,14 @@ const ShopSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isActive: {
+      type: Boolean,
+      default: false,
+    },
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
     followers: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -70,6 +78,9 @@ const ShopSchema = new mongoose.Schema(
       type: String,
       unique: true,
       required: true,
+    },
+    instagramLink: {
+      type: String,
     },
     approved: {
       type: Boolean,
@@ -87,6 +98,7 @@ const ShopSchema = new mongoose.Schema(
       type: String,
       enum: [
         "approved",
+        "draft",
         "pending",
         "in review",
         "action required",
