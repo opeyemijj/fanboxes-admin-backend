@@ -118,6 +118,7 @@ const getProducts = async (req, res) => {
           shop: 1,
           shopDetails: 1,
           items: 1,
+          isActive: 1,
           ownerType: 1,
           createdAt: 1,
         },
@@ -846,6 +847,7 @@ const getProductsByAdmin = async (request, response) => {
           available: 1,
           createdAt: 1,
           items: 1,
+          isActive: 1,
           ownerType: 1,
           shopDetails: 1,
         },
@@ -863,6 +865,7 @@ const getProductsByAdmin = async (request, response) => {
     response.status(400).json({ success: false, message: error.message });
   }
 };
+
 const createProductByAdmin = async (req, res) => {
   try {
     const admin = await getAdmin(req, res);
@@ -1119,6 +1122,35 @@ const updateProductByAdmin = async (req, res) => {
     });
   } catch (error) {
     return res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+const updateProductActiveInactiveByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { isActive } = req.body;
+
+    const updated = await Product.findOneAndUpdate(
+      { slug: slug },
+      { $set: { isActive: isActive } },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Box not found to update status" });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: isActive
+        ? "Box has been activated successfully."
+        : "Box is inactive now",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
   }
 };
 
@@ -1698,6 +1730,7 @@ module.exports = {
   createBoxItemByAdmin,
   getOneProductByAdmin,
   updateProductByAdmin,
+  updateProductActiveInactiveByAdmin,
   updateBoxItemByAdmin,
   updateBoxItemOddByAdmin,
   deleteBoxItemByAdmin,

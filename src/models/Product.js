@@ -119,6 +119,10 @@ const productSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    isActive: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: String,
       enum: {
