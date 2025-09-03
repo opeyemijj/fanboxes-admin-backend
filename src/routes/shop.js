@@ -15,6 +15,15 @@ router.put(
 );
 router.delete("/admin/shops/:slug", verifyToken, shop.deleteOneShopByAdmin);
 router.get("/admin/all-shops", shop.getAllShopsByAdmin);
+
+router.put(
+  "/admin/shop-active/:slug",
+  verifyToken,
+  shop.updateShopActiveInactiveByAdmin
+);
+
+router.put("/admin/shop-banned/:slug", verifyToken, shop.bannedShopByAdmin);
+
 //Vendor routes
 router.post("/vendor/shops", verifyToken, shop.createShopByVendor);
 router.get("/vendor/shop/stats", verifyToken, shop.getShopStatsByVendor);

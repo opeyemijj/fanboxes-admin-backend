@@ -118,6 +118,10 @@ const getProducts = async (req, res) => {
           shop: 1,
           shopDetails: 1,
           items: 1,
+          isItemOddsHidden: 1,
+          isActive: 1,
+          isBanned: 1,
+          status: 1,
           ownerType: 1,
           createdAt: 1,
         },
@@ -846,6 +850,10 @@ const getProductsByAdmin = async (request, response) => {
           available: 1,
           createdAt: 1,
           items: 1,
+          isItemOddsHidden: 1,
+          status: 1,
+          isActive: 1,
+          isBanned: 1,
           ownerType: 1,
           shopDetails: 1,
         },
@@ -863,16 +871,29 @@ const getProductsByAdmin = async (request, response) => {
     response.status(400).json({ success: false, message: error.message });
   }
 };
+
 const createProductByAdmin = async (req, res) => {
   try {
     const admin = await getAdmin(req, res);
 
     const { images, ...body } = req.body;
-    // console.log(req.body, "Check the request body");
 
-    const shop = await Shop.findOne({
-      _id: req.body.shop,
-    });
+    let tempShopDetails = null;
+    let shop = null;
+
+    if (req.body.shop) {
+      shop = await Shop.findOne({
+        _id: req.body.shop,
+      });
+
+      tempShopDetails = {
+        _id: shop._id,
+        title: shop.title,
+        slug: shop.slug,
+        logo: shop.logo,
+        cover: shop.cover,
+      };
+    }
 
     const category = await Category.findOne({
       _id: req.body.category,
@@ -894,13 +915,6 @@ const createProductByAdmin = async (req, res) => {
       })
     );
 
-    const tempShopDetails = {
-      _id: shop._id,
-      title: shop.title,
-      slug: shop.slug,
-      logo: shop.logo,
-      cover: shop.cover,
-    };
     const tempCategoryDetails = {
       _id: category._id,
       name: category.name,
@@ -922,7 +936,7 @@ const createProductByAdmin = async (req, res) => {
     const data = await Product.create({
       ...body,
       images: updatedImages,
-      vendor: shop.vendor,
+      vendor: shop ? shop.vendor : "",
       shopDetails: tempShopDetails,
       categoryDetails: tempCategoryDetails,
       subCategoryDetails: subCategory ? tempSubCategoryDetails : null,
@@ -932,11 +946,14 @@ const createProductByAdmin = async (req, res) => {
       likes: 0,
     });
 
-    await Shop.findByIdAndUpdate(req.body.shop, {
-      $addToSet: {
-        products: data._id,
-      },
-    });
+    if (shop) {
+      await Shop.findByIdAndUpdate(req.body.shop, {
+        $addToSet: {
+          products: data._id,
+        },
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: "Box has been created successfully.",
@@ -1057,9 +1074,22 @@ const updateProductByAdmin = async (req, res) => {
       })
     );
 
-    const shop = await Shop.findOne({
-      _id: req.body.shop,
-    });
+    let tempShopDetails = null;
+    let shop = null;
+
+    if (req.body.shop) {
+      shop = await Shop.findOne({
+        _id: req.body.shop,
+      });
+
+      tempShopDetails = {
+        _id: shop._id,
+        title: shop.title,
+        slug: shop.slug,
+        logo: shop.logo,
+        cover: shop.cover,
+      };
+    }
 
     const category = await Category.findOne({
       _id: req.body.category,
@@ -1074,13 +1104,6 @@ const updateProductByAdmin = async (req, res) => {
       });
     }
 
-    const tempShopDetails = {
-      _id: shop._id,
-      title: shop.title,
-      slug: shop.slug,
-      logo: shop.logo,
-      cover: shop.cover,
-    };
     const tempCategoryDetails = {
       _id: category._id,
       name: category.name,
@@ -1103,6 +1126,7 @@ const updateProductByAdmin = async (req, res) => {
       { slug: slug },
       {
         ...body,
+        vendor: shop ? shop.vendor : "",
         images: updatedImages,
         shopDetails: tempShopDetails,
         categoryDetails: tempCategoryDetails,
@@ -1119,6 +1143,95 @@ const updateProductByAdmin = async (req, res) => {
     });
   } catch (error) {
     return res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+const updateProductActiveInactiveByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { isActive } = req.body;
+
+    const updated = await Product.findOneAndUpdate(
+      { slug: slug },
+      { $set: { isActive: isActive, status: isActive ? "approved" : "draft" } },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Box not found to update status" });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: isActive
+        ? "Box has been activated successfully."
+        : "Box is inactive now",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const updateItemOddHideShowByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { isItemOddsHidden } = req.body;
+
+    const updated = await Product.findOneAndUpdate(
+      { slug: slug },
+      {
+        $set: {
+          isItemOddsHidden: isItemOddsHidden,
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Box not found to update item odds visibility",
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: isItemOddsHidden
+        ? "Box item's odds are hidden now."
+        : "Box item's odds are visible now.",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const bannedProductByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const updated = await Product.findOneAndUpdate(
+      { slug: slug },
+      { $set: { isBanned: true, status: "draft", isActive: false } },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Box not found to Banned" });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: "Box has been banned successfully.",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
   }
 };
 
@@ -1698,6 +1811,9 @@ module.exports = {
   createBoxItemByAdmin,
   getOneProductByAdmin,
   updateProductByAdmin,
+  updateProductActiveInactiveByAdmin,
+  updateItemOddHideShowByAdmin,
+  bannedProductByAdmin,
   updateBoxItemByAdmin,
   updateBoxItemOddByAdmin,
   deleteBoxItemByAdmin,
