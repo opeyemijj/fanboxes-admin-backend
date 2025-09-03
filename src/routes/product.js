@@ -8,49 +8,91 @@ const verifyToken = require("../config/jwt");
 
 // Admin routes
 
-router.post("/admin/products", verifyToken, product.createProductByAdmin);
-router.get("/admin/products", verifyToken, product.getProductsByAdmin);
-router.get("/admin/products/:slug", verifyToken, product.getOneProductByAdmin);
-router.put("/admin/products/:slug", verifyToken, product.updateProductByAdmin);
+function withSlug(handler, slug) {
+  handler.slug = slug;
+  return handler;
+}
+
+router.post(
+  "/admin/products",
+  verifyToken,
+  product.createProductByAdmin,
+  withSlug(product.createProductByAdmin, "create_box")
+);
+router.get(
+  "/admin/products",
+  verifyToken,
+  product.getProductsByAdmin,
+  withSlug(product.getProductsByAdmin, "fetch_boxes")
+);
+router.get(
+  "/admin/products/:slug",
+  verifyToken,
+  product.getOneProductByAdmin,
+  withSlug(product.getOneProductByAdmin, "fetch_single_bo")
+);
+router.put(
+  "/admin/products/:slug",
+  verifyToken,
+  product.updateProductByAdmin,
+  withSlug(product.updateProductByAdmin, "update_box")
+);
+
 router.put(
   "/admin/product-active/:slug",
   verifyToken,
-  product.updateProductActiveInactiveByAdmin
+  product.updateProductActiveInactiveByAdmin,
+  withSlug(product.updateProductActiveInactiveByAdmin, "toggle_box_active")
 );
 
 router.put(
   "/admin/item-odds-visibility/:slug",
   verifyToken,
-  product.updateItemOddHideShowByAdmin
+  product.updateItemOddHideShowByAdmin,
+  withSlug(product.updateItemOddHideShowByAdmin, "toggle_item_odds_visibility")
 );
 
 router.put(
   "/admin/product-banned/:slug",
   verifyToken,
-  product.bannedProductByAdmin
+  product.bannedProductByAdmin,
+  withSlug(product.bannedProductByAdmin, "ban_unban_box")
 );
 
-router.put("/admin/boxItem/:slug", verifyToken, product.updateBoxItemByAdmin);
+router.put(
+  "/admin/boxItem/:slug",
+  verifyToken,
+  product.updateBoxItemByAdmin,
+  withSlug(product.updateBoxItemByAdmin, "update_box_item")
+);
 
 router.put(
   "/admin/boxItemOdd/:slug",
   verifyToken,
-  product.updateBoxItemOddByAdmin
+  product.updateBoxItemOddByAdmin,
+  withSlug(product.updateBoxItemOddByAdmin, "update_box_item_odd")
 );
 
 router.delete(
   "/admin/products/:slug",
   verifyToken,
-  product.deletedProductByAdmin
+  product.deletedProductByAdmin,
+  withSlug(product.deletedProductByAdmin, "delete_product")
 );
 
 router.delete(
   "/admin/product-item/:boxSlug/:itemSlug",
   verifyToken,
-  product.deleteBoxItemByAdmin
+  product.deleteBoxItemByAdmin,
+  withSlug(product.deleteBoxItemByAdmin, "delete_box_item")
 );
 
-router.post("/admin/boxItem", verifyToken, product.createBoxItemByAdmin);
+router.post(
+  "/admin/boxItem",
+  verifyToken,
+  product.createBoxItemByAdmin,
+  withSlug(product.createBoxItemByAdmin, "create_box_item")
+);
 
 //Vendor routes
 router.post(
