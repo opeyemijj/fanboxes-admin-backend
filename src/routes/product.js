@@ -29,7 +29,7 @@ router.get(
   "/admin/products/:slug",
   verifyToken,
   product.getOneProductByAdmin,
-  withSlug(product.getOneProductByAdmin, "fetch_single_bo")
+  withSlug(product.getOneProductByAdmin, "fetch_single_box")
 );
 router.put(
   "/admin/products/:slug",
@@ -49,7 +49,7 @@ router.put(
   "/admin/item-odds-visibility/:slug",
   verifyToken,
   product.updateItemOddHideShowByAdmin,
-  withSlug(product.updateItemOddHideShowByAdmin, "toggle_item_odds_visibility")
+  withSlug(product.updateItemOddHideShowByAdmin, "item_odds_visibility")
 );
 
 router.put(

@@ -34,8 +34,24 @@ function addRoute(routes, path, methods, slug) {
   const method = Object.keys(methods)[0].toUpperCase();
   const fullPath = `${method}:${path}`;
 
-  // Category: assumes `/admin/products` => "products"
-  const category = path.split("/")[2] || "general";
+  // Use mapping to determine category
+  const pathCategoryMap = {
+    products: "box",
+    "product-active": "box",
+    "product-banned": "box",
+    "item-odds-visibility": "box",
+    boxItem: "box",
+    boxItemOdd: "box",
+    "product-item": "box",
+
+    shops: "influencer",
+    "shop-active": "influencer",
+    "shop-banned": "influencer",
+  };
+
+  const categoryKey = path.split("/")[2]; // 3rd part of path
+  const category = pathCategoryMap[categoryKey] || "general";
+
   if (!routes[category]) routes[category] = [];
 
   const entry = {
