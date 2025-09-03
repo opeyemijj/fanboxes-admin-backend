@@ -344,10 +344,11 @@ const updateShopActiveInactiveByAdmin = async (req, res) => {
 const bannedShopByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
+    const { isBanned } = req.body;
 
     const updated = await Shop.findOneAndUpdate(
       { slug: slug },
-      { $set: { isBanned: true, status: "draft", isActive: false } },
+      { $set: { isBanned: isBanned } },
       { new: true, runValidators: true }
     );
 
@@ -360,7 +361,9 @@ const bannedShopByAdmin = async (req, res) => {
     return res.status(201).json({
       success: true,
       data: updated,
-      message: "Influencer has been banned successfully.",
+      message: isBanned
+        ? "Influencer has been banned successfully."
+        : "Influencer has been Unbanned successfully.",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
