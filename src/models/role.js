@@ -5,7 +5,7 @@ const RoleSchema = new mongoose.Schema(
     role: { type: String, required: true, unique: true }, // Example: "admin", "moderator", "user"
     slug: { type: String, required: true, unique: true },
     isActive: { type: Boolean, default: false },
-    permittedItems: [
+    permissions: [
       {
         type: String,
         trim: true,

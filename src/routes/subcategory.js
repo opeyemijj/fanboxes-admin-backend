@@ -4,12 +4,7 @@ const subcategories = require("../controllers/subcategory");
 
 // Import verifyToken function
 const verifyToken = require("../config/jwt");
-
-// Helper to attach slug to route handler
-function withSlug(handler, slug) {
-  handler.slug = slug;
-  return handler;
-}
+const { withSlug } = require("../helpers/routeSlugHelper");
 
 // Admin Subcategory routes with slugs
 router.post(

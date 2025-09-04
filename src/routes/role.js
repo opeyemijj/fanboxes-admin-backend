@@ -3,6 +3,7 @@ const router = express.Router();
 const { collectRoutes } = require("../utils/routeCollector");
 const role = require("../controllers/role");
 const verifyToken = require("../config/jwt");
+const { withSlug } = require("../helpers/routeSlugHelper");
 
 // This will expose all routes with slugs to the frontend
 router.get("/admin/available-routes", (req, res) => {
@@ -15,6 +16,15 @@ router.get("/admin/available-routes", (req, res) => {
   });
 });
 
-router.post("/admin/roles", verifyToken, role.createRole);
+router.post(
+  "/admin/roles",
+  verifyToken,
+  withSlug(role.createRoleByAdmin, "create_role")
+);
+router.get(
+  "/admin/roles",
+  verifyToken,
+  withSlug(role.getRolesByAdmin, "role_listing")
+);
 
 module.exports = router;

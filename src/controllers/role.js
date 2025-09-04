@@ -1,27 +1,33 @@
 const Role = require("../models/role");
 
-const createRole = async (req, res) => {
+const createRoleByAdmin = async (req, res) => {
   try {
-    const { role, permittedItems } = req.body;
+    const { role, permissions } = req.body; // ✅ use 'permissions', not 'permittedItems'
 
-    if (!role || !permittedItems) {
+    if (!role || !permissions) {
       return res
         .status(400)
-        .json({ message: "role and permittedItems are required" });
+        .json({ message: "role and permissions are required" });
     }
 
-    // prettier-ignore
-    const newPermission = new Role({
+    const data = await Role.create({
       role,
-      slug: role.toLowerCase().trim().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') + '_' + Math.random().toString(36).slice(2, 8),
-      permittedItems,
+      slug:
+        role
+          .toLowerCase()
+          .trim()
+          .replace(/\s+/g, "_")
+          .replace(/[^a-z0-9_]/g, "") +
+        "_" +
+        Math.random()
+          .toString(36)
+          .slice(2, 8),
+      permissions, // ✅ save permissions
     });
-
-    await newPermission.save();
 
     res.status(201).json({
       message: "Role permissions saved successfully",
-      data: newPermission,
+      data: data,
     });
   } catch (error) {
     console.error("Error saving permissions:", error);
@@ -31,4 +37,17 @@ const createRole = async (req, res) => {
   }
 };
 
-module.exports = { createRole };
+const getRolesByAdmin = async (req, res) => {
+  try {
+    const roles = await Role.find();
+
+    return res.status(200).json({
+      success: true,
+      data: roles,
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { createRoleByAdmin, getRolesByAdmin };

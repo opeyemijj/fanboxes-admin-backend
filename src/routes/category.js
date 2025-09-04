@@ -4,11 +4,7 @@ const categories = require("../controllers/category");
 
 // Import verifyToken function
 const verifyToken = require("../config/jwt");
-
-function withSlug(handler, slug) {
-  handler.slug = slug;
-  return handler;
-}
+const { withSlug } = require("../helpers/routeSlugHelper");
 
 // Admin Category routes with slugs
 router.post(
@@ -20,7 +16,7 @@ router.post(
 router.get(
   "/admin/categories",
   verifyToken,
-  withSlug(categories.getCategories, "fetch_categories")
+  withSlug(categories.getCategories, "listing_categories")
 );
 
 router.get(
