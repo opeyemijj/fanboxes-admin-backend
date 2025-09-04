@@ -4,40 +4,42 @@ const subcategories = require("../controllers/subcategory");
 
 // Import verifyToken function
 const verifyToken = require("../config/jwt");
+const { withSlug } = require("../helpers/routeSlugHelper");
 
+// Admin Subcategory routes with slugs
 router.post(
-	"/admin/subcategories",
-	verifyToken,
-	subcategories.createSubCategory
+  "/admin/subcategories",
+  verifyToken,
+  withSlug(subcategories.createSubCategory, "create_subcategory")
 );
 
 router.get(
-	"/admin/subcategories",
-	verifyToken,
-	subcategories.getAllSubCategories
+  "/admin/subcategories",
+  verifyToken,
+  withSlug(subcategories.getAllSubCategories, "fetch_subcategories")
 );
 
 router.get(
-	"/admin/subcategories/:slug",
-	verifyToken,
-	subcategories.getSubCategoriesBySlug
+  "/admin/subcategories/:slug",
+  verifyToken,
+  withSlug(subcategories.getSubCategoriesBySlug, "fetch_single_subcategory")
 );
 
 router.put(
-	"/admin/subcategories/:slug",
-	verifyToken,
-	subcategories.updateSubCategoriesBySlug
+  "/admin/subcategories/:slug",
+  verifyToken,
+  withSlug(subcategories.updateSubCategoriesBySlug, "update_subcategory")
 );
 
 router.delete(
-	"/admin/subcategories/:slug",
-	verifyToken,
-	subcategories.deleteSubCategoriesBySlug
+  "/admin/subcategories/:slug",
+  verifyToken,
+  withSlug(subcategories.deleteSubCategoriesBySlug, "delete_subcategory")
 );
 router.get(
-	"/admin/subcategories/all",
-	verifyToken,
-	subcategories.getSubCategories
+  "/admin/subcategories/all",
+  verifyToken,
+  subcategories.getSubCategories
 );
 
 // User routes

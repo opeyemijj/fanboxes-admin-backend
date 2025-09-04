@@ -3,26 +3,59 @@ const router = express.Router();
 const shop = require("../controllers/shop");
 // Import verifyToken function
 const verifyToken = require("../config/jwt");
-//Admin routes
-router.get("/admin/shops", verifyToken, shop.getShopsByAdmin);
-router.post("/admin/shops", verifyToken, shop.createShopByAdmin);
-router.get("/admin/shops/:slug", verifyToken, shop.getOneShopByAdmin);
-router.put("/admin/shops/:slug", verifyToken, shop.updateOneShopByAdmin);
-router.put(
-  "/admin/shops/status/:slug",
+
+// Helper to attach slug to route handler
+function withSlug(handler, slug) {
+  handler.slug = slug;
+  return handler;
+}
+
+// Admin Shop routes with slugs
+router.get(
+  "/admin/shops",
   verifyToken,
-  shop.updateShopStatusByAdmin
+  withSlug(shop.getShopsByAdmin, "listing_influencers")
 );
-router.delete("/admin/shops/:slug", verifyToken, shop.deleteOneShopByAdmin);
+
+router.post(
+  "/admin/shops",
+  verifyToken,
+  withSlug(shop.createShopByAdmin, "create_influencer")
+);
+
+router.get(
+  "/admin/shops/:slug",
+  verifyToken,
+  withSlug(shop.getOneShopByAdmin, "single_influencer")
+);
+
+router.put(
+  "/admin/shops/:slug",
+  verifyToken,
+  withSlug(shop.updateOneShopByAdmin, "update_influencer")
+);
+
+router.put("/admin/shops/status/:slug", verifyToken);
+
+router.delete(
+  "/admin/shops/:slug",
+  verifyToken,
+  withSlug(shop.deleteOneShopByAdmin, "delete_influencer")
+);
+
+router.put(
+  "/admin/shops/active/:slug",
+  verifyToken,
+  withSlug(shop.updateShopActiveInactiveByAdmin, "active_inactive_influencer")
+);
+
+router.put(
+  "/admin/shops/banned/:slug",
+  verifyToken,
+  withSlug(shop.bannedShopByAdmin, "ban_unban_influencer")
+);
+
 router.get("/admin/all-shops", shop.getAllShopsByAdmin);
-
-router.put(
-  "/admin/shop-active/:slug",
-  verifyToken,
-  shop.updateShopActiveInactiveByAdmin
-);
-
-router.put("/admin/shop-banned/:slug", verifyToken, shop.bannedShopByAdmin);
 
 //Vendor routes
 router.post("/vendor/shops", verifyToken, shop.createShopByVendor);

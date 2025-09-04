@@ -5,52 +5,93 @@ const vendor_product = require("../controllers/vendor-product");
 
 // Import verifyToken function
 const verifyToken = require("../config/jwt");
+const { withSlug } = require("../helpers/routeSlugHelper");
 
 // Admin routes
 
-router.post("/admin/products", verifyToken, product.createProductByAdmin);
-router.get("/admin/products", verifyToken, product.getProductsByAdmin);
-router.get("/admin/products/:slug", verifyToken, product.getOneProductByAdmin);
-router.put("/admin/products/:slug", verifyToken, product.updateProductByAdmin);
-router.put(
-  "/admin/product-active/:slug",
+router.post(
+  "/admin/products",
   verifyToken,
-  product.updateProductActiveInactiveByAdmin
+  product.createProductByAdmin,
+  withSlug(product.createProductByAdmin, "create_box")
 );
 
 router.put(
-  "/admin/item-odds-visibility/:slug",
+  "/admin/products/:slug",
   verifyToken,
-  product.updateItemOddHideShowByAdmin
+  product.updateProductByAdmin,
+  withSlug(product.updateProductByAdmin, "update_box")
+);
+
+router.get(
+  "/admin/products",
+  verifyToken,
+  product.getProductsByAdmin,
+  withSlug(product.getProductsByAdmin, "listing_box")
+);
+
+router.get(
+  "/admin/products/:slug",
+  verifyToken,
+  product.getOneProductByAdmin,
+  withSlug(product.getOneProductByAdmin, "single_box")
 );
 
 router.put(
-  "/admin/product-banned/:slug",
+  "/admin/products/active/:slug",
   verifyToken,
-  product.bannedProductByAdmin
+  product.updateProductActiveInactiveByAdmin,
+  withSlug(product.updateProductActiveInactiveByAdmin, "active_box")
 );
 
-router.put("/admin/boxItem/:slug", verifyToken, product.updateBoxItemByAdmin);
+router.put(
+  "/admin/products/item-odds-visibility/:slug",
+  verifyToken,
+  product.updateItemOddHideShowByAdmin,
+  withSlug(product.updateItemOddHideShowByAdmin, "item_odds_visibility")
+);
 
 router.put(
-  "/admin/boxItemOdd/:slug",
+  "/admin/products/banned/:slug",
   verifyToken,
-  product.updateBoxItemOddByAdmin
+  product.bannedProductByAdmin,
+  withSlug(product.bannedProductByAdmin, "ban_unban_box")
+);
+
+router.post(
+  "/admin/products/boxItem",
+  verifyToken,
+  product.createBoxItemByAdmin,
+  withSlug(product.createBoxItemByAdmin, "create_box_item")
+);
+
+router.put(
+  "/admin/products/boxItem/:slug",
+  verifyToken,
+  product.updateBoxItemByAdmin,
+  withSlug(product.updateBoxItemByAdmin, "update_box_item")
+);
+
+router.put(
+  "/admin/products/boxItemOdd/:slug",
+  verifyToken,
+  product.updateBoxItemOddByAdmin,
+  withSlug(product.updateBoxItemOddByAdmin, "update_box_item_odd")
 );
 
 router.delete(
   "/admin/products/:slug",
   verifyToken,
-  product.deletedProductByAdmin
+  product.deletedProductByAdmin,
+  withSlug(product.deletedProductByAdmin, "delete_box")
 );
 
 router.delete(
-  "/admin/product-item/:boxSlug/:itemSlug",
+  "/admin/products/item/:boxSlug/:itemSlug",
   verifyToken,
-  product.deleteBoxItemByAdmin
+  product.deleteBoxItemByAdmin,
+  withSlug(product.deleteBoxItemByAdmin, "delete_box_item")
 );
-
-router.post("/admin/boxItem", verifyToken, product.createBoxItemByAdmin);
 
 //Vendor routes
 router.post(
@@ -60,19 +101,19 @@ router.post(
 );
 
 router.post(
-  "/vendor/boxItem",
+  "/vendor/products/boxItem",
   verifyToken,
   vendor_product.createBoxItemByVendor
 );
 
 router.put(
-  "/vendor/boxItem/:slug",
+  "/vendor/products/boxItem/:slug",
   verifyToken,
   vendor_product.updateBoxItemByVendor
 );
 
 router.delete(
-  "/vendor/product-item/:boxSlug/:itemSlug",
+  "/vendor/products/item/:boxSlug/:itemSlug",
   verifyToken,
   vendor_product.deleteBoxItemByVendor
 );
@@ -90,7 +131,7 @@ router.put(
 );
 
 router.put(
-  "/vendor/boxItemOdd/:slug",
+  "/vendor/products/boxItemOdd/:slug",
   verifyToken,
   vendor_product.updateBoxItemOddByVendor
 );

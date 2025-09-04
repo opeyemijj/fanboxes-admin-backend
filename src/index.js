@@ -80,6 +80,7 @@ connectWithRetry();
 // });
 
 const homeRoutes = require("./routes/home");
+const roleRoutes = require("./routes/role");
 const authRoutes = require("./routes/auth");
 const brandRoutes = require("./routes/brand");
 const categoryRoutes = require("./routes/category");
@@ -104,6 +105,7 @@ const currency = require("./routes/currencies");
 const compaign = require("./routes/compaign");
 
 app.use("/api", homeRoutes);
+app.use("/api", roleRoutes);
 app.use("/api", authRoutes);
 app.use("/api", brandRoutes);
 app.use("/api", categoryRoutes);

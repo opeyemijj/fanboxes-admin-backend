@@ -1,41 +1,54 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const categories = require('../controllers/category');
+const categories = require("../controllers/category");
 
 // Import verifyToken function
-const verifyToken = require('../config/jwt');
+const verifyToken = require("../config/jwt");
+const { withSlug } = require("../helpers/routeSlugHelper");
 
-router.post('/admin/categories', verifyToken, categories.createCategory);
-
-router.get('/admin/categories', verifyToken, categories.getCategories);
+// Admin Category routes with slugs
+router.post(
+  "/admin/categories",
+  verifyToken,
+  withSlug(categories.createCategory, "create_category")
+);
 
 router.get(
-  '/admin/categories/:slug',
+  "/admin/categories",
   verifyToken,
-  categories.getCategoryBySlug
+  withSlug(categories.getCategories, "listing_categories")
+);
+
+router.get(
+  "/admin/categories/:slug",
+  verifyToken,
+  withSlug(categories.getCategoryBySlug, "single_category")
 );
 
 router.put(
-  '/admin/categories/:slug',
+  "/admin/categories/:slug",
   verifyToken,
-  categories.updateCategoryBySlug
+  withSlug(categories.updateCategoryBySlug, "update_category")
 );
+
 router.delete(
-  '/admin/categories/:slug',
+  "/admin/categories/:slug",
   verifyToken,
-  categories.deleteCategoryBySlug
+  withSlug(categories.deleteCategoryBySlug, "delete_category")
 );
-router.get('/admin/categories/all', verifyToken, categories.getCategories);
-router.get('/admin/all-categories', categories.getCategoriesByAdmin);
+
+router.get("/admin/categories/all", verifyToken, categories.getCategories);
+
+router.get("/admin/all-categories", categories.getCategoriesByAdmin);
 
 // User routes
 
-router.get('/categories', categories.getCategories);
-router.get('/header/all-categories', categories.getAllHeaderCategories);
-router.get('/all-categories', categories.getAllCategories);
-router.get('/categories-slugs', categories.getCategoriesSlugs);
-router.get('/subcategories-slugs', categories.getSubCategoriesSlugs);
-router.get('/categories/:slug', categories.getCategoryBySlug);
-router.get('/category-title/:slug', categories.getCategoryNameBySlug);
+router.get("/categories", categories.getCategories);
+router.get("/header/all-categories", categories.getAllHeaderCategories);
+router.get("/all-categories", categories.getAllCategories);
+router.get("/categories-slugs", categories.getCategoriesSlugs);
+router.get("/subcategories-slugs", categories.getSubCategoriesSlugs);
+router.get("/categories/:slug", categories.getCategoryBySlug);
+router.get("/category-title/:slug", categories.getCategoryNameBySlug);
 
 module.exports = router;
