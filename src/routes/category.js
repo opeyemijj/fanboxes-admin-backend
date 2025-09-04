@@ -22,7 +22,7 @@ router.get(
 router.get(
   "/admin/categories/:slug",
   verifyToken,
-  withSlug(categories.getCategoryBySlug, "fetch_single_category")
+  withSlug(categories.getCategoryBySlug, "single_category")
 );
 
 router.put(

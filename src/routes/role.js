@@ -27,4 +27,10 @@ router.get(
   withSlug(role.getRolesByAdmin, "role_listing")
 );
 
+router.get(
+  "/admin/roles/:slug",
+  verifyToken,
+  withSlug(role.getRoleBySlug, "single_role")
+);
+
 module.exports = router;

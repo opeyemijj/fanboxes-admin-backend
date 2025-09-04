@@ -50,4 +50,25 @@ const getRolesByAdmin = async (req, res) => {
   }
 };
 
-module.exports = { createRoleByAdmin, getRolesByAdmin };
+const getRoleBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const role = await Role.findOne({ slug });
+
+    if (!role) {
+      return res.status(400).json({
+        success: false,
+        message: "We couldn't find the role you're looking for",
+      });
+    }
+
+    res.status(201).json({ success: true, data: role });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+module.exports = { createRoleByAdmin, getRoleBySlug, getRolesByAdmin };
