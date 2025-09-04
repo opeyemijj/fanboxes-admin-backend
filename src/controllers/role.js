@@ -67,6 +67,7 @@ const getRolesByAdmin = async (req, res) => {
           role: 1,
           slug: 1,
           permissions: 1,
+          createdAt: 1,
         },
       },
     ]);
