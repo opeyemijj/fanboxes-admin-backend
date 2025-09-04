@@ -39,11 +39,46 @@ const createRoleByAdmin = async (req, res) => {
 
 const getRolesByAdmin = async (req, res) => {
   try {
-    const roles = await Role.find();
+    console.log(req.query);
+    const { page: pageQuery, limit: limitQuery } = req.query;
+
+    const limit = parseInt(limitQuery) || 10;
+    const page = parseInt(pageQuery) || 1;
+
+    // Calculate skip correctly
+    const skip = limit * (page - 1);
+
+    const totalRoles = await Role.countDocuments();
+    const roles = await Role.aggregate([
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+      {
+        $skip: skip,
+      },
+      {
+        $limit: limit,
+      },
+
+      {
+        $project: {
+          role: 1,
+          slug: 1,
+          permissions: 1,
+        },
+      },
+    ]);
+
+    // console.log(roles, "check the roles");
 
     return res.status(200).json({
       success: true,
       data: roles,
+      total: totalRoles,
+      count: Math.ceil(totalRoles / limit),
+      currentPage: page,
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -118,7 +153,7 @@ const deleteRoleByAdmin = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Role has been successfully deleted.",
+      message: "Role has been deleted successfully.",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
