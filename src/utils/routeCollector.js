@@ -49,11 +49,11 @@ function addRoute(routes, path, methods, slug) {
     "shop-banned": "influencer",
 
     categories: "categories",
-    subcategories: "subcategories",
+    // subcategories: "subcategories",
   };
 
   const categoryKey = path.split("/")[2]; // 3rd part of path
-  console.log(categoryKey, "check the categoryKey ");
+  // console.log(categoryKey, "check the categoryKey ");
   const category = pathCategoryMap[categoryKey] || "general";
 
   if (category === "general") return;

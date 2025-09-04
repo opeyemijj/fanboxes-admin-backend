@@ -1,18 +1,17 @@
 const mongoose = require("mongoose");
 
-const permissionItemSchema = new mongoose.Schema({
-  slug: { type: String, required: true },
-  path: { type: String, required: true },
-  name: { type: String, required: true },
-});
-
 const RoleSchema = new mongoose.Schema(
   {
     role: { type: String, required: true, unique: true }, // Example: "admin", "moderator", "user"
-    permittedItems: {
-      type: Map,
-      of: [permissionItemSchema], // key = categories, subcategories, box, etc.
-    },
+    slug: { type: String, required: true, unique: true },
+    isActive: { type: Boolean, default: false },
+    permittedItems: [
+      {
+        type: String,
+        trim: true,
+        minlength: 1,
+      },
+    ],
   },
   { timestamps: true }
 );
