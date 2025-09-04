@@ -39,4 +39,10 @@ router.put(
   withSlug(role.updateRoleByAdmin, "update_role")
 );
 
+router.delete(
+  "/admin/roles/:slug",
+  verifyToken,
+  withSlug(role.deleteRoleByAdmin, "delete_role")
+);
+
 module.exports = router;

@@ -104,9 +104,31 @@ const updateRoleByAdmin = async (req, res) => {
   }
 };
 
+const deleteRoleByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const role = await Role.findOneAndDelete({ slug });
+    if (!role) {
+      return res.status(400).json({
+        success: false,
+        message: "We couldn't find the role you're looking for",
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Role has been successfully deleted.",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createRoleByAdmin,
   getRoleByAdmin,
   getRolesByAdmin,
   updateRoleByAdmin,
+  deleteRoleByAdmin,
 };
