@@ -50,7 +50,7 @@ const getRolesByAdmin = async (req, res) => {
   }
 };
 
-const getRoleBySlug = async (req, res) => {
+const getRoleByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
     const role = await Role.findOne({ slug });
@@ -62,13 +62,51 @@ const getRoleBySlug = async (req, res) => {
       });
     }
 
-    res.status(201).json({ success: true, data: role });
+    return res.status(201).json({ success: true, data: role });
   } catch (error) {
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: error.message,
     });
   }
 };
 
-module.exports = { createRoleByAdmin, getRoleBySlug, getRolesByAdmin };
+const updateRoleByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const role = await Role.findOne({ slug });
+
+    if (!role) {
+      return res.status(400).json({
+        success: false,
+        message: "We couldn't find the role you're looking for",
+      });
+    }
+
+    const updated = await Role.findOneAndUpdate(
+      { slug: slug },
+      {
+        ...req.body,
+      },
+      { new: true, runValidators: true }
+    );
+
+    return res.status(201).json({
+      success: true,
+      data: role,
+      message: "Role has been updated successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+module.exports = {
+  createRoleByAdmin,
+  getRoleByAdmin,
+  getRolesByAdmin,
+  updateRoleByAdmin,
+};

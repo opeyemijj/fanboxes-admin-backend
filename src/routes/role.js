@@ -30,7 +30,13 @@ router.get(
 router.get(
   "/admin/roles/:slug",
   verifyToken,
-  withSlug(role.getRoleBySlug, "single_role")
+  withSlug(role.getRoleByAdmin, "single_role")
+);
+
+router.put(
+  "/admin/roles/:slug",
+  verifyToken,
+  withSlug(role.updateRoleByAdmin, "update_role")
 );
 
 module.exports = router;
