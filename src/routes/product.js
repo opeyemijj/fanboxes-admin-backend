@@ -13,42 +13,42 @@ router.post(
   "/admin/products",
   verifyToken,
   product.createProductByAdmin,
-  withSlug(product.createProductByAdmin, "create_box")
+  withSlug(product.createProductByAdmin, "add_new_box")
 );
 
 router.put(
   "/admin/products/:slug",
   verifyToken,
   product.updateProductByAdmin,
-  withSlug(product.updateProductByAdmin, "update_box")
+  withSlug(product.updateProductByAdmin, "edit_box")
 );
 
 router.get(
   "/admin/products",
   verifyToken,
   product.getProductsByAdmin,
-  withSlug(product.getProductsByAdmin, "listing_box")
+  withSlug(product.getProductsByAdmin, "view_box_listing")
 );
 
 router.get(
   "/admin/products/:slug",
   verifyToken,
   product.getOneProductByAdmin,
-  withSlug(product.getOneProductByAdmin, "single_box")
+  withSlug(product.getOneProductByAdmin, "view_box_details")
 );
 
 router.put(
   "/admin/products/active/:slug",
   verifyToken,
   product.updateProductActiveInactiveByAdmin,
-  withSlug(product.updateProductActiveInactiveByAdmin, "active_box")
+  withSlug(product.updateProductActiveInactiveByAdmin, "approve_box")
 );
 
 router.put(
   "/admin/products/item-odds-visibility/:slug",
   verifyToken,
   product.updateItemOddHideShowByAdmin,
-  withSlug(product.updateItemOddHideShowByAdmin, "item_odds_visibility")
+  withSlug(product.updateItemOddHideShowByAdmin, "hide_unhide_item_odd")
 );
 
 router.put(
@@ -62,21 +62,21 @@ router.post(
   "/admin/products/boxItem",
   verifyToken,
   product.createBoxItemByAdmin,
-  withSlug(product.createBoxItemByAdmin, "create_box_item")
+  withSlug(product.createBoxItemByAdmin, "add_box_item")
 );
 
 router.put(
   "/admin/products/boxItem/:slug",
   verifyToken,
   product.updateBoxItemByAdmin,
-  withSlug(product.updateBoxItemByAdmin, "update_box_item")
+  withSlug(product.updateBoxItemByAdmin, "edit_box_item")
 );
 
 router.put(
   "/admin/products/boxItemOdd/:slug",
   verifyToken,
   product.updateBoxItemOddByAdmin,
-  withSlug(product.updateBoxItemOddByAdmin, "update_box_item_odd")
+  withSlug(product.updateBoxItemOddByAdmin, "auto_calculate_item_odds")
 );
 
 router.delete(

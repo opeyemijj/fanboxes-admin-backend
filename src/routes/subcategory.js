@@ -10,25 +10,25 @@ const { withSlug } = require("../helpers/routeSlugHelper");
 router.post(
   "/admin/subcategories",
   verifyToken,
-  withSlug(subcategories.createSubCategory, "create_subcategory")
+  withSlug(subcategories.createSubCategory, "add_new_subcategory")
 );
 
 router.get(
   "/admin/subcategories",
   verifyToken,
-  withSlug(subcategories.getAllSubCategories, "fetch_subcategories")
+  withSlug(subcategories.getAllSubCategories, "view_subcategory_listing")
 );
 
 router.get(
   "/admin/subcategories/:slug",
   verifyToken,
-  withSlug(subcategories.getSubCategoriesBySlug, "fetch_single_subcategory")
+  withSlug(subcategories.getSubCategoriesBySlug, "view_subcategory_details")
 );
 
 router.put(
   "/admin/subcategories/:slug",
   verifyToken,
-  withSlug(subcategories.updateSubCategoriesBySlug, "update_subcategory")
+  withSlug(subcategories.updateSubCategoriesBySlug, "edit_subcategory")
 );
 
 router.delete(

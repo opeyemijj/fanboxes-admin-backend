@@ -19,24 +19,24 @@ router.get("/admin/available-routes", (req, res) => {
 router.post(
   "/admin/roles",
   verifyToken,
-  withSlug(role.createRoleByAdmin, "create_role")
+  withSlug(role.createRoleByAdmin, "add_new_role")
 );
 router.get(
   "/admin/roles",
   verifyToken,
-  withSlug(role.getRolesByAdmin, "role_listing")
+  withSlug(role.getRolesByAdmin, "view_role_listing")
 );
 
 router.get(
   "/admin/roles/:slug",
   verifyToken,
-  withSlug(role.getRoleByAdmin, "single_role")
+  withSlug(role.getRoleByAdmin, "view_role_details")
 );
 
 router.put(
   "/admin/roles/:slug",
   verifyToken,
-  withSlug(role.updateRoleByAdmin, "update_role")
+  withSlug(role.updateRoleByAdmin, "edit_role")
 );
 
 router.delete(

@@ -14,25 +14,25 @@ function withSlug(handler, slug) {
 router.get(
   "/admin/shops",
   verifyToken,
-  withSlug(shop.getShopsByAdmin, "listing_influencers")
+  withSlug(shop.getShopsByAdmin, "view_influencer_listing")
 );
 
 router.post(
   "/admin/shops",
   verifyToken,
-  withSlug(shop.createShopByAdmin, "create_influencer")
+  withSlug(shop.createShopByAdmin, "add_new_influencer")
 );
 
 router.get(
   "/admin/shops/:slug",
   verifyToken,
-  withSlug(shop.getOneShopByAdmin, "single_influencer")
+  withSlug(shop.getOneShopByAdmin, "view_influencer_details")
 );
 
 router.put(
   "/admin/shops/:slug",
   verifyToken,
-  withSlug(shop.updateOneShopByAdmin, "update_influencer")
+  withSlug(shop.updateOneShopByAdmin, "edit_influencer")
 );
 
 router.put("/admin/shops/status/:slug", verifyToken);
@@ -46,7 +46,7 @@ router.delete(
 router.put(
   "/admin/shops/active/:slug",
   verifyToken,
-  withSlug(shop.updateShopActiveInactiveByAdmin, "active_inactive_influencer")
+  withSlug(shop.updateShopActiveInactiveByAdmin, "approve_influencer")
 );
 
 router.put(
