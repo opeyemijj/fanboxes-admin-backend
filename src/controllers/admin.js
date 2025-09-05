@@ -2,11 +2,11 @@ const User = require("../models/User");
 const Order = require("../models/Order");
 const getUsersByAdmin = async (req, res) => {
   try {
-    const { limit = 10, page = 1, search = "" } = req.query;
+    const { limit = 10, page = 1, search = "", userType } = req.query;
 
     const skip = parseInt(limit) * (parseInt(page) - 1) || 0;
 
-    // Constructing nameQuery based on search input
+    // Constructing query based on search input
     const nameQuery = search
       ? {
           $or: [
@@ -17,9 +17,12 @@ const getUsersByAdmin = async (req, res) => {
         }
       : {};
 
-    const totalUserCounts = await User.countDocuments(nameQuery);
+    // If userType is provided, add role filter
+    const query = userType ? { ...nameQuery, role: userType } : nameQuery;
 
-    const users = await User.find(nameQuery, null, {
+    const totalUserCounts = await User.countDocuments(query);
+
+    const users = await User.find(query, null, {
       skip: skip,
       limit: parseInt(limit),
     }).sort({
