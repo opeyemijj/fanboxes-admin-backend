@@ -1,3 +1,4 @@
+const { ObjectId } = require("mongoose").Types;
 const Brand = require("../models/Brand");
 const Product = require("../models/Product");
 const Shop = require("../models/Shop");
@@ -10,6 +11,7 @@ const { multiFilesDelete } = require("../config/uploader");
 const blurDataUrl = require("../config/getBlurDataURL");
 const { getAdmin, getVendor, getUser } = require("../config/getUser");
 const { fanboxesAdminInfluencer } = require("../helpers/const");
+
 const getProducts = async (req, res) => {
   try {
     const query = req.query; // Extract query params from request
@@ -27,18 +29,26 @@ const getProducts = async (req, res) => {
     delete newQuery.brand;
     delete newQuery.rate;
     delete newQuery.gender;
+    delete newQuery.category;
+
     for (const [key, value] of Object.entries(newQuery)) {
       newQuery = { ...newQuery, [key]: value.split("_") };
     }
+
     const brand = await Brand.findOne({
       slug: query.brand,
     }).select("slug");
+
     const skip = Number(query.limit) || 12;
-    const totalProducts = await Product.countDocuments({
+
+    // Build the count query with category filter
+    const countQuery = {
       ...newQuery,
       ...(Boolean(query.brand) && { brand: brand._id }),
       ...(query.sizes && { sizes: { $in: query.sizes.split("_") } }),
       ...(query.colors && { colors: { $in: query.colors.split("_") } }),
+      // ADD CATEGORY FILTER
+      ...(query.category && { category: new ObjectId(query.category) }),
       priceSale: {
         $gt: query.prices
           ? Number(query.prices.split("_")[0]) / Number(query.rate || 1)
@@ -48,7 +58,9 @@ const getProducts = async (req, res) => {
           : 1000000,
       },
       status: { $ne: "disabled" },
-    }).select([""]);
+    };
+
+    const totalProducts = await Product.countDocuments(countQuery).select([""]);
 
     const minPrice = query.prices
       ? Number(query.prices.split("_")[0]) / Number(query.rate || 1)
@@ -56,6 +68,8 @@ const getProducts = async (req, res) => {
     const maxPrice = query.prices
       ? Number(query.prices.split("_")[1]) / Number(query.rate || 1)
       : 10000000;
+
+    console.log("queryPassd::", query);
 
     const products = await Product.aggregate([
       {
@@ -72,28 +86,28 @@ const getProducts = async (req, res) => {
           image: { $arrayElemAt: ["$images", 0] },
         },
       },
-
       {
         $match: {
+          ...(query.name && {
+            name: { $regex: query.name, $options: "i" }, // Case-insensitive search
+          }),
           ...(query.ownerType && {
             ownerType: { $in: query.ownerType.split("_") },
           }),
-
           ...(Boolean(query.brand) && {
             brand: brand._id,
           }),
-
+          // ADD CATEGORY FILTER TO AGGREGATION
+          ...(query.category && { category: new ObjectId(query.category) }),
           ...(query.isFeatured && {
             isFeatured: Boolean(query.isFeatured),
           }),
-
           ...(query.gender && {
             gender: { $in: query.gender.split("_") },
           }),
           ...(query.sizes && {
             sizes: { $in: query.sizes.split("_") },
           }),
-
           ...(query.colors && {
             colors: { $in: query.colors.split("_") },
           }),
@@ -136,12 +150,24 @@ const getProducts = async (req, res) => {
       },
       {
         $sort: {
-          ...((query.date && { createdAt: Number(query.date) }) ||
-            (query.price && {
-              priceSale: Number(query.price),
-            }) ||
-            (query.name && { name: Number(query.name) }) ||
-            (query.top && { averageRating: Number(query.top) }) || {
+          // Handle each sorting option with proper validation
+          ...(query.date && { createdAt: parseInt(query.date) === 1 ? 1 : -1 }),
+          ...(query.price && {
+            priceSale: parseInt(query.price) === 1 ? 1 : -1,
+          }),
+          ...(query.name && { name: parseInt(query.name) === 1 ? 1 : -1 }),
+          ...(query.top && {
+            averageRating: parseInt(query.top) === 1 ? 1 : -1,
+          }),
+          ...(query.alphabetical && {
+            name: parseInt(query.alphabetical) === 1 ? 1 : -1,
+          }),
+          // Default sorting
+          ...(!query.date &&
+            !query.price &&
+            !query.name &&
+            !query.top &&
+            !query.alphabetical && {
               averageRating: -1,
             }),
           createdAt: -1,
@@ -162,6 +188,7 @@ const getProducts = async (req, res) => {
       count: Math.ceil(totalProducts / skip),
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -169,6 +196,7 @@ const getProducts = async (req, res) => {
     });
   }
 };
+
 const getProductsByCategory = async (req, res) => {
   try {
     const query = req.query; // Extract query params from request
