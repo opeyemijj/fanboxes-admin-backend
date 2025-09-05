@@ -1,5 +1,8 @@
 const User = require("../models/User");
 const Order = require("../models/Order");
+const Role = require("../models/role");
+const otpGenerator = require("otp-generator");
+
 const getUsersByAdmin = async (req, res) => {
   try {
     const { limit = 10, page = 1, search = "", userType } = req.query;
@@ -45,6 +48,62 @@ const getUsersByAdmin = async (req, res) => {
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const createAdminUserByAdmin = async (req, res) => {
+  try {
+    const requestData = req.body;
+
+    const newUserPassword = `${requestData.firstName}2025${Math.random()
+      .toString(36)
+      .substring(2, 7)}`;
+
+    const otp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      specialChars: false,
+      lowerCaseAlphabets: false,
+      digits: true,
+    });
+
+    const assignedRole = await Role.findOne({ _id: requestData.roleId });
+    if (!assignedRole) {
+      return res.status(404).json({
+        success: false,
+        message: "Sorry we don't find your assigned role",
+      });
+    }
+
+    const tempRoleDetails = {
+      role: assignedRole.role,
+      permissions: assignedRole.permissions,
+    };
+
+    console.log(requestData?.email, "--", newUserPassword);
+
+    const newAdminUser = await User.create({
+      firstName: requestData.firstName,
+      lastName: requestData.lastName,
+      gender: requestData.gender,
+      phone: requestData.phone,
+      email: requestData.email,
+      otp,
+      role: assignedRole?.role?.toLowerCase(),
+      roleId: assignedRole?._id,
+      roleDetails: tempRoleDetails,
+      password: newUserPassword,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "User has been created successfully",
+    });
+  } catch (error) {
+    console.error("Error saving permissions:", error);
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
@@ -139,4 +198,5 @@ module.exports = {
   getOrdersByUid,
   UpdateRoleByAdmin,
   getAdminVendorByAdmin,
+  createAdminUserByAdmin,
 };

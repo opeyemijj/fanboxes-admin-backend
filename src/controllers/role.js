@@ -1,4 +1,5 @@
 const Role = require("../models/role");
+const User = require("../models/User");
 
 const createRoleByAdmin = async (req, res) => {
   try {
