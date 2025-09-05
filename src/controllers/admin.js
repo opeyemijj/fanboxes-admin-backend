@@ -17,8 +17,17 @@ const getUsersByAdmin = async (req, res) => {
         }
       : {};
 
-    // If userType is provided, add role filter
-    const query = userType ? { ...nameQuery, role: userType } : nameQuery;
+    let query = { ...nameQuery };
+
+    if (userType) {
+      if (userType === "admin") {
+        // Exclude vendor and user roles
+        query.role = { $nin: ["vendor", "user"] };
+      } else {
+        // Exact match for role
+        query.role = userType;
+      }
+    }
 
     const totalUserCounts = await User.countDocuments(query);
 
@@ -40,7 +49,6 @@ const getUsersByAdmin = async (req, res) => {
 };
 
 const getAdminVendorByAdmin = async (req, res) => {
-  console.log("Is it calling here?");
   try {
     const users = await User.find({
       role: { $regex: /(admin|vendor)/i }, // i = case-insensitive
