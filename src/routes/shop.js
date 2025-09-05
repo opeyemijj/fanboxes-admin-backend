@@ -76,9 +76,4 @@ router.get("/shops/:slug", shop.getOneShopByUser);
 router.get("/shops-slugs", shop.getShopsSlugs);
 router.get("/shop-title/:slug", shop.getShopNameBySlug);
 router.put("/shops/:shopId/follow", verifyToken, shop.followShop);
-
-router.patch(
-  "/influencer/:slug/visit",
-  shop.incrementInfluencerVisitCountBySlug
-);
 module.exports = router;
