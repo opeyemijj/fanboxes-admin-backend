@@ -75,6 +75,10 @@ const getProducts = async (req, res) => {
 
       {
         $match: {
+          ...(query.ownerType && {
+            ownerType: { $in: query.ownerType.split("_") },
+          }),
+
           ...(Boolean(query.brand) && {
             brand: brand._id,
           }),
@@ -124,6 +128,10 @@ const getProducts = async (req, res) => {
           status: 1,
           ownerType: 1,
           createdAt: 1,
+          category: 1,
+          categoryDetails: 1,
+          subCategory: 1,
+          subCategoryDetails: 1,
         },
       },
       {
