@@ -1,7 +1,7 @@
-const User = require('../models/User');
-const Orders = require('../models/Order');
-const bcrypt = require('bcrypt');
-const { getUser } = require('../config/getUser');
+const User = require("../models/User");
+const Orders = require("../models/Order");
+const bcrypt = require("bcrypt");
+const { getUser } = require("../config/getUser");
 
 const getOneUser = async (req, res) => {
   try {
@@ -15,6 +15,7 @@ const getOneUser = async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 };
+
 const getUserByAdmin = async (req, res) => {
   try {
     const id = req.params.uid;
@@ -30,9 +31,9 @@ const getUserByAdmin = async (req, res) => {
 
     const currentUser = await User.findOne({ _id: id });
 
-    const totalOrders = await Orders.countDocuments({ 'user._id': id });
+    const totalOrders = await Orders.countDocuments({ "user._id": id });
 
-    const orders = await Orders.find({ 'user._id': id }, null, {
+    const orders = await Orders.find({ "user._id": id }, null, {
       skip: skip * (page - 1),
       limit: skip,
     }).sort({ createdAt: -1 });
@@ -40,7 +41,7 @@ const getUserByAdmin = async (req, res) => {
     if (!currentUser) {
       return res.status(404).json({
         success: false,
-        message: 'User Not Found',
+        message: "User Not Found",
       });
     }
 
@@ -56,6 +57,7 @@ const getUserByAdmin = async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 };
+
 const updateUser = async (req, res) => {
   const user = await getUser(req, res);
 
@@ -70,12 +72,12 @@ const updateUser = async (req, res) => {
         new: true,
         runValidators: true,
       }
-    ).select('-password');
+    ).select("-password");
 
     if (!profile) {
       return res.status(404).json({
         success: false,
-        message: 'User Not Found',
+        message: "User Not Found",
       });
     }
 
@@ -96,7 +98,7 @@ const getInvoice = async (req, res) => {
     const skip = parseInt(limit) * (parseInt(page) - 1) || 0;
     const totalOrderCount = await Orders.countDocuments();
 
-    const orders = await Orders.find({ 'user.email': user.email }, null, {
+    const orders = await Orders.find({ "user.email": user.email }, null, {
       skip: skip,
       limit: parseInt(limit),
     }).sort({
@@ -120,12 +122,12 @@ const changePassword = async (req, res) => {
     const { password, newPassword, confirmPassword } = await req.body;
 
     // Find the user by ID
-    const userWithPassword = await User.findById(uid).select('password');
+    const userWithPassword = await User.findById(uid).select("password");
 
     if (!userWithPassword) {
       return res
         .status(404)
-        .json({ success: false, message: 'User Not Found' });
+        .json({ success: false, message: "User Not Found" });
     }
 
     // Check if the old password matches the stored hashed password
@@ -139,13 +141,13 @@ const changePassword = async (req, res) => {
       if (newPassword !== confirmPassword) {
         return res
           .status(400)
-          .json({ success: false, message: 'New Password Mismatch' });
+          .json({ success: false, message: "New Password Mismatch" });
       }
       if (password === newPassword) {
         return NextResponse.json(
           {
             success: false,
-            message: 'Please Enter A New Password ',
+            message: "Please Enter A New Password ",
           },
           { status: 400 }
         );
@@ -166,16 +168,16 @@ const changePassword = async (req, res) => {
       if (!updatedUser) {
         return res
           .status(404)
-          .json({ success: false, message: 'User Not Found' });
+          .json({ success: false, message: "User Not Found" });
       }
 
       return res
         .status(201)
-        .json({ success: true, message: 'Password Changed' });
+        .json({ success: true, message: "Password Changed" });
     } else {
       return res
         .status(400)
-        .json({ success: false, message: 'Old Password Incorrect' });
+        .json({ success: false, message: "Old Password Incorrect" });
     }
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });

@@ -42,6 +42,9 @@ const registerUser = async (req, res) => {
       {
         _id: user._id,
         // email: user.email,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
       },
       process.env.JWT_SECRET,
       {
@@ -127,6 +130,7 @@ const loginUser = async (req, res) => {
       {
         _id: user._id,
         email: user.email,
+        role: user.role,
       },
       process.env.JWT_SECRET,
       {
@@ -192,6 +196,7 @@ const loginUser = async (req, res) => {
         about: user.about,
         role: user.role,
         wishlist: products,
+        permissions: [""],
       },
     });
   } catch (error) {

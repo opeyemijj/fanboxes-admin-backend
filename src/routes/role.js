@@ -21,11 +21,14 @@ router.post(
   verifyToken,
   withSlug(role.createRoleByAdmin, "add_new_role")
 );
+
 router.get(
   "/admin/roles",
   verifyToken,
   withSlug(role.getRolesByAdmin, "view_role_listing")
 );
+
+router.get("/all-roles", verifyToken, role.getAllRoles);
 
 router.get(
   "/admin/roles/:slug",

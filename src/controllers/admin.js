@@ -1,12 +1,15 @@
 const User = require("../models/User");
 const Order = require("../models/Order");
+const Role = require("../models/role");
+const otpGenerator = require("otp-generator");
+
 const getUsersByAdmin = async (req, res) => {
   try {
-    const { limit = 10, page = 1, search = "" } = req.query;
+    const { limit = 10, page = 1, search = "", userType } = req.query;
 
     const skip = parseInt(limit) * (parseInt(page) - 1) || 0;
 
-    // Constructing nameQuery based on search input
+    // Constructing query based on search input
     const nameQuery = search
       ? {
           $or: [
@@ -17,9 +20,21 @@ const getUsersByAdmin = async (req, res) => {
         }
       : {};
 
-    const totalUserCounts = await User.countDocuments(nameQuery);
+    let query = { ...nameQuery };
 
-    const users = await User.find(nameQuery, null, {
+    if (userType) {
+      if (userType === "admin") {
+        // Exclude vendor and user roles
+        query.role = { $nin: ["vendor", "user"] };
+      } else {
+        // Exact match for role
+        query.role = userType;
+      }
+    }
+
+    const totalUserCounts = await User.countDocuments(query);
+
+    const users = await User.find(query, null, {
       skip: skip,
       limit: parseInt(limit),
     }).sort({
@@ -36,8 +51,57 @@ const getUsersByAdmin = async (req, res) => {
   }
 };
 
+const createAdminUserByAdmin = async (req, res) => {
+  try {
+    const requestData = req.body;
+    const otp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      specialChars: false,
+      lowerCaseAlphabets: false,
+      digits: true,
+    });
+
+    const assignedRole = await Role.findOne({ _id: requestData.roleId });
+    if (!assignedRole) {
+      return res.status(404).json({
+        success: false,
+        message: "Sorry we don't find your assigned role",
+      });
+    }
+
+    const tempRoleDetails = {
+      role: assignedRole.role,
+      permissions: assignedRole.permissions,
+    };
+
+    const newAdminUser = await User.create({
+      firstName: requestData.firstName,
+      lastName: requestData.lastName,
+      gender: requestData.gender,
+      phone: requestData.phone,
+      email: requestData.email,
+      otp,
+      role: assignedRole?.role?.toLowerCase(),
+      roleId: assignedRole?._id,
+      roleDetails: tempRoleDetails,
+      password: requestData?.password,
+      isActive: true,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "User has been created successfully",
+    });
+  } catch (error) {
+    console.error("Error saving permissions:", error);
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 const getAdminVendorByAdmin = async (req, res) => {
-  console.log("Is it calling here?");
   try {
     const users = await User.find({
       role: { $regex: /(admin|vendor)/i }, // i = case-insensitive
@@ -128,4 +192,5 @@ module.exports = {
   getOrdersByUid,
   UpdateRoleByAdmin,
   getAdminVendorByAdmin,
+  createAdminUserByAdmin,
 };

@@ -60,7 +60,15 @@ const UserSchema = new mongoose.Schema(
       // required: [true, 'Please provide a Phone Number.'],
       // maxlength: [20, 'Phone cannot be more than 20 characters.'],
     },
-
+    roleId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Role",
+      required: false,
+    },
+    roleDetails: {
+      type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
+      default: {},
+    },
     status: {
       type: String,
     },
@@ -98,7 +106,6 @@ const UserSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["super admin", "admin", "user", "vendor"],
       required: true,
     },
   },

@@ -1,4 +1,5 @@
 const Role = require("../models/role");
+const User = require("../models/User");
 
 const createRoleByAdmin = async (req, res) => {
   try {
@@ -160,6 +161,18 @@ const deleteRoleByAdmin = async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 };
+const getAllRoles = async (req, res) => {
+  try {
+    const roles = await Role.find().sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: roles,
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
 
 module.exports = {
   createRoleByAdmin,
@@ -167,4 +180,5 @@ module.exports = {
   getRolesByAdmin,
   updateRoleByAdmin,
   deleteRoleByAdmin,
+  getAllRoles,
 };

@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
 function verifyToken(req, res, next) {
   // Get the token from headers (or cookies)
@@ -15,7 +16,7 @@ function verifyToken(req, res, next) {
   jwt.verify(
     token.replace("Bearer ", ""),
     process.env.JWT_SECRET || "123456",
-    (err, decoded) => {
+    async (err, decoded) => {
       if (err) {
         // Clear the invalid token cookie (if it exists)
         res.setHeader("Set-Cookie", [
@@ -32,37 +33,51 @@ function verifyToken(req, res, next) {
       }
 
       // Token is valid! Attach user data to the request
-      req.user = decoded;
+
+      const existingUser = await User.findById(decoded._id)
+        .select("_id", "firstName", "lastName", "role", "email", "isActive")
+        .lean();
+
+      if (!existingUser?.isActive) {
+        return res.status(403).json({
+          success: false,
+          message: "Authorization required",
+        });
+      }
+
+      req.user = existingUser;
 
       // Role-based route protection
-      // const path = req.originalUrl.toLowerCase();
+      const path = req.originalUrl.toLowerCase();
 
       // // Admin route protection
-      // if (
-      //   path.includes("/admin") &&
-      //   !["admin", "super admin"].includes(decoded.role)
-      // ) {
-      //   res.setHeader("Set-Cookie", [
-      //     "token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
-      //     "userRole=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
-      //   ]);
-      //   return res.status(403).json({
-      //     success: false,
-      //     message: "Admin access required",
-      //   });
-      // }
+      if (
+        path.includes("/admin") &&
+        ["user", "vendor", "influencer", "", null, undefined].includes(
+          decoded.role
+        )
+      ) {
+        res.setHeader("Set-Cookie", [
+          "token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+          "userRole=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+        ]);
+        return res.status(403).json({
+          success: false,
+          message: "Admin access required",
+        });
+      }
 
       // Vendor route protection
-      // if (path.includes("/vendor") && decoded.role !== "vendor") {
-      //   res.setHeader("Set-Cookie", [
-      //     "token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
-      //     "userRole=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
-      //   ]);
-      //   return res.status(403).json({
-      //     success: false,
-      //     message: "Vendor access required",
-      //   });
-      // }
+      if (path.includes("/vendor") && decoded.role !== "vendor") {
+        res.setHeader("Set-Cookie", [
+          "token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+          "userRole=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+        ]);
+        return res.status(403).json({
+          success: false,
+          message: "Vendor access required",
+        });
+      }
 
       next();
     }
