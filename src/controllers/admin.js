@@ -54,11 +54,6 @@ const getUsersByAdmin = async (req, res) => {
 const createAdminUserByAdmin = async (req, res) => {
   try {
     const requestData = req.body;
-
-    const newUserPassword = `${requestData.firstName}2025${Math.random()
-      .toString(36)
-      .substring(2, 7)}`;
-
     const otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
       specialChars: false,
@@ -79,8 +74,6 @@ const createAdminUserByAdmin = async (req, res) => {
       permissions: assignedRole.permissions,
     };
 
-    console.log(requestData?.email, "--", newUserPassword);
-
     const newAdminUser = await User.create({
       firstName: requestData.firstName,
       lastName: requestData.lastName,
@@ -91,7 +84,8 @@ const createAdminUserByAdmin = async (req, res) => {
       role: assignedRole?.role?.toLowerCase(),
       roleId: assignedRole?._id,
       roleDetails: tempRoleDetails,
-      password: newUserPassword,
+      password: requestData?.password,
+      isActive: true,
     });
 
     return res.status(201).json({
