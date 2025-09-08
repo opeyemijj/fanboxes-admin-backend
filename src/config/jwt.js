@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
 function verifyToken(req, res, next) {
+  console.log("Come here in loading");
   // Get the token from headers (or cookies)
   const token = req?.headers?.authorization || req?.cookies?.token;
 
@@ -50,8 +51,6 @@ function verifyToken(req, res, next) {
       // Role-based route protection
       const path = req.originalUrl.toLowerCase();
 
-      console.log(decoded, "Cehcking the decoded");
-
       // // Admin route protection
       if (
         path.includes("/admin") &&
@@ -59,7 +58,6 @@ function verifyToken(req, res, next) {
           decoded.role
         )
       ) {
-        console.log("Is it coming here admin?");
         res.setHeader("Set-Cookie", [
           "token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
           "userRole=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT",

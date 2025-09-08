@@ -8,6 +8,7 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
 const { getUser } = require("../config/getUser");
+const Role = require("../models/role");
 const registerUser = async (req, res) => {
   try {
     // Create user in the database
@@ -138,6 +139,8 @@ const loginUser = async (req, res) => {
       }
     );
 
+    const userAssignedRoles = await Role.findOne({ _id: user?.roleId });
+
     const products = await Products.aggregate([
       {
         $match: {
@@ -196,7 +199,7 @@ const loginUser = async (req, res) => {
         about: user.about,
         role: user.role,
         wishlist: products,
-        permissions: [""],
+        permissions: userAssignedRoles ? userAssignedRoles.permissions : [],
       },
     });
   } catch (error) {
