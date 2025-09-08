@@ -35,7 +35,7 @@ function verifyToken(req, res, next) {
       // Token is valid! Attach user data to the request
 
       const existingUser = await User.findById(decoded._id)
-        .select("_id", "firstName", "lastName", "role", "email", "isActive")
+        .select("_id firstName lastName role email isActive")
         .lean();
 
       if (!existingUser?.isActive) {
