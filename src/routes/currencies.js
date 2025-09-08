@@ -1,18 +1,23 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const currencies = require('../controllers/currencies');
+const currencies = require("../controllers/currencies");
 
 // Import verifyToken function
-const verifyToken = require('../config/jwt');
+const verifyToken = require("../config/jwt");
+const { withSlug } = require("../helpers/routeSlugHelper");
 
-router.get('/admin/currencies', verifyToken, currencies.getAdminCurrencies);
-router.get('/admin/currencies/:cid', verifyToken, currencies.getCurrency);
+router.get(
+  "/admin/currencies",
+  verifyToken,
+  withSlug(currencies.getAdminCurrencies, "view_currency_listing")
+);
+router.get("/admin/currencies/:cid", verifyToken, currencies.getCurrency);
 
-router.post('/admin/currencies', verifyToken, currencies.createCurrency);
+router.post("/admin/currencies", verifyToken, currencies.createCurrency);
 
-router.put('/admin/currencies/:cid', verifyToken, currencies.updateCurrency);
+router.put("/admin/currencies/:cid", verifyToken, currencies.updateCurrency);
 
-router.delete('/admin/currencies/:cid', verifyToken, currencies.deleteCurrency);
-router.get('/currencies', currencies.getUserCurrencies);
+router.delete("/admin/currencies/:cid", verifyToken, currencies.deleteCurrency);
+router.get("/currencies", currencies.getUserCurrencies);
 
 module.exports = router;
