@@ -43,12 +43,12 @@ const createSpin = async (req, res) => {
     }
 
     const vendorDetails = await User.findOne({ _id: boxDetails.vendor });
-    if (!vendorDetails) {
-      return res.status(404).json({
-        success: false,
-        message: "No influencer assigned to this box.",
-      });
-    }
+    // if (!vendorDetails) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: "No influencer assigned to this box.",
+    //   });
+    // }
 
     const previousNonce = await Spin.findOne({ boxId: boxId }).sort({
       nonce: -1,
@@ -98,12 +98,14 @@ const createSpin = async (req, res) => {
         items: boxDetails?.items,
       },
       vendorId: boxDetails.vendor,
-      vendorDetails: {
-        _id: vendorDetails._id,
-        firstName: vendorDetails.firstName,
-        lastName: vendorDetails.lastName,
-        gender: vendorDetails.gender,
-      },
+      vendorDetails: vendorDetails
+        ? {
+            _id: vendorDetails._id,
+            firstName: vendorDetails.firstName,
+            lastName: vendorDetails.lastName,
+            gender: vendorDetails.gender,
+          }
+        : null,
       userId: user._id,
       userDetails: {
         _id: user._id,

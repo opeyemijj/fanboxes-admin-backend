@@ -5,7 +5,11 @@ const adminController = require("../controllers/admin");
 
 const verifyToken = require("../config/jwt");
 const { withSlug } = require("../helpers/routeSlugHelper");
-router.get("/users/profile", verifyToken, userController.getOneUser);
+router.get(
+  "/users/profile",
+  verifyToken,
+  withSlug(userController.getOneUser, "settings")
+);
 
 router.put("/users/profile", verifyToken, userController.updateUser);
 
