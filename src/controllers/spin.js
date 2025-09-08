@@ -21,6 +21,7 @@ const createSpin = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Please Login To Continue" });
     }
+    console.log(user, "Check the user details");
 
     const requestData = req.body;
     const boxId = requestData.boxId;
@@ -40,6 +41,15 @@ const createSpin = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "This box is currently empty." });
+    }
+
+    console.log(boxDetails, "Check the box details after items");
+
+    if (!boxDetails?.vendor || boxDetails?.vendor === "") {
+      return res.status(404).json({
+        success: false,
+        message: "No vendor assigned to this box.",
+      });
     }
 
     const vendorDetails = await User.findOne({ _id: boxDetails.vendor });
@@ -133,6 +143,7 @@ const createSpin = async (req, res) => {
       data: spin,
     });
   } catch (error) {
+    console.error("Error in createSpin:", error);
     return res.status(400).json({ success: false, message: error.message });
   }
 };

@@ -30,6 +30,7 @@ const getProducts = async (req, res) => {
     delete newQuery.rate;
     delete newQuery.gender;
     delete newQuery.category;
+    delete newQuery.isActive;
 
     for (const [key, value] of Object.entries(newQuery)) {
       newQuery = { ...newQuery, [key]: value.split("_") };
@@ -47,6 +48,7 @@ const getProducts = async (req, res) => {
       ...(Boolean(query.brand) && { brand: brand._id }),
       ...(query.sizes && { sizes: { $in: query.sizes.split("_") } }),
       ...(query.colors && { colors: { $in: query.colors.split("_") } }),
+      ...(query.isActive && { isActive: query.isActive === "true" }),
       // ADD CATEGORY FILTER
       ...(query.category && { category: new ObjectId(query.category) }),
       priceSale: {
@@ -97,7 +99,8 @@ const getProducts = async (req, res) => {
           ...(Boolean(query.brand) && {
             brand: brand._id,
           }),
-          // ADD CATEGORY FILTER TO AGGREGATION
+          ...(query.isActive && { isActive: query.isActive === "true" }),
+
           ...(query.category && { category: new ObjectId(query.category) }),
           ...(query.isFeatured && {
             isFeatured: Boolean(query.isFeatured),
