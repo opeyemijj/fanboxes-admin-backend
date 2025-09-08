@@ -21,6 +21,7 @@ const createSpin = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Please Login To Continue" });
     }
+    console.log(user, "Check the user details");
 
     const requestData = req.body;
     const boxId = requestData.boxId;
@@ -42,7 +43,21 @@ const createSpin = async (req, res) => {
         .json({ success: false, message: "This box is currently empty." });
     }
 
-    const vendorDetails = await User.findOne({ _id: boxDetails.vendor });
+    console.log(boxDetails, "Check the box details after items");
+
+    let vendorId = boxDetails?.vendor;
+    let vendorDetails = null;
+    // if (!boxDetails?.vendor || boxDetails?.vendor === "") {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: "No vendor assigned to this box.",
+    //   });
+    // }
+
+    if (vendorId) {
+      vendorDetails = await User.findOne({ _id: boxDetails.vendor });
+    }
+
     // if (!vendorDetails) {
     //   return res.status(404).json({
     //     success: false,
@@ -97,15 +112,13 @@ const createSpin = async (req, res) => {
         images: boxDetails.images,
         items: boxDetails?.items,
       },
-      vendorId: boxDetails.vendor,
-      vendorDetails: vendorDetails
-        ? {
-            _id: vendorDetails._id,
-            firstName: vendorDetails.firstName,
-            lastName: vendorDetails.lastName,
-            gender: vendorDetails.gender,
-          }
-        : null,
+      // vendorId: boxDetails.vendor,
+      // vendorDetails: {
+      //   _id: vendorDetails._id,
+      //   firstName: vendorDetails.firstName,
+      //   lastName: vendorDetails.lastName,
+      //   gender: vendorDetails.gender,
+      // },
       userId: user._id,
       userDetails: {
         _id: user._id,
@@ -113,7 +126,7 @@ const createSpin = async (req, res) => {
         lastName: user.lastName,
         gender: user.gender,
       },
-      shop: boxDetails.shop,
+      // shop: boxDetails.shop,
       shopDetails: boxDetails.shopDetails,
       winningItem: result.winningItem,
       nonce: nonce,
@@ -125,6 +138,16 @@ const createSpin = async (req, res) => {
       oddsMap: result.oddsMap,
     };
 
+    if (vendorDetails) {
+      desireSpinData.vendorDetails = {
+        _id: vendorDetails._id,
+        firstName: vendorDetails.firstName,
+        lastName: vendorDetails.lastName,
+        gender: vendorDetails.gender,
+      };
+      desireSpinData.vendorId = vendorDetails._id;
+      desireSpinData.shop = boxDetails?.shop;
+    }
     // console.log(desireSpinData, "Calling the spin data");
 
     const spin = await Spin.create({
@@ -135,6 +158,7 @@ const createSpin = async (req, res) => {
       data: spin,
     });
   } catch (error) {
+    console.error("Error in createSpin:", error);
     return res.status(400).json({ success: false, message: error.message });
   }
 };
