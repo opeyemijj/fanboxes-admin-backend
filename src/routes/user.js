@@ -31,7 +31,7 @@ router.get(
 router.get(
   "/admin/users",
   verifyToken,
-  withSlug(adminController.getUsersByAdmin, "view_influencer_listing")
+  withSlug(adminController.getUsersByAdmin, "view_influencer_user_listing")
 );
 
 router.get(
