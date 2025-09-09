@@ -28,6 +28,18 @@ router.get(
   withSlug(adminController.getUsersByAdmin, "view_user_listing")
 );
 
+router.get(
+  "/admin/users",
+  verifyToken,
+  withSlug(adminController.getUsersByAdmin, "view_influencer_listing")
+);
+
+router.get(
+  "/admin/users",
+  verifyToken,
+  withSlug(adminController.getUsersByAdmin, "view_admin_listing")
+);
+
 router.post(
   "/admin/users/add-admin",
   verifyToken,

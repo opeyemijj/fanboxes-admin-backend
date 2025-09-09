@@ -25,7 +25,7 @@ const getUsersByAdmin = async (req, res) => {
     if (userType) {
       if (userType === "admin") {
         // Exclude vendor and user roles
-        query.role = { $nin: ["vendor", "user"] };
+        query.role = { $nin: ["vendor", "user", "influencer"] };
       } else {
         // Exact match for role
         query.role = userType;
