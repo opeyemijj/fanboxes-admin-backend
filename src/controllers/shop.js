@@ -13,6 +13,8 @@ const { singleFileDelete } = require("../config/uploader");
 const sendEmail = require("../config/mailer");
 const getWelcomeEmailContent = require("../email-templates/newVendorAccount");
 const { splitUserName } = require("../helpers/userHelper");
+const Category = require("../models/Category");
+const SubCategory = require("../models/SubCategory");
 // Admin apis
 const getShopsByAdmin = async (req, res) => {
   try {
@@ -95,6 +97,37 @@ const createShopByAdmin = async (req, res) => {
       .toString(36)
       .substring(2, 7)}`;
 
+    const category = await Category.findOne({
+      _id: req.body.category,
+    });
+
+    let subCategory = null;
+    let tempSubCategoryDetails = null;
+
+    if (req.body.subCategory?.length > 10) {
+      subCategory = await SubCategory.findOne({
+        _id: req.body.subCategory,
+      });
+    }
+
+    const tempCategoryDetails = {
+      _id: category._id,
+      name: category.name,
+      slug: category.slug,
+      metaTitle: category.metaTitle,
+      cover: category.cover,
+    };
+
+    if (subCategory) {
+      tempSubCategoryDetails = {
+        _id: subCategory._id,
+        name: subCategory.name,
+        slug: subCategory.slug,
+        metaTitle: subCategory.metaTitle,
+        cover: subCategory.cover,
+      };
+    }
+
     newVendorUser = await User.create({
       firstName: newUserName.firstName,
       lastName: newUserName.lastName,
@@ -149,6 +182,9 @@ const createShopByAdmin = async (req, res) => {
         holderName: requestData.title,
       },
       status: "draft",
+      categoryDetails: tempCategoryDetails,
+      subCategoryDetails: subCategory ? tempSubCategoryDetails : null,
+      subCategory: subCategory ? req.body.subCategory : null,
     });
 
     return res.status(200).json({
@@ -251,6 +287,37 @@ const updateOneShopByAdmin = async (req, res) => {
     const logoBlurDataURL = await getBlurDataURL(logo.url);
     const coverBlurDataURL = await getBlurDataURL(cover.url);
 
+    const category = await Category.findOne({
+      _id: req.body.category,
+    });
+
+    let subCategory = null;
+    let tempSubCategoryDetails = null;
+
+    if (req.body.subCategory?.length > 10) {
+      subCategory = await SubCategory.findOne({
+        _id: req.body.subCategory,
+      });
+    }
+
+    const tempCategoryDetails = {
+      _id: category._id,
+      name: category.name,
+      slug: category.slug,
+      metaTitle: category.metaTitle,
+      cover: category.cover,
+    };
+
+    if (subCategory) {
+      tempSubCategoryDetails = {
+        _id: subCategory._id,
+        name: subCategory.name,
+        slug: subCategory.slug,
+        metaTitle: subCategory.metaTitle,
+        cover: subCategory.cover,
+      };
+    }
+
     const updatedShop = await Shop.findOneAndUpdate(
       { slug: slug },
       {
@@ -259,6 +326,9 @@ const updateOneShopByAdmin = async (req, res) => {
         cover: { ...cover, blurDataURL: coverBlurDataURL },
         paymentInfo: shop.paymentInfo,
         status: status, // Update shop status
+        categoryDetails: tempCategoryDetails,
+        subCategoryDetails: subCategory ? tempSubCategoryDetails : null,
+        subCategory: subCategory ? req.body.subCategory : null,
       },
       { new: true, runValidators: true }
     );

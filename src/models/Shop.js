@@ -11,6 +11,26 @@ const ShopSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
       default: {},
     },
+
+    category: {
+      type: mongoose.Types.ObjectId,
+      ref: "Category",
+      required: [true, "please provide a category id"],
+    },
+    categoryDetails: {
+      type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
+      default: {},
+    },
+    subCategory: {
+      type: mongoose.Types.ObjectId,
+      ref: "SubCategory",
+      required: [false, "please provide a sub category id"],
+    },
+    subCategoryDetails: {
+      type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
+      default: {},
+    },
+
     logo: {
       _id: {
         type: String,
