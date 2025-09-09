@@ -184,6 +184,11 @@ const productSchema = new Schema(
         message: "Duplicate item slugs found within product.",
       },
     },
+    visitedCount: {
+      type: Number,
+      default: 0,
+      min: [0, "Visited count cannot be negative."],
+    },
   },
   { timestamps: true, autoIndex: false }
 );

@@ -30,6 +30,7 @@ const getProducts = async (req, res) => {
     delete newQuery.rate;
     delete newQuery.gender;
     delete newQuery.category;
+    delete newQuery.isActive;
 
     for (const [key, value] of Object.entries(newQuery)) {
       newQuery = { ...newQuery, [key]: value.split("_") };
@@ -47,6 +48,7 @@ const getProducts = async (req, res) => {
       ...(Boolean(query.brand) && { brand: brand._id }),
       ...(query.sizes && { sizes: { $in: query.sizes.split("_") } }),
       ...(query.colors && { colors: { $in: query.colors.split("_") } }),
+      ...(query.isActive && { isActive: query.isActive === "true" }),
       // ADD CATEGORY FILTER
       ...(query.category && { category: new ObjectId(query.category) }),
       priceSale: {
@@ -97,7 +99,8 @@ const getProducts = async (req, res) => {
           ...(Boolean(query.brand) && {
             brand: brand._id,
           }),
-          // ADD CATEGORY FILTER TO AGGREGATION
+          ...(query.isActive && { isActive: query.isActive === "true" }),
+
           ...(query.category && { category: new ObjectId(query.category) }),
           ...(query.isFeatured && {
             isFeatured: Boolean(query.isFeatured),
@@ -1720,7 +1723,8 @@ const relatedProducts = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-const getOneProductBySlug = async (req, res) => {
+
+const getOneProductBySlug = async (req, res, next) => {
   try {
     const product = await Product.findOne({ slug: req.params.slug });
     const category = await Category.findById(product.category).select([
@@ -1736,19 +1740,17 @@ const getOneProductBySlug = async (req, res) => {
         },
         {
           $lookup: {
-            from: "productreviews", // Replace with your actual review model name
-            localField: "reviews", // Replace with the field referencing product in reviews
-            foreignField: "_id", // Replace with the field referencing product in reviews
+            from: "productreviews",
+            localField: "reviews",
+            foreignField: "_id",
             as: "reviews",
           },
         },
         {
           $project: {
-            _id: 0, // Exclude unnecessary fields if needed
-            totalReviews: { $size: "$reviews" }, // Count total reviews
-            averageRating: {
-              $avg: "$reviews.rating", // Calculate average rating (optional)
-            },
+            _id: 0,
+            totalReviews: { $size: "$reviews" },
+            averageRating: { $avg: "$reviews.rating" },
           },
         },
       ]);
@@ -1757,6 +1759,13 @@ const getOneProductBySlug = async (req, res) => {
     };
 
     const reviewReport = await getProductRatingAndReviews();
+
+    // 🔹 Increment viewedCount in background
+    Product.updateOne(
+      { slug: req.params.slug },
+      { $inc: { visitedCount: 1 } }
+    ).exec();
+
     return res.status(201).json({
       success: true,
       data: product,
@@ -1769,6 +1778,7 @@ const getOneProductBySlug = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 const getCompareProducts = async (req, res) => {
   try {
     const fetchedProducts = await Product.find({

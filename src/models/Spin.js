@@ -15,7 +15,7 @@ const SpinSchema = new mongoose.Schema(
     vendorId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
     },
     vendorDetails: {
       type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
@@ -33,7 +33,7 @@ const SpinSchema = new mongoose.Schema(
     shop: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
     },
     shopDetails: {
       type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
