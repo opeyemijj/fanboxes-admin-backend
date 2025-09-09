@@ -12,6 +12,12 @@ router.get(
   withSlug(spin.getSpinsByAdmin, "view_spin_listing")
 );
 
+router.post(
+  "admin/spins/verify",
+  verifyToken,
+  withSlug(spin.spinVerify, "verify_spin")
+);
+
 router.post("/user/spin", verifyToken, spin.createSpin);
 router.post("/user/spin-verify", verifyToken, spin.spinVerify);
 
