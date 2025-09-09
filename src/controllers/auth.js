@@ -127,6 +127,19 @@ const loginUser = async (req, res) => {
         .json({ success: false, message: "Incorrect Password" });
     }
 
+    function checkIsAdmin(roleName) {
+      const roleType = roleName?.toLowerCase();
+      if (
+        !["user", "vendor", "influencer", "", null, undefined].includes(
+          roleType
+        )
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
     const token = jwt.sign(
       {
         _id: user._id,
@@ -135,7 +148,7 @@ const loginUser = async (req, res) => {
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: "7d",
+        expiresIn: checkIsAdmin(user.role) ? "1d" : "7d",
       }
     );
 
