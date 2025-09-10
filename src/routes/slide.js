@@ -28,4 +28,10 @@ router.put(
   withSlug(slide.updateSlideBySlug, "edit_slide")
 );
 
+router.delete(
+  "/admin/slides/:slug",
+  verifyToken,
+  withSlug(slide.deleteSlideBySlug, "delete_slide")
+);
+
 module.exports = router;
