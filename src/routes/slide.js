@@ -7,13 +7,25 @@ const verifyToken = require("../config/jwt");
 router.get(
   "/admin/slides",
   verifyToken,
-  withSlug(slide.getSlideByAdmin, "view_slide_listing")
+  withSlug(slide.getSlidesByAdmin, "view_slide_listing")
+);
+
+router.get(
+  "/admin/slides/:slug",
+  verifyToken,
+  withSlug(slide.getSlideByAdmin, "view_slide_details")
 );
 
 router.post(
   "/admin/slides",
   verifyToken,
   withSlug(slide.createSlide, "add_new_slide")
+);
+
+router.put(
+  "/admin/slides/:slug",
+  verifyToken,
+  withSlug(slide.updateSlideBySlug, "edit_slide")
 );
 
 module.exports = router;

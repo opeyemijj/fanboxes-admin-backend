@@ -1,7 +1,7 @@
 const getBlurDataURL = require("../config/getBlurDataURL");
 const HeroCarousel = require("../models/HeroCarousel");
 
-const getSlideByAdmin = async (req, res) => {
+const getSlidesByAdmin = async (req, res) => {
   try {
     const slides = await HeroCarousel.find().sort({ createdAt: -1 });
 
@@ -31,7 +31,9 @@ const createSlide = async (req, res) => {
     await HeroCarousel.create({
       ...body,
       images: updatedImages,
-      slug: `${req.body.title}-${Math.floor(100 + Math.random() * 900)}`,
+      slug: `${req.body.title?.trim()}-${Math.floor(
+        100 + Math.random() * 900
+      )}`,
       order: count + 1,
     });
 
@@ -44,4 +46,62 @@ const createSlide = async (req, res) => {
   }
 };
 
-module.exports = { getSlideByAdmin, createSlide };
+const getSlideByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const slide = await HeroCarousel.findOne({ slug });
+
+    if (!slide) {
+      return res.status(400).json({
+        success: false,
+        message: "We couldn't find the slide you're looking for",
+      });
+    }
+
+    res.status(201).json({ success: true, data: slide });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const updateSlideBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { blob, images, ...body } = req.body;
+
+    const updatedImages = await Promise.all(
+      images.map(async (image) => {
+        const blurDataURL = await getBlurDataURL(image.url);
+        return { ...image, blurDataURL };
+      })
+    );
+
+    console.log(slug, "---", body);
+
+    await HeroCarousel.findOneAndUpdate(
+      { slug },
+      {
+        ...body,
+        images: updatedImages,
+      },
+      { new: true, runValidators: true }
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Slide details have been successfully updated.",
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = {
+  getSlideByAdmin,
+  createSlide,
+  getSlidesByAdmin,
+  updateSlideBySlug,
+};
