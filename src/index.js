@@ -103,6 +103,7 @@ const shopRoutes = require("./routes/shop");
 const payment = require("./routes/payment");
 const currency = require("./routes/currencies");
 const compaign = require("./routes/compaign");
+const slideRoute = require("./routes/slide");
 
 app.use("/api", homeRoutes);
 app.use("/api", roleRoutes);
@@ -128,6 +129,7 @@ app.use("/api", shopRoutes);
 app.use("/api", payment);
 app.use("/api", currency);
 app.use("/api", compaign);
+app.use("/api", slideRoute);
 
 // GET API
 app.get("/", (req, res) => {
