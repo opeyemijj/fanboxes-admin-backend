@@ -31,7 +31,7 @@ const createSlide = async (req, res) => {
     await HeroCarousel.create({
       ...body,
       images: updatedImages,
-      slug: `${req.body.title?.trim()}-${Math.floor(
+      slug: `${req.body.title?.toLowerCase().replace(/\s+/g, "")}-${Math.floor(
         100 + Math.random() * 900
       )}`,
       order: count + 1,
