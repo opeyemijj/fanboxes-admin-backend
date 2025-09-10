@@ -146,6 +146,7 @@ const getProducts = async (req, res) => {
           ownerType: 1,
           createdAt: 1,
           category: 1,
+          visitedCount: 1,
           categoryDetails: 1,
           subCategory: 1,
           subCategoryDetails: 1,
