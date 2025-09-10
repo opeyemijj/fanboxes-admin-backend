@@ -733,6 +733,11 @@ const getShops = async (req, res) => {
         "followers",
         "isFeatured",
         "visitedCount",
+        "categoryDetails",
+        "subCategoryDetails",
+        "category",
+        "description",
+        "subCategory",
       ])
       .sort({ createdAt: -1 });
 
