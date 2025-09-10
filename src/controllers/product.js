@@ -48,7 +48,11 @@ const getProducts = async (req, res) => {
 
       // DEFAULT FILTERS - ALWAYS APPLIED
       isActive: true,
-      isBanned: false,
+      $or: [{ isBanned: false }, { isBanned: { $exists: false } }],
+      $and: [
+        { status: { $exists: true } },
+        { status: { $in: ["approved", "active"] } },
+      ],
 
       //Query filters
       ...(Boolean(query.brand) && { brand: brand._id }),
@@ -98,7 +102,11 @@ const getProducts = async (req, res) => {
         $match: {
           // DEFAULT FILTERS - ALWAYS APPLIED
           isActive: true,
-          isBanned: false,
+          $or: [{ isBanned: false }, { isBanned: { $exists: false } }],
+          $and: [
+            { status: { $exists: true } },
+            { status: { $in: ["approved", "active"] } },
+          ],
 
           //Query filters
           ...(query.name && {

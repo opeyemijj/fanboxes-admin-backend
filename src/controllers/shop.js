@@ -663,7 +663,7 @@ const deleteOneShopByVendor = async (req, res) => {
 //User apis
 const getShops = async (req, res) => {
   try {
-    console.log(req.query, "Check the query params");
+    console.log("get shops called...");
     let { page, limit, paginated } = req.query;
     page = parseInt(page) || 1; // default page to 1 if not provided
     limit = parseInt(limit) || null; // default limit to null if not provided
@@ -671,7 +671,11 @@ const getShops = async (req, res) => {
     // Check if paginated query parameter is explicitly set to false
     const shouldPaginate = paginated !== "false";
 
-    let shopsQuery = Shop.find({ isBanned: false, isActive: true })
+    let shopsQuery = Shop.find({
+      $or: [{ isBanned: false }, { isBanned: { $exists: false } }],
+      isActive: true,
+      status: "approved",
+    })
       .select([
         "products",
         "slug",
@@ -686,6 +690,10 @@ const getShops = async (req, res) => {
         "category",
         "description",
         "subCategory",
+        "status",
+        "isActive",
+        "createdAt",
+        "isBanned",
       ])
       .sort({ createdAt: -1 });
 
