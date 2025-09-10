@@ -1,12 +1,37 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
+
+const imageSchema = new Schema({
+  url: {
+    type: String,
+    required: [true, "Image URL is required."],
+  },
+  _id: {
+    type: String,
+    required: [true, "Image ID is required."],
+  },
+  blurDataURL: {
+    type: String,
+    required: [true, "Image blurDataURL is required."],
+  },
+});
 
 const HeroCarouselSchema = new mongoose.Schema(
   {
-    image: {
+    images: {
+      type: [imageSchema],
+      validate: {
+        validator: function(arr) {
+          return arr.length > 0; // at least one image
+        },
+        message: "At least one image is required.",
+      },
+    },
+    title: {
       type: String,
       required: true,
     },
-    title: {
+    slug: {
       type: String,
       required: true,
     },

@@ -1,3 +1,4 @@
+const getBlurDataURL = require("../config/getBlurDataURL");
 const HeroCarousel = require("../models/HeroCarousel");
 
 const getSlideByAdmin = async (req, res) => {
@@ -14,4 +15,33 @@ const getSlideByAdmin = async (req, res) => {
   }
 };
 
-module.exports = { getSlideByAdmin };
+const createSlide = async (req, res) => {
+  try {
+    const { blob, images, ...body } = req.body;
+
+    const updatedImages = await Promise.all(
+      images.map(async (image) => {
+        const blurDataURL = await getBlurDataURL(image.url);
+        return { ...image, blurDataURL };
+      })
+    );
+
+    const count = await HeroCarousel.countDocuments({});
+
+    await HeroCarousel.create({
+      ...body,
+      images: updatedImages,
+      slug: `${req.body.title}-${Math.floor(100 + Math.random() * 900)}`,
+      order: count + 1,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Slide has been successfully created.",
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { getSlideByAdmin, createSlide };
