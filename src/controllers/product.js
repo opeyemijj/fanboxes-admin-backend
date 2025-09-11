@@ -1123,8 +1123,6 @@ const updateProductByAdmin = async (req, res) => {
         _id: req.body.shop,
       });
 
-      console.log(shop, "AAAAAA");
-
       tempShopDetails = {
         _id: shop._id,
         title: shop.title,

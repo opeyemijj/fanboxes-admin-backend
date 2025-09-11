@@ -145,6 +145,47 @@ const updateUserActiveInactiveByAdmin = async (req, res) => {
   }
 };
 
+const updateAdminByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const requestData = req.body;
+
+    const assignedRole = await Role.findOne({ _id: requestData.roleId });
+    if (!assignedRole) {
+      return res.status(404).json({
+        success: false,
+        message: "Sorry we don't find your assigned role",
+      });
+    }
+
+    const tempRoleDetails = {
+      role: assignedRole.role,
+      permissions: assignedRole.permissions,
+    };
+
+    const updated = await User.findOneAndUpdate(
+      { _id: slug },
+      { ...requestData, role: assignedRole.role, roleDetails: tempRoleDetails },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found to update status" });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: "User has been updated successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 const getOrdersByUid = async (req, res) => {
   try {
     const id = req.params.id;
@@ -224,4 +265,5 @@ module.exports = {
   getAdminVendorByAdmin,
   updateUserActiveInactiveByAdmin,
   createAdminUserByAdmin,
+  updateAdminByAdmin,
 };

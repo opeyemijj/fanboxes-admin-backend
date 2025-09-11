@@ -52,6 +52,12 @@ router.put(
   withSlug(adminController.updateUserActiveInactiveByAdmin, "approve_user")
 );
 
+router.put(
+  "/admin/users/:slug",
+  verifyToken,
+  withSlug(adminController.updateAdminByAdmin, "edit_admin_user")
+);
+
 router.get(
   "/admin/admin-vendor",
   verifyToken,
