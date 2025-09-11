@@ -1117,10 +1117,13 @@ const updateProductByAdmin = async (req, res) => {
     let tempShopDetails = null;
     let shop = null;
 
+    console.log(req.body.shop, "BBB");
     if (req.body.shop) {
       shop = await Shop.findOne({
         _id: req.body.shop,
       });
+
+      console.log(shop, "AAAAAA");
 
       tempShopDetails = {
         _id: shop._id,
@@ -1182,6 +1185,7 @@ const updateProductByAdmin = async (req, res) => {
       message: "Box has been updated successfully.",
     });
   } catch (error) {
+    console.log(error, "OK");
     return res.status(400).json({ success: false, error: error.message });
   }
 };

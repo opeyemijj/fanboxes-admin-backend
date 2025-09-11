@@ -46,6 +46,12 @@ router.post(
   withSlug(adminController.createAdminUserByAdmin, "add_new_admin")
 );
 
+router.put(
+  "/admin/users/active/:slug",
+  verifyToken,
+  withSlug(adminController.updateUserActiveInactiveByAdmin, "approve_user")
+);
+
 router.get(
   "/admin/admin-vendor",
   verifyToken,
