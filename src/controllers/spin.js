@@ -21,7 +21,6 @@ const createSpin = async (req, res) => {
         .status(401)
         .json({ success: false, message: "Please Login To Continue" });
     }
-    console.log(user, "Check the user details");
 
     const requestData = req.body;
     const boxId = requestData.boxId;

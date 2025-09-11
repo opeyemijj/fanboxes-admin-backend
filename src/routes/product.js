@@ -45,6 +45,12 @@ router.put(
 );
 
 router.put(
+  "/admin/products/assign/:slug",
+  verifyToken,
+  withSlug(product.updateAssignInProductByAdmin, "assign_box_to_user")
+);
+
+router.put(
   "/admin/products/item-odds-visibility/:slug",
   verifyToken,
   product.updateItemOddHideShowByAdmin,

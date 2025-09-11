@@ -1225,6 +1225,75 @@ const updateProductActiveInactiveByAdmin = async (req, res) => {
   }
 };
 
+const updateAssignInProductByAdmin = async (req, res) => {
+  try {
+    const user = req?.user;
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Please Login To Continue" });
+    }
+    const { slug } = req.params;
+
+    const { selectedUsers, selectedUserDetails } = req.body;
+
+    // console.log(slug, "---", req.body, "Cheking the upcomeing assigned user");
+
+    const targetBox = await Product.findOne({ slug: slug });
+    if (!targetBox) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Box not found to assign user" });
+    }
+
+    let assignTo = targetBox.assignTo;
+    let assignToDetails = targetBox.assignToDetails;
+
+    if (!assignTo) {
+      assignTo = selectedUsers;
+      assignToDetails = selectedUserDetails;
+    } else {
+      for (i = 0; i < selectedUsers.length; i++) {
+        if (!assignTo.includes(selectedUsers[i])) {
+          assignTo.push(selectedUsers[i]);
+          assignToDetails.push(selectedUserDetails[i]);
+        }
+      }
+    }
+
+    const updated = await Product.findOneAndUpdate(
+      { slug: slug },
+      {
+        $set: {
+          assignTo: assignTo,
+          assignToDetails: assignToDetails,
+          assignedBy: user._id,
+          assignedDetails: {
+            _id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          },
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Assign user failed" });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: "Assign user successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 const updateItemOddHideShowByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -1872,6 +1941,7 @@ module.exports = {
   getOneProductByAdmin,
   updateProductByAdmin,
   updateProductActiveInactiveByAdmin,
+  updateAssignInProductByAdmin,
   updateItemOddHideShowByAdmin,
   bannedProductByAdmin,
   updateBoxItemByAdmin,

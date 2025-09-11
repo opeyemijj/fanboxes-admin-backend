@@ -43,7 +43,7 @@ router.get(
 router.get(
   "/admin/users/assign-users",
   verifyToken,
-  withSlug(adminController.getAssignUsersByAdmin, "view_user_listing")
+  adminController.getAssignUsersByAdmin
 );
 
 router.post(
