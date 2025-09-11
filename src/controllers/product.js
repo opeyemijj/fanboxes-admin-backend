@@ -921,10 +921,18 @@ const createProductByAdmin = async (req, res) => {
     let tempShopDetails = null;
     let shop = null;
 
+    // if box belongs to an influencer, mean this is not admin box
     if (req.body.shop) {
       shop = await Shop.findOne({
         _id: req.body.shop,
       });
+
+      if (!shop) {
+        return res.status(400).json({
+          success: false,
+          message: "Sorry your assigned influecner does not exist",
+        });
+      }
 
       tempShopDetails = {
         _id: shop._id,
@@ -994,13 +1002,13 @@ const createProductByAdmin = async (req, res) => {
       });
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Box has been created successfully.",
       data: data,
     });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    return res.status(400).json({ success: false, message: error.message });
   }
 };
 
