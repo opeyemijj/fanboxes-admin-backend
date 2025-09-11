@@ -40,6 +40,12 @@ router.get(
   withSlug(adminController.getUsersByAdmin, "view_admin_listing")
 );
 
+router.get(
+  "/admin/users/assign-users",
+  verifyToken,
+  withSlug(adminController.getAssignUsersByAdmin, "view_user_listing")
+);
+
 router.post(
   "/admin/users/add-admin",
   verifyToken,

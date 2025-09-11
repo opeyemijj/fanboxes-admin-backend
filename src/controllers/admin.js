@@ -51,6 +51,55 @@ const getUsersByAdmin = async (req, res) => {
   }
 };
 
+const getAssignUsersByAdmin = async (req, res) => {
+  console.log("Come here to get the user");
+  try {
+    const { limit = 1000, page = 1, search = "", userType } = req.query;
+
+    const skip = parseInt(limit) * (parseInt(page) - 1) || 0;
+
+    // Constructing query based on search input
+    const nameQuery = search
+      ? {
+          $or: [
+            { firstName: { $regex: search, $options: "i" } },
+            { lastName: { $regex: search, $options: "i" } },
+            { email: { $regex: search, $options: "i" } },
+          ],
+        }
+      : {};
+
+    let query = { ...nameQuery, isActive: true };
+
+    if (userType) {
+      if (userType === "admin") {
+        // Exclude vendor and user roles
+        query.role = { $nin: ["vendor", "user", "influencer"] };
+      } else {
+        // Exact match for role
+        query.role = userType;
+      }
+    }
+
+    const totalUserCounts = await User.countDocuments(query);
+
+    const users = await User.find(query, null, {
+      skip: skip,
+      limit: parseInt(limit),
+    }).sort({
+      createdAt: -1,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: users,
+      count: Math.ceil(totalUserCounts / parseInt(limit)),
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 const createAdminUserByAdmin = async (req, res) => {
   try {
     const requestData = req.body;
@@ -266,4 +315,5 @@ module.exports = {
   updateUserActiveInactiveByAdmin,
   createAdminUserByAdmin,
   updateAdminByAdmin,
+  getAssignUsersByAdmin,
 };
