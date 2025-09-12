@@ -12,20 +12,37 @@ const { getVendor, getAdmin, getUser } = require("../config/getUser");
 const { singleFileDelete } = require("../config/uploader");
 const sendEmail = require("../config/mailer");
 const getWelcomeEmailContent = require("../email-templates/newVendorAccount");
-const { splitUserName } = require("../helpers/userHelper");
+const { splitUserName, getUserFromToken } = require("../helpers/userHelper");
 const Category = require("../models/Category");
 const SubCategory = require("../models/SubCategory");
+const { ASSIGN_TO_ME } = require("../helpers/const");
 // Admin apis
 const getShopsByAdmin = async (req, res) => {
+  const user = getUserFromToken(req);
+  const dataAccessType = user.dataAccess;
+
   try {
     const { limit = 10, page = 1 } = req.query;
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const totalShop = await Shop.countDocuments();
+    const parsedLimit = parseInt(limit);
+    const parsedPage = parseInt(page);
+    const skip = (parsedPage - 1) * parsedLimit;
 
-    const shops = await Shop.find({}, null, {
-      skip: skip,
-      limit: parseInt(limit),
+    let matchQuery = {};
+
+    // ✅ Apply Assign To Me condition
+    if (
+      dataAccessType &&
+      dataAccessType.toLowerCase() === ASSIGN_TO_ME.toLowerCase()
+    ) {
+      matchQuery.assignTo = { $in: [user._id] };
+    }
+
+    const totalShop = await Shop.countDocuments(matchQuery);
+
+    const shops = await Shop.find(matchQuery, null, {
+      skip,
+      limit: parsedLimit,
     })
       .select([
         "vendor",
@@ -41,25 +58,26 @@ const getShopsByAdmin = async (req, res) => {
         "instagramLink",
         "visitedCount",
         "categoryDetails",
+        "assignTo", // keep it if you want to debug
       ])
       .populate({
         path: "vendor",
         select: ["firstName", "lastName", "cover"],
       })
-
-      .sort({
-        createdAt: -1,
-      });
+      .sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
       data: shops,
-      count: Math.ceil(totalShop / limit),
+      count: Math.ceil(totalShop / parsedLimit),
+      currentPage: parsedPage,
+      total: totalShop,
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
 };
+
 const createShopByAdmin = async (req, res) => {
   let newVendorUser = null;
   try {

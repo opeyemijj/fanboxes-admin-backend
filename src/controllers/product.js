@@ -10,7 +10,8 @@ const _ = require("lodash");
 const { multiFilesDelete } = require("../config/uploader");
 const blurDataUrl = require("../config/getBlurDataURL");
 const { getAdmin, getVendor, getUser } = require("../config/getUser");
-const { fanboxesAdminInfluencer } = require("../helpers/const");
+const { fanboxesAdminInfluencer, ASSIGN_TO_ME } = require("../helpers/const");
+const { getUserFromToken } = require("../helpers/userHelper");
 
 const getProducts = async (req, res) => {
   try {
@@ -798,7 +799,10 @@ const getFilters = async (req, res) => {
     });
   }
 };
+
 const getProductsByAdmin = async (request, response) => {
+  const user = getUserFromToken(request);
+  const dataAccessType = user.dataAccess;
   try {
     const {
       page: pageQuery,
@@ -837,6 +841,14 @@ const getProductsByAdmin = async (request, response) => {
       }).select(["slug", "_id"]);
 
       matchQuery.brand = currentBrand._id;
+    }
+
+    // ✅ Apply Assign To Me condition
+    if (
+      dataAccessType &&
+      dataAccessType.toLowerCase() === ASSIGN_TO_ME.toLowerCase()
+    ) {
+      matchQuery.assignTo = { $in: [user._id] };
     }
 
     const totalProducts = await Product.countDocuments({
