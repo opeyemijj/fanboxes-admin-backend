@@ -442,6 +442,60 @@ const bannedShopByAdmin = async (req, res) => {
   }
 };
 
+const updateAssignInShopByAdmin = async (req, res) => {
+  try {
+    const user = req?.user;
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Please Login To Continue" });
+    }
+    const { slug } = req.params;
+
+    const { selectedUsers, selectedUserDetails } = req.body;
+
+    const targetBox = await Shop.findOne({ slug: slug });
+    if (!targetBox) {
+      return res.status(404).json({
+        success: false,
+        message: "Influencer not found. Unable to assign user.",
+      });
+    }
+
+    const updated = await Shop.findOneAndUpdate(
+      { slug: slug },
+      {
+        $set: {
+          assignTo: selectedUsers || [],
+          assignToDetails: selectedUserDetails || [],
+          assignedBy: user._id,
+          assignedByDetails: {
+            _id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          },
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Oops! Something went wrong while assigning users.",
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: "Great! Your selected users are now assigned.",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 const deleteOneShopByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -987,6 +1041,7 @@ module.exports = {
   deleteOneShopByAdmin,
   updateShopActiveInactiveByAdmin,
   bannedShopByAdmin,
+  updateAssignInShopByAdmin,
   createShopByVendor,
   getOneShopByVendor,
   updateOneShopByVendor,

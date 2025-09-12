@@ -1255,7 +1255,7 @@ const updateAssignInProductByAdmin = async (req, res) => {
           assignTo: selectedUsers || [],
           assignToDetails: selectedUserDetails || [],
           assignedBy: user._id,
-          assignedDetails: {
+          assignedByDetails: {
             _id: user._id,
             firstName: user.firstName,
             lastName: user.lastName,

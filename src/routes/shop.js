@@ -55,6 +55,12 @@ router.put(
   withSlug(shop.bannedShopByAdmin, "ban_unban_influencer")
 );
 
+router.put(
+  "/admin/shops/assign/:slug",
+  verifyToken,
+  withSlug(shop.updateAssignInShopByAdmin, "assign_influencer_to_user")
+);
+
 router.get("/admin/all-shops", shop.getAllShopsByAdmin);
 
 //Vendor routes

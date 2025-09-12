@@ -101,7 +101,7 @@ const productSchema = new Schema(
     assignedBy: {
       type: Schema.Types.Mixed,
     },
-    assignedDetails: {
+    assignedByDetails: {
       type: Schema.Types.Mixed,
     },
     slug: {
