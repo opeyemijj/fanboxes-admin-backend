@@ -139,6 +139,8 @@ const getProducts = async (req, res) => {
           shop: 1,
           shopDetails: 1,
           items: 1,
+          assignTo: 1,
+          assignToDetails: 1,
           isItemOddsHidden: 1,
           isActive: 1,
           isBanned: 1,
@@ -890,6 +892,8 @@ const getProductsByAdmin = async (request, response) => {
           available: 1,
           createdAt: 1,
           items: 1,
+          assignTo: 1,
+          assignToDetails: 1,
           isItemOddsHidden: 1,
           status: 1,
           isActive: 1,
@@ -1191,7 +1195,6 @@ const updateProductByAdmin = async (req, res) => {
       message: "Box has been updated successfully.",
     });
   } catch (error) {
-    console.log(error, "OK");
     return res.status(400).json({ success: false, error: error.message });
   }
 };
@@ -1237,36 +1240,20 @@ const updateAssignInProductByAdmin = async (req, res) => {
 
     const { selectedUsers, selectedUserDetails } = req.body;
 
-    // console.log(slug, "---", req.body, "Cheking the upcomeing assigned user");
-
     const targetBox = await Product.findOne({ slug: slug });
     if (!targetBox) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Box not found to assign user" });
-    }
-
-    let assignTo = targetBox.assignTo;
-    let assignToDetails = targetBox.assignToDetails;
-
-    if (!assignTo) {
-      assignTo = selectedUsers;
-      assignToDetails = selectedUserDetails;
-    } else {
-      for (i = 0; i < selectedUsers.length; i++) {
-        if (!assignTo.includes(selectedUsers[i])) {
-          assignTo.push(selectedUsers[i]);
-          assignToDetails.push(selectedUserDetails[i]);
-        }
-      }
+      return res.status(404).json({
+        success: false,
+        message: "Box not found. Unable to assign user.",
+      });
     }
 
     const updated = await Product.findOneAndUpdate(
       { slug: slug },
       {
         $set: {
-          assignTo: assignTo,
-          assignToDetails: assignToDetails,
+          assignTo: selectedUsers || [],
+          assignToDetails: selectedUserDetails || [],
           assignedBy: user._id,
           assignedDetails: {
             _id: user._id,
@@ -1279,15 +1266,16 @@ const updateAssignInProductByAdmin = async (req, res) => {
     );
 
     if (!updated) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Assign user failed" });
+      return res.status(404).json({
+        success: false,
+        message: "Oops! Something went wrong while assigning users.",
+      });
     }
 
     return res.status(201).json({
       success: true,
       data: updated,
-      message: "Assign user successfully",
+      message: "Great! Your selected users are now assigned.",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
