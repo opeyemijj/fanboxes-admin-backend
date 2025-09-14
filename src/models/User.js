@@ -27,6 +27,9 @@ const UserSchema = new mongoose.Schema(
       // enum: ['male', 'female', 'other'],
       // required: [true, 'Please enter a gender'],
     },
+    dataAccess: {
+      type: String,
+    },
     cover: {
       _id: {
         type: String,

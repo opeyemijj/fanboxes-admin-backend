@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
 const ShopSchema = new mongoose.Schema(
   {
@@ -109,6 +110,24 @@ const ShopSchema = new mongoose.Schema(
     },
     approvedAt: {
       type: Date,
+    },
+
+    assignTo: [
+      {
+        type: String,
+      },
+    ],
+    assignToDetails: [
+      {
+        type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
+        default: {},
+      },
+    ],
+    assignedBy: {
+      type: Schema.Types.Mixed,
+    },
+    assignedByDetails: {
+      type: Schema.Types.Mixed,
     },
 
     website: {

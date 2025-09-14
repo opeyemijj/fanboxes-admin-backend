@@ -9,6 +9,7 @@ const fs = require("fs");
 const path = require("path");
 const { getUser } = require("../config/getUser");
 const Role = require("../models/role");
+const { ALL_DATA_ACCESS } = require("../helpers/const");
 const registerUser = async (req, res) => {
   try {
     // Create user in the database
@@ -146,6 +147,7 @@ const loginUser = async (req, res) => {
         _id: user._id,
         email: user.email,
         role: user.role,
+        dataAccess: user.dataAccess || ALL_DATA_ACCESS,
       },
       process.env.JWT_SECRET,
       {

@@ -10,7 +10,8 @@ const _ = require("lodash");
 const { multiFilesDelete } = require("../config/uploader");
 const blurDataUrl = require("../config/getBlurDataURL");
 const { getAdmin, getVendor, getUser } = require("../config/getUser");
-const { fanboxesAdminInfluencer } = require("../helpers/const");
+const { fanboxesAdminInfluencer, ASSIGN_TO_ME } = require("../helpers/const");
+const { getUserFromToken } = require("../helpers/userHelper");
 
 const getProducts = async (req, res) => {
   try {
@@ -158,6 +159,8 @@ const getProducts = async (req, res) => {
           shop: 1,
           shopDetails: 1,
           items: 1,
+          assignTo: 1,
+          assignToDetails: 1,
           isItemOddsHidden: 1,
           isActive: 1,
           isBanned: 1,
@@ -817,7 +820,10 @@ const getFilters = async (req, res) => {
     });
   }
 };
+
 const getProductsByAdmin = async (request, response) => {
+  const user = getUserFromToken(request);
+  const dataAccessType = user.dataAccess;
   try {
     const {
       page: pageQuery,
@@ -856,6 +862,14 @@ const getProductsByAdmin = async (request, response) => {
       }).select(["slug", "_id"]);
 
       matchQuery.brand = currentBrand._id;
+    }
+
+    // ✅ Apply Assign To Me condition
+    if (
+      dataAccessType &&
+      dataAccessType.toLowerCase() === ASSIGN_TO_ME.toLowerCase()
+    ) {
+      matchQuery.assignTo = { $in: [user._id] };
     }
 
     const totalProducts = await Product.countDocuments({
@@ -911,6 +925,8 @@ const getProductsByAdmin = async (request, response) => {
           available: 1,
           createdAt: 1,
           items: 1,
+          assignTo: 1,
+          assignToDetails: 1,
           isItemOddsHidden: 1,
           status: 1,
           isActive: 1,
@@ -942,10 +958,18 @@ const createProductByAdmin = async (req, res) => {
     let tempShopDetails = null;
     let shop = null;
 
+    // if box belongs to an influencer, mean this is not admin box
     if (req.body.shop) {
       shop = await Shop.findOne({
         _id: req.body.shop,
       });
+
+      if (!shop) {
+        return res.status(400).json({
+          success: false,
+          message: "Sorry your assigned influecner does not exist",
+        });
+      }
 
       tempShopDetails = {
         _id: shop._id,
@@ -1015,13 +1039,13 @@ const createProductByAdmin = async (req, res) => {
       });
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Box has been created successfully.",
       data: data,
     });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    return res.status(400).json({ success: false, message: error.message });
   }
 };
 
@@ -1138,6 +1162,7 @@ const updateProductByAdmin = async (req, res) => {
     let tempShopDetails = null;
     let shop = null;
 
+    console.log(req.body.shop, "BBB");
     if (req.body.shop) {
       shop = await Shop.findOne({
         _id: req.body.shop,
@@ -1230,6 +1255,60 @@ const updateProductActiveInactiveByAdmin = async (req, res) => {
       message: isActive
         ? "Box has been activated successfully."
         : "Box is inactive now",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const updateAssignInProductByAdmin = async (req, res) => {
+  try {
+    const user = req?.user;
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Please Login To Continue" });
+    }
+    const { slug } = req.params;
+
+    const { selectedUsers, selectedUserDetails } = req.body;
+
+    const targetBox = await Product.findOne({ slug: slug });
+    if (!targetBox) {
+      return res.status(404).json({
+        success: false,
+        message: "Box not found. Unable to assign user.",
+      });
+    }
+
+    const updated = await Product.findOneAndUpdate(
+      { slug: slug },
+      {
+        $set: {
+          assignTo: selectedUsers || [],
+          assignToDetails: selectedUserDetails || [],
+          assignedBy: user._id,
+          assignedByDetails: {
+            _id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          },
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Oops! Something went wrong while assigning users.",
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: "Great! Your selected users are now assigned.",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -1883,6 +1962,7 @@ module.exports = {
   getOneProductByAdmin,
   updateProductByAdmin,
   updateProductActiveInactiveByAdmin,
+  updateAssignInProductByAdmin,
   updateItemOddHideShowByAdmin,
   bannedProductByAdmin,
   updateBoxItemByAdmin,

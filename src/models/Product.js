@@ -87,6 +87,23 @@ const productSchema = new Schema(
       default: {},
     },
 
+    assignTo: [
+      {
+        type: String,
+      },
+    ],
+    assignToDetails: [
+      {
+        type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
+        default: {},
+      },
+    ],
+    assignedBy: {
+      type: Schema.Types.Mixed,
+    },
+    assignedByDetails: {
+      type: Schema.Types.Mixed,
+    },
     slug: {
       type: String,
       required: [true, "Box slug is required."],

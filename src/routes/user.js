@@ -40,10 +40,28 @@ router.get(
   withSlug(adminController.getUsersByAdmin, "view_admin_listing")
 );
 
+router.get(
+  "/admin/users/assign-users",
+  verifyToken,
+  adminController.getAssignUsersByAdmin
+);
+
 router.post(
   "/admin/users/add-admin",
   verifyToken,
   withSlug(adminController.createAdminUserByAdmin, "add_new_admin")
+);
+
+router.put(
+  "/admin/users/active/:slug",
+  verifyToken,
+  withSlug(adminController.updateUserActiveInactiveByAdmin, "approve_user")
+);
+
+router.put(
+  "/admin/users/:slug",
+  verifyToken,
+  withSlug(adminController.updateAdminByAdmin, "edit_admin_user")
 );
 
 router.get(

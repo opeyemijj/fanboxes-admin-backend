@@ -51,6 +51,55 @@ const getUsersByAdmin = async (req, res) => {
   }
 };
 
+const getAssignUsersByAdmin = async (req, res) => {
+  console.log("Come here to get the user");
+  try {
+    const { limit = 1000, page = 1, search = "", userType } = req.query;
+
+    const skip = parseInt(limit) * (parseInt(page) - 1) || 0;
+
+    // Constructing query based on search input
+    const nameQuery = search
+      ? {
+          $or: [
+            { firstName: { $regex: search, $options: "i" } },
+            { lastName: { $regex: search, $options: "i" } },
+            { email: { $regex: search, $options: "i" } },
+          ],
+        }
+      : {};
+
+    let query = { ...nameQuery, isActive: true };
+
+    if (userType) {
+      if (userType === "admin") {
+        // Exclude vendor and user roles
+        query.role = { $nin: ["vendor", "user", "influencer"] };
+      } else {
+        // Exact match for role
+        query.role = userType;
+      }
+    }
+
+    const totalUserCounts = await User.countDocuments(query);
+
+    const users = await User.find(query, null, {
+      skip: skip,
+      limit: parseInt(limit),
+    }).sort({
+      createdAt: -1,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: users,
+      count: Math.ceil(totalUserCounts / parseInt(limit)),
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 const createAdminUserByAdmin = async (req, res) => {
   try {
     const requestData = req.body;
@@ -115,6 +164,77 @@ const getAdminVendorByAdmin = async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 };
+
+const updateUserActiveInactiveByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { isActive } = req.body;
+
+    const updated = await User.findOneAndUpdate(
+      { _id: slug },
+      { $set: { isActive: isActive } },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found to update status" });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: isActive
+        ? "User has been activated successfully."
+        : "User is inactive now",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const updateAdminByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const requestData = req.body;
+
+    const assignedRole = await Role.findOne({ _id: requestData.roleId });
+    if (!assignedRole) {
+      return res.status(404).json({
+        success: false,
+        message: "Sorry we don't find your assigned role",
+      });
+    }
+
+    const tempRoleDetails = {
+      role: assignedRole.role,
+      permissions: assignedRole.permissions,
+    };
+
+    const updated = await User.findOneAndUpdate(
+      { _id: slug },
+      { ...requestData, role: assignedRole.role, roleDetails: tempRoleDetails },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found to update status" });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: "User has been updated successfully",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 const getOrdersByUid = async (req, res) => {
   try {
     const id = req.params.id;
@@ -192,5 +312,8 @@ module.exports = {
   getOrdersByUid,
   UpdateRoleByAdmin,
   getAdminVendorByAdmin,
+  updateUserActiveInactiveByAdmin,
   createAdminUserByAdmin,
+  updateAdminByAdmin,
+  getAssignUsersByAdmin,
 };
