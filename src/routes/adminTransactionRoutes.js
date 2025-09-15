@@ -6,35 +6,35 @@ const transactionController = require("../controllers/transactionController");
 
 // Admin manual top-up for any user
 router.post(
-  "/admin/credit-user",
+  "/admin/wallet/credit-user",
   verifyToken,
   AdminTransactionController.manualTopup
 );
 
 // Admin manual debit for any user
 router.post(
-  "/admin/debit-user",
+  "/admin/wallet/debit-user",
   verifyToken,
   AdminTransactionController.manualDebit
 );
 
 // Admin manual transfer between users
 router.post(
-  "/admin/transfer",
+  "/admin/wallet/transfer",
   verifyToken,
   AdminTransactionController.manualTransfer
 );
 
 // Get all users with balances (admin only)
 router.get(
-  "/admin/users-balances",
+  "/admin/wallet/users-balances",
   verifyToken,
   AdminTransactionController.getAllUsersBalances
 );
 
 // get specific user's balance (admin only)
 router.get(
-  "/admin/user-balance/:userId",
+  "/admin/wallet/user-balance/:userId",
   verifyToken,
   transactionController.getUserBalance
 );

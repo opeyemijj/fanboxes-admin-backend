@@ -184,7 +184,7 @@ class TransactionController {
     try {
       const userId = req.user._id;
       const {
-        limit = 50,
+        limit = 15,
         skip = 0,
         status,
         transactionType,

@@ -4,18 +4,18 @@ const TransactionController = require("../controllers/transactionController");
 const verifyToken = require("../config/jwt");
 
 // Get current user's balance
-router.get("/balance", verifyToken, TransactionController.getMyBalance);
+router.get("/wallet/balance", verifyToken, TransactionController.getMyBalance);
 
 // Get current user's transaction history
 router.get(
-  "/history",
+  "/wallet/history",
   verifyToken,
   TransactionController.getMyTransactionHistory
 );
 
 // Get current user's balance and transaction history combined
 router.get(
-  "/balance-and-history",
+  "/wallet/balance-and-history",
   verifyToken,
   TransactionController.getMyBalanceAndHistory
 );

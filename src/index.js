@@ -132,8 +132,8 @@ app.use("/api", payment);
 app.use("/api", currency);
 app.use("/api", compaign);
 app.use("/api", slideRoute);
-app.use("/api/wallet", adminTransactionRoutes);
-app.use("/api/wallet", transactionRoutes);
+app.use("/api", adminTransactionRoutes);
+app.use("/api", transactionRoutes);
 
 // GET API
 app.get("/", (req, res) => {
