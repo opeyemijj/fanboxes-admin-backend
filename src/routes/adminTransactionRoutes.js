@@ -6,7 +6,7 @@ const transactionController = require("../controllers/transactionController");
 
 // Admin manual top-up for any user
 router.post(
-  "/admin/credit-user",
+  "/admin/wallets/credit-user",
   verifyToken,
   AdminTransactionController.manualTopup
 );
