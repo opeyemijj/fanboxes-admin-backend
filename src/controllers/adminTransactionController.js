@@ -1,4 +1,6 @@
+const { checkIsAdmin } = require("../helpers/userHelper");
 const { init } = require("../models/Brand");
+const User = require("../models/User");
 const RoleBasedTransactionService = require("../services/roleBasedTransactionService");
 const TransactionService = require("../services/transactionService");
 
@@ -9,12 +11,10 @@ class AdminTransactionController {
   async manualTopup(req, res) {
     try {
       const requestingUser = req.user;
+      console.log(requestingUser, "Check the requested user");
 
       // Authorization check - only admin and super admin can do manual top-ups
-      if (
-        requestingUser.role !== "admin" &&
-        requestingUser.role !== "super admin"
-      ) {
+      if (!checkIsAdmin(requestingUser.role)) {
         return res.status(403).json({
           success: false,
           message: "Access denied. Only admins can perform manual top-ups.",
@@ -67,6 +67,20 @@ class AdminTransactionController {
 
       // Get updated balance
       const updatedBalance = await TransactionService.getUserBalance(userId);
+
+      // console.log(updatedBalance, "okk see");
+
+      try {
+        const updatedUserBalance = await User.findOneAndUpdate(
+          { _id: userId },
+          {
+            $set: { currentBalance: Number(updatedBalance?.availableBalance) },
+          },
+          { new: true, runValidators: true }
+        );
+      } catch (error) {
+        console.log(error, "Failed to update user balance");
+      }
 
       res.status(201).json({
         success: true,
