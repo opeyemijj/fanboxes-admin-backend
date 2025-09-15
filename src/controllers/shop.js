@@ -462,7 +462,7 @@ const bannedShopByAdmin = async (req, res) => {
 
 const updateAssignInShopByAdmin = async (req, res) => {
   try {
-    const user = req?.user;
+    const user = getUserFromToken(req);
     if (!user) {
       return res
         .status(401)

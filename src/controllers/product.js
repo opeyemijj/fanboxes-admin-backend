@@ -1242,7 +1242,7 @@ const updateProductActiveInactiveByAdmin = async (req, res) => {
 
 const updateAssignInProductByAdmin = async (req, res) => {
   try {
-    const user = req?.user;
+    const user = getUserFromToken(req);
     if (!user) {
       return res
         .status(401)
