@@ -10,6 +10,7 @@ const path = require("path");
 const { getUser } = require("../config/getUser");
 const Role = require("../models/role");
 const { ALL_DATA_ACCESS } = require("../helpers/const");
+const { checkIsAdmin } = require("../helpers/userHelper");
 const registerUser = async (req, res) => {
   try {
     // Create user in the database
@@ -127,19 +128,6 @@ const loginUser = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Incorrect Password" });
-    }
-
-    function checkIsAdmin(roleName) {
-      const roleType = roleName?.toLowerCase();
-      if (
-        !["user", "vendor", "influencer", "", null, undefined].includes(
-          roleType
-        )
-      ) {
-        return true;
-      } else {
-        return false;
-      }
     }
 
     const token = jwt.sign(

@@ -104,6 +104,8 @@ const payment = require("./routes/payment");
 const currency = require("./routes/currencies");
 const compaign = require("./routes/compaign");
 const slideRoute = require("./routes/slide");
+const adminTransactionRoutes = require("./routes/adminTransactionRoutes");
+const transactionRoutes = require("./routes/transactionRoutes");
 
 app.use("/api", homeRoutes);
 app.use("/api", roleRoutes);
@@ -130,6 +132,8 @@ app.use("/api", payment);
 app.use("/api", currency);
 app.use("/api", compaign);
 app.use("/api", slideRoute);
+app.use("/api", adminTransactionRoutes);
+app.use("/api", transactionRoutes);
 
 // GET API
 app.get("/", (req, res) => {
