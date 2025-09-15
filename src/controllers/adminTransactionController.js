@@ -74,7 +74,7 @@ class AdminTransactionController {
         const updatedUserBalance = await User.findOneAndUpdate(
           { _id: userId },
           {
-            $set: { balanceCredits: Number(updatedBalance?.availableBalance) },
+            $set: { currentBalance: Number(updatedBalance?.availableBalance) },
           },
           { new: true, runValidators: true }
         );

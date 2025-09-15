@@ -28,7 +28,7 @@ const UserSchema = new mongoose.Schema(
       // required: [true, 'Please enter a gender'],
     },
 
-    balanceCredits: {
+    currentBalance: {
       type: Number,
     },
     dataAccess: {
