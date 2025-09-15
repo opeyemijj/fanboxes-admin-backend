@@ -52,7 +52,6 @@ const getUsersByAdmin = async (req, res) => {
 };
 
 const getAssignUsersByAdmin = async (req, res) => {
-  console.log("Come here to get the user");
   try {
     const { limit = 1000, page = 1, search = "", userType } = req.query;
 

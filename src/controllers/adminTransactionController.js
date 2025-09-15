@@ -1,5 +1,6 @@
 const { checkIsAdmin } = require("../helpers/userHelper");
 const { init } = require("../models/Brand");
+const User = require("../models/User");
 const RoleBasedTransactionService = require("../services/roleBasedTransactionService");
 const TransactionService = require("../services/transactionService");
 
@@ -66,6 +67,20 @@ class AdminTransactionController {
 
       // Get updated balance
       const updatedBalance = await TransactionService.getUserBalance(userId);
+
+      // console.log(updatedBalance, "okk see");
+
+      try {
+        const updatedUserBalance = await User.findOneAndUpdate(
+          { _id: userId },
+          {
+            $set: { balanceCredits: Number(updatedBalance?.availableBalance) },
+          },
+          { new: true, runValidators: true }
+        );
+      } catch (error) {
+        console.log(error, "Failed to update user balance");
+      }
 
       res.status(201).json({
         success: true,
