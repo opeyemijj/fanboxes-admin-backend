@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const HeroCarousel = require("../models/HeroCarousel");
+const { extractPathFromUrl } = require("../helpers/heroCarouselHelpers");
 
 // @desc    Get all hero carousel items
 // @route   GET /api/hero-carousel
@@ -80,15 +81,46 @@ const getHeroCarousel = async (req, res) => {
 // @access  Public
 const getActiveHeroCarousel = async (req, res) => {
   try {
-    const carouselItems = await HeroCarousel.find({ isActive: true })
-      .sort({ order: 1, createdAt: 1 })
-      .select("-__v -isActive") // Exclude unnecessary fields for frontend
-      .lean();
+    const carouselItems = await HeroCarousel.aggregate([
+      // Match active items
+      { $match: { isActive: true } },
+
+      // Sort by order and createdAt
+      { $sort: { order: 1, createdAt: 1 } },
+
+      // Transform the data structure for backward compatibility
+      {
+        $project: {
+          _id: 1,
+          title: 1,
+          highlight: 1,
+          description: 1,
+          buttonText: 1,
+          order: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          image: {
+            $cond: {
+              if: { $gt: [{ $size: "$images" }, 0] },
+              then: { $arrayElemAt: ["$images.url", 0] },
+              else: "",
+            },
+          },
+          buttonLinkFull: "$buttonLink",
+        },
+      },
+    ]);
+
+    const processedItems = carouselItems.map((item) => ({
+      ...item,
+      buttonLink: extractPathFromUrl(item.buttonLinkFull),
+      buttonLinkFull: undefined, // Remove the temporary field
+    }));
 
     res.status(200).json({
       success: true,
-      count: carouselItems.length,
-      data: carouselItems,
+      count: processedItems.length,
+      data: processedItems,
     });
   } catch (error) {
     console.error("Error fetching active hero carousel:", error);

@@ -735,61 +735,9 @@ const deleteOneShopByVendor = async (req, res) => {
 };
 
 //User apis
-// const getShops = async (req, res) => {
-//   try {
-//     let { page, limit } = req.query;
-//     page = parseInt(page) || 1; // default page to 1 if not provided
-//     limit = parseInt(limit) || null; // default limit to null if not provided
-
-//     let shopsQuery = Shop.find()
-//       .select([
-//         "products",
-//         "slug",
-//         "title",
-//         "logo",
-//         "cover",
-//         "followers",
-//         "isFeatured",
-//         "visitedCount",
-//       ])
-//       .sort({ createdAt: -1 });
-
-//     // Apply pagination only if limit is provided
-//     if (limit) {
-//       const startIndex = (page - 1) * limit;
-//       const totalShops = await Shop.countDocuments();
-//       const totalPages = Math.ceil(totalShops / limit);
-
-//       shopsQuery = shopsQuery.limit(limit).skip(startIndex);
-
-//       const pagination = {
-//         currentPage: page,
-//         totalPages: totalPages,
-//         totalShops: totalShops,
-//       };
-
-//       const shops = await shopsQuery.exec();
-
-//       return res.status(200).json({
-//         success: true,
-//         data: shops,
-//         pagination: pagination,
-//       });
-//     } else {
-//       const shops = await shopsQuery.exec();
-
-//       return res.status(200).json({
-//         success: true,
-//         data: shops,
-//       });
-//     }
-//   } catch (error) {
-//     return res.status(400).json({ success: false, message: error.message });
-//   }
-// };
 const getShops = async (req, res) => {
   try {
-    console.log(req.query, "Check the query params");
+    console.log("get shops called...");
     let { page, limit, paginated } = req.query;
     page = parseInt(page) || 1; // default page to 1 if not provided
     limit = parseInt(limit) || null; // default limit to null if not provided
@@ -797,7 +745,11 @@ const getShops = async (req, res) => {
     // Check if paginated query parameter is explicitly set to false
     const shouldPaginate = paginated !== "false";
 
-    let shopsQuery = Shop.find()
+    let shopsQuery = Shop.find({
+      $or: [{ isBanned: false }, { isBanned: { $exists: false } }],
+      isActive: true,
+      status: "approved",
+    })
       .select([
         "products",
         "slug",
@@ -807,6 +759,15 @@ const getShops = async (req, res) => {
         "followers",
         "isFeatured",
         "visitedCount",
+        "categoryDetails",
+        "subCategoryDetails",
+        "category",
+        "description",
+        "subCategory",
+        "status",
+        "isActive",
+        "createdAt",
+        "isBanned",
       ])
       .sort({ createdAt: -1 });
 

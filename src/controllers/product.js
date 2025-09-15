@@ -46,6 +46,16 @@ const getProducts = async (req, res) => {
     // Build the count query with category filter
     const countQuery = {
       ...newQuery,
+
+      // DEFAULT FILTERS - ALWAYS APPLIED
+      isActive: true,
+      $or: [{ isBanned: false }, { isBanned: { $exists: false } }],
+      $and: [
+        { status: { $exists: true } },
+        { status: { $in: ["approved", "active"] } },
+      ],
+
+      //Query filters
       ...(Boolean(query.brand) && { brand: brand._id }),
       ...(query.sizes && { sizes: { $in: query.sizes.split("_") } }),
       ...(query.colors && { colors: { $in: query.colors.split("_") } }),
@@ -91,6 +101,15 @@ const getProducts = async (req, res) => {
       },
       {
         $match: {
+          // DEFAULT FILTERS - ALWAYS APPLIED
+          isActive: true,
+          $or: [{ isBanned: false }, { isBanned: { $exists: false } }],
+          $and: [
+            { status: { $exists: true } },
+            { status: { $in: ["approved", "active"] } },
+          ],
+
+          //Query filters
           ...(query.name && {
             name: { $regex: query.name, $options: "i" }, // Case-insensitive search
           }),
@@ -153,6 +172,8 @@ const getProducts = async (req, res) => {
           categoryDetails: 1,
           subCategory: 1,
           subCategoryDetails: 1,
+          isFeatured: 1,
+          visitedCount: 1,
         },
       },
       {
