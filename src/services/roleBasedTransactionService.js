@@ -44,12 +44,19 @@ class RoleBasedTransactionService {
         throw new Error("Manual debits must be debit transactions");
       }
 
+      if (!transactionParams?.category) {
+        throw new Error("Category for debit transactions is required");
+      }
+
       return await TransactionService.createTransaction({
         ...transactionParams,
         createdBy: adminId,
+        category: transactionParams.category,
+        paymentMethod: params.paymentMethod,
         metadata: {
           ...transactionParams.metadata,
           isManualDebit: true,
+          initiatedBy: params?.initiatedBy || null,
         },
       });
     } catch (error) {

@@ -124,12 +124,20 @@ class AdminTransactionController {
         userId,
         amount: Number.parseFloat(amount),
         balanceType,
+        category: "adjustment",
         description:
           description ||
           `Manual debit by admin ${requestingUser.firstName} ${requestingUser.lastName}`,
         adminId: requestingUser._id,
         referenceId,
         remarks,
+        transactionType: "debit",
+        initiatedBy: {
+          firstName: requestingUser.firstName,
+          lastName: requestingUser.lastName,
+          id: requestingUser._id,
+          role: requestingUser?.role,
+        },
       });
 
       // Get updated balance
