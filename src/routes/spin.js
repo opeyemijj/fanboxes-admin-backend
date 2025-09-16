@@ -18,7 +18,7 @@ router.post(
   withSlug(spin.spinVerify, "verify_spin")
 );
 
-router.post("/user/spin", verifyToken, spin.createSpin);
+router.post("/user/spin", verifyToken, spin.createSpinByUser);
 router.post("/user/spin-verify", verifyToken, spin.spinVerify);
 
 module.exports = router;
