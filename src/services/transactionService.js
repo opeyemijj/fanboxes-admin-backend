@@ -379,6 +379,37 @@ class TransactionService {
     }
   }
 
+  // /**
+  //  * Get transaction history for a user
+  //  */
+  // async getTransactionHistory(
+  //   userId,
+  //   limit = 50,
+  //   skip = 0,
+  //   status,
+  //   transactionType
+  // ) {
+  //   try {
+  //     const query = {
+  //       user: userId,
+  //       isDeleted: false,
+  //     };
+
+  //     if (status) query.status = status;
+  //     if (transactionType) query.transactionType = transactionType;
+
+  //     return await TransactionRecord.find(query)
+  //       .sort({ createdAt: -1 })
+  //       .limit(limit)
+  //       .skip(skip)
+  //       // .populate("createdBy", "firstName lastName email")
+  //       .populate("relatedTransaction")
+  //       .lean();
+  //   } catch (error) {
+  //     throw new Error(`Failed to get transaction history: ${error.message}`);
+  //   }
+  // }
+
   /**
    * Get transaction history for a user
    */
@@ -387,7 +418,9 @@ class TransactionService {
     limit = 50,
     skip = 0,
     status,
-    transactionType
+    transactionType,
+    fromDate,
+    toDate
   ) {
     try {
       const query = {
@@ -395,8 +428,30 @@ class TransactionService {
         isDeleted: false,
       };
 
+      // Add status filter if provided
       if (status) query.status = status;
+
+      // Add transaction type filter if provided
       if (transactionType) query.transactionType = transactionType;
+
+      // Add date range filter if provided
+      if (fromDate || toDate) {
+        query.transactionDate = {};
+
+        if (fromDate) {
+          // Ensure fromDate is a Date object and set to start of day
+          const startDate = new Date(fromDate);
+          startDate.setHours(0, 0, 0, 0);
+          query.transactionDate.$gte = startDate;
+        }
+
+        if (toDate) {
+          // Ensure toDate is a Date object and set to end of day
+          const endDate = new Date(toDate);
+          endDate.setHours(23, 59, 59, 999);
+          query.transactionDate.$lte = endDate;
+        }
+      }
 
       return await TransactionRecord.find(query)
         .sort({ createdAt: -1 })
@@ -413,7 +468,7 @@ class TransactionService {
   /**
    * Get transaction count for pagination
    */
-  async getTransactionCount(userId, status, transactionType) {
+  async getTransactionCount(userId, status, transactionType, fromDate, toDate) {
     try {
       const query = {
         user: userId,
@@ -422,6 +477,25 @@ class TransactionService {
 
       if (status) query.status = status;
       if (transactionType) query.transactionType = transactionType;
+
+      // Add date range filter if provided
+      if (fromDate || toDate) {
+        query.transactionDate = {};
+
+        if (fromDate) {
+          // Ensure fromDate is a Date object and set to start of day
+          const startDate = new Date(fromDate);
+          startDate.setHours(0, 0, 0, 0);
+          query.transactionDate.$gte = startDate;
+        }
+
+        if (toDate) {
+          // Ensure toDate is a Date object and set to end of day
+          const endDate = new Date(toDate);
+          endDate.setHours(23, 59, 59, 999);
+          query.transactionDate.$lte = endDate;
+        }
+      }
 
       return await TransactionRecord.countDocuments(query);
     } catch (error) {
