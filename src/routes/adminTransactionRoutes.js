@@ -13,28 +13,28 @@ router.post(
 
 // Admin manual debit for any user
 router.post(
-  "/admin/debit-user",
+  "/admin/wallets/debit-user",
   verifyToken,
   AdminTransactionController.manualDebit
 );
 
 // Admin manual transfer between users
 router.post(
-  "/admin/transfer",
+  "/admin/wallets/transfer",
   verifyToken,
   AdminTransactionController.manualTransfer
 );
 
 // Get all users with balances (admin only)
 router.get(
-  "/admin/users-balances",
+  "/admin/wallets/users-balances",
   verifyToken,
   AdminTransactionController.getAllUsersBalances
 );
 
 // get specific user's balance (admin only)
 router.get(
-  "/admin/user-balance/:userId",
+  "/admin/wallets/user-balance/:userId",
   verifyToken,
   transactionController.getUserBalance
 );

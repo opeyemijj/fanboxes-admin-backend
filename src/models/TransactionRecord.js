@@ -43,7 +43,7 @@ const TransactionRecordSchema = new mongoose.Schema(
     isDeleted: { type: Boolean, default: false },
     remarks: { type: String },
     orderId: { type: mongoose.Types.ObjectId, ref: "Order" },
-    paymentMethod: { type: String }, // e.g., "credit card", "paypal", "wallet", "manual top-up"
+    paymentMethod: { type: String }, // e.g., "credit card", "paypal", "wallet", "manual top-up", "manual debit"
     transactionMode: {
       type: String,
       enum: ["online", "offline"],
