@@ -20,13 +20,19 @@ router.get(
 router.get(
   "/admin/credits/:slug",
   verifyToken,
-  withSlug(credit.getCreditBySlug, "view_credit_details")
+  withSlug(credit.getCreditBySlug, "view_convesion_details")
 );
 
 router.put(
   "/admin/credits/:slug",
   verifyToken,
-  withSlug(credit.updateCreditBySlug, "edit_credit")
+  withSlug(credit.updateCreditBySlug, "edit_convesion")
+);
+
+router.delete(
+  "/admin/credits/:slug",
+  verifyToken,
+  withSlug(credit.deleteCreditBySlug, "delete_convesion")
 );
 
 module.exports = router;

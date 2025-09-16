@@ -126,9 +126,31 @@ const updateCreditBySlug = async (req, res) => {
   }
 };
 
+const deleteCreditBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const credit = await Credit.findOneAndDelete({ slug });
+    if (!credit) {
+      return res.status(400).json({
+        success: false,
+        message: "We couldn't find the credit you're looking for",
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Credit has been successfully deleted.",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createCreditByAdmin,
   getCreditsByAdmin,
   getCreditBySlug,
   updateCreditBySlug,
+  deleteCreditBySlug,
 };
