@@ -11,4 +11,10 @@ router.post(
   withSlug(credit.createCreditByAdmin, "add_new_conversion")
 );
 
+router.get(
+  "/admin/credits",
+  verifyToken,
+  withSlug(credit.getCreditsByAdmin, "view_convesion_listing")
+);
+
 module.exports = router;

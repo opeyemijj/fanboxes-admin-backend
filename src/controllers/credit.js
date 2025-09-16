@@ -33,6 +33,57 @@ const createCreditByAdmin = async (req, res) => {
   }
 };
 
+const getCreditsByAdmin = async (req, res) => {
+  try {
+    const { page: pageQuery, limit: limitQuery } = req.query;
+
+    const limit = parseInt(limitQuery) || 10;
+    const page = parseInt(pageQuery) || 1;
+
+    // Calculate skip correctly
+    const skip = limit * (page - 1);
+
+    const totalCredit = await Credit.countDocuments();
+    const credits = await Credit.aggregate([
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+      {
+        $skip: skip,
+      },
+      {
+        $limit: limit,
+      },
+
+      {
+        $project: {
+          name: 1,
+          type: 1,
+          value: 1,
+          valueType: 1,
+          slug: 1,
+          createdAt: 1,
+        },
+      },
+    ]);
+
+    // console.log(roles, "check the roles");
+
+    return res.status(200).json({
+      success: true,
+      data: credits,
+      total: totalCredit,
+      count: Math.ceil(totalCredit / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createCreditByAdmin,
+  getCreditsByAdmin,
 };
