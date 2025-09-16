@@ -17,4 +17,16 @@ router.get(
   withSlug(credit.getCreditsByAdmin, "view_convesion_listing")
 );
 
+router.get(
+  "/admin/credits/:slug",
+  verifyToken,
+  withSlug(credit.getCreditBySlug, "view_credit_details")
+);
+
+router.put(
+  "/admin/credits/:slug",
+  verifyToken,
+  withSlug(credit.updateCreditBySlug, "edit_credit")
+);
+
 module.exports = router;

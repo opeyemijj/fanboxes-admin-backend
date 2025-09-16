@@ -83,7 +83,52 @@ const getCreditsByAdmin = async (req, res) => {
   }
 };
 
+const getCreditBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const credit = await Credit.findOne({ slug });
+
+    if (!credit) {
+      return res.status(400).json({
+        success: false,
+        message: "We couldn't find the credit you're looking for",
+      });
+    }
+
+    res.status(201).json({ success: true, data: credit });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const updateCreditBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const requestData = req.body;
+
+    await Credit.findOneAndUpdate(
+      { slug },
+      {
+        ...requestData,
+      },
+      { new: true, runValidators: true }
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Credit details have been successfully updated.",
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createCreditByAdmin,
   getCreditsByAdmin,
+  getCreditBySlug,
+  updateCreditBySlug,
 };
