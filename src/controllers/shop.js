@@ -153,7 +153,7 @@ const createShopByAdmin = async (req, res) => {
       lastName: newUserName.lastName,
       gender: newUserGender,
       phone: newUserPhone,
-      email: newUserEmail,
+      email: newUserEmail.toLowerCase(),
       otp,
       role: "vendor",
       password: newUserPassword,

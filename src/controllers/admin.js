@@ -127,7 +127,7 @@ const createAdminUserByAdmin = async (req, res) => {
       lastName: requestData.lastName,
       gender: requestData.gender,
       phone: requestData.phone,
-      email: requestData.email,
+      email: requestData.email?.toLowerCase(),
       otp,
       role: assignedRole?.role?.toLowerCase(),
       roleId: assignedRole?._id,
