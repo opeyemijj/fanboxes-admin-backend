@@ -81,6 +81,7 @@ connectWithRetry();
 
 const homeRoutes = require("./routes/home");
 const roleRoutes = require("./routes/role");
+const creditRoutes = require("./routes/credit");
 const authRoutes = require("./routes/auth");
 const brandRoutes = require("./routes/brand");
 const categoryRoutes = require("./routes/category");
@@ -109,6 +110,7 @@ const transactionRoutes = require("./routes/transactionRoutes");
 
 app.use("/api", homeRoutes);
 app.use("/api", roleRoutes);
+app.use("/api", creditRoutes);
 app.use("/api", authRoutes);
 app.use("/api", brandRoutes);
 app.use("/api", categoryRoutes);
