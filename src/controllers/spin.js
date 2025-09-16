@@ -204,13 +204,6 @@ const getSpinsByAdmin = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const totalShop = await Spin.countDocuments();
 
-    const admin = await getAdmin(req, res);
-    if (!admin) {
-      return res.status(401).json({
-        success: false,
-        message: "Apologies, you don't have the required access to proceed.",
-      });
-    }
     const spin = await Spin.find({}, null, {
       skip: skip,
       limit: parseInt(limit),

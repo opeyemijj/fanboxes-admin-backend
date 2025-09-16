@@ -3,12 +3,13 @@ const router = express.Router();
 const AdminTransactionController = require("../controllers/adminTransactionController");
 const verifyToken = require("../config/jwt");
 const transactionController = require("../controllers/transactionController");
+const { withSlug } = require("../helpers/routeSlugHelper");
 
 // Admin manual top-up for any user
 router.post(
   "/admin/wallets/credit-user",
   verifyToken,
-  AdminTransactionController.manualTopup
+  withSlug(AdminTransactionController.manualTopup, "top_up")
 );
 
 // Admin manual debit for any user
@@ -37,6 +38,15 @@ router.get(
   "/admin/wallets/user-balance/:userId",
   verifyToken,
   transactionController.getUserBalance
+);
+
+router.get(
+  "/admin/transections",
+  verifyToken,
+  withSlug(
+    transactionController.getTransectionsByAdmin,
+    "view_transections_listing"
+  )
 );
 
 module.exports = router;

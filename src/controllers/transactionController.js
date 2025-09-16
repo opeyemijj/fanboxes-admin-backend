@@ -1,5 +1,6 @@
 const TransactionService = require("../services/transactionService");
 const RoleBasedTransactionService = require("../services/roleBasedTransactionService");
+const TransactionRecord = require("../models/TransactionRecord");
 
 class TransactionController {
   /**
@@ -232,6 +233,34 @@ class TransactionController {
         success: false,
         message: error.message,
       });
+    }
+  }
+
+  async getTransectionsByAdmin(req, res) {
+    try {
+      const { limit = 10, page = 1 } = req.query;
+
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+      const totalTransections = await TransactionRecord.countDocuments();
+
+      const spin = await TransactionRecord.find({}, null, {
+        skip: skip,
+        limit: parseInt(limit),
+      }).sort({
+        createdAt: -1,
+      });
+
+      // const spin = await Spin.find().sort({
+      //   createdAt: -1,
+      // });
+
+      return res.status(200).json({
+        success: true,
+        data: spin,
+        count: Math.ceil(totalTransections / limit),
+      });
+    } catch (error) {
+      return res.status(400).json({ success: false, message: error.message });
     }
   }
 }
