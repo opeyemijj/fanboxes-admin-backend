@@ -108,7 +108,11 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = await req.body;
-    const user = await User.findOne({ email }).select("+password");
+    // const user = await User.findOne({ email }).select("+password");
+
+    const user = await User.findOne({
+      email: { $regex: new RegExp(`^${email}$`, "i") },
+    }).select("+password");
 
     if (!user) {
       return res
