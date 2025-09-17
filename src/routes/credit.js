@@ -14,25 +14,25 @@ router.post(
 router.get(
   "/admin/credits",
   verifyToken,
-  withSlug(credit.getCreditsByAdmin, "view_convesion_listing")
+  withSlug(credit.getCreditsByAdmin, "view_conversion_listing")
 );
 
 router.get(
   "/admin/credits/:slug",
   verifyToken,
-  withSlug(credit.getCreditBySlug, "view_convesion_details")
+  withSlug(credit.getCreditBySlug, "view_conversion_details")
 );
 
 router.put(
   "/admin/credits/:slug",
   verifyToken,
-  withSlug(credit.updateCreditBySlug, "edit_convesion")
+  withSlug(credit.updateCreditBySlug, "edit_conversion")
 );
 
 router.delete(
   "/admin/credits/:slug",
   verifyToken,
-  withSlug(credit.deleteCreditBySlug, "delete_convesion")
+  withSlug(credit.deleteCreditBySlug, "delete_conversion")
 );
 
 module.exports = router;
