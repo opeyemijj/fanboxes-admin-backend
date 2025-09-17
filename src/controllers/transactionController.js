@@ -189,6 +189,8 @@ class TransactionController {
         skip = 0,
         status,
         transactionType,
+        fromDate,
+        toDate,
         page = 1,
       } = req.query;
 
@@ -202,13 +204,19 @@ class TransactionController {
         Number.parseInt(limit),
         Number.parseInt(actualSkip),
         status,
-        transactionType
+        transactionType,
+        fromDate,
+        toDate
       );
 
       const totalCount = await TransactionService.getTransactionCount(
         userId,
         status,
-        transactionType
+        transactionType,
+        status,
+        transactionType,
+        fromDate,
+        toDate
       );
 
       res.status(200).json({

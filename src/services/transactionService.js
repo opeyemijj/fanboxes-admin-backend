@@ -111,6 +111,96 @@ class TransactionService {
   }
 
   /**
+   * Debit user's available balance for spin (to be used within a session)
+   */
+  async debitForSpin(userId, spinCost, session, boxName = "", metadata) {
+    try {
+      // Validate user within the session
+      const user = await this.validateUser(userId, session);
+
+      // Validate spin cost
+      this.validateAmount(spinCost);
+
+      // Get current balance
+      const currentBalance = await this.getUserBalance(userId);
+
+      // Check if user has sufficient available balance
+      if (currentBalance.availableBalance < spinCost) {
+        const insufficientBalanceError = new Error(
+          "Insufficient available balance for spin"
+        );
+        insufficientBalanceError.code = "INSUFFICIENT_BALANCE";
+        insufficientBalanceError.requiredAmount = spinCost;
+        insufficientBalanceError.availableAmount =
+          currentBalance.availableBalance;
+        throw insufficientBalanceError;
+      }
+
+      // Calculate new balance after debit
+      const newAvailableBalance = currentBalance.availableBalance - spinCost;
+      const newPendingBalance = currentBalance.pendingBalance || 0;
+
+      // Create transaction record for the spin debit
+      const metaData = metadata
+        ? { ...metadata, spinTransaction: true }
+        : { spinTransaction: true };
+
+      const transactionData = {
+        user: userId,
+        userData: {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          id: user._id,
+        },
+        role: user.role,
+        amount: spinCost,
+        transactionType: "debit",
+        category: "spend",
+        status: "completed",
+        description: `Spin cost debit${boxName ? ` for box '${boxName}'` : ""}`,
+        referenceId: generateReferenceId("FBX"),
+        source: "spin_cost",
+        metadata: metaData,
+        availableBalance: newAvailableBalance,
+        pendingBalance: newPendingBalance,
+        transactionMode: "online",
+        paymentMethod: "wallet",
+        currency: null,
+      };
+
+      // Create and save transaction within the session
+      const transaction = new TransactionRecord(transactionData);
+
+      await User.findOneAndUpdate(
+        { _id: userId },
+        {
+          $set: { currentBalance: Number(transaction?.availableBalance) },
+        },
+        { new: true, runValidators: true }
+      );
+
+      await transaction.save({ session });
+
+      return {
+        transaction,
+        previousBalance: currentBalance,
+        newBalance: {
+          availableBalance: newAvailableBalance,
+          pendingBalance: newPendingBalance,
+          totalBalance: newAvailableBalance + newPendingBalance,
+        },
+      };
+    } catch (error) {
+      // Re-throw with proper error handling
+      if (error.code === "INSUFFICIENT_BALANCE") {
+        throw error;
+      }
+      throw new Error(`Failed to debit for spin: ${error.message}`);
+    }
+  }
+
+  /**
    * Create a single transaction record
    */
   async createTransaction(params) {
@@ -168,6 +258,15 @@ class TransactionService {
         };
 
         const transaction = new TransactionRecord(transactionData);
+
+        await User.findOneAndUpdate(
+          { _id: params.userId },
+          {
+            $set: { currentBalance: Number(transaction?.availableBalance) },
+          },
+          { new: true, runValidators: true }
+        );
+
         await transaction.save({ session });
 
         return transaction;
@@ -270,6 +369,22 @@ class TransactionService {
         // Save both transactions
         const fromTransaction = new TransactionRecord(fromTransactionData);
         const toTransaction = new TransactionRecord(toTransactionData);
+
+        await User.findOneAndUpdate(
+          { _id: fromUser._id },
+          {
+            $set: { currentBalance: Number(fromTransaction?.availableBalance) },
+          },
+          { new: true, runValidators: true }
+        );
+
+        await User.findOneAndUpdate(
+          { _id: toUser._id },
+          {
+            $set: { currentBalance: Number(toTransaction?.availableBalance) },
+          },
+          { new: true, runValidators: true }
+        );
 
         await fromTransaction.save({ session });
         await toTransaction.save({ session });
@@ -387,7 +502,9 @@ class TransactionService {
     limit = 50,
     skip = 0,
     status,
-    transactionType
+    transactionType,
+    fromDate,
+    toDate
   ) {
     try {
       const query = {
@@ -395,8 +512,30 @@ class TransactionService {
         isDeleted: false,
       };
 
+      // Add status filter if provided
       if (status) query.status = status;
+
+      // Add transaction type filter if provided
       if (transactionType) query.transactionType = transactionType;
+
+      // Add date range filter if provided
+      if (fromDate || toDate) {
+        query.transactionDate = {};
+
+        if (fromDate) {
+          // Ensure fromDate is a Date object and set to start of day
+          const startDate = new Date(fromDate);
+          startDate.setHours(0, 0, 0, 0);
+          query.transactionDate.$gte = startDate;
+        }
+
+        if (toDate) {
+          // Ensure toDate is a Date object and set to end of day
+          const endDate = new Date(toDate);
+          endDate.setHours(23, 59, 59, 999);
+          query.transactionDate.$lte = endDate;
+        }
+      }
 
       return await TransactionRecord.find(query)
         .sort({ createdAt: -1 })
@@ -413,7 +552,7 @@ class TransactionService {
   /**
    * Get transaction count for pagination
    */
-  async getTransactionCount(userId, status, transactionType) {
+  async getTransactionCount(userId, status, transactionType, fromDate, toDate) {
     try {
       const query = {
         user: userId,
@@ -422,6 +561,25 @@ class TransactionService {
 
       if (status) query.status = status;
       if (transactionType) query.transactionType = transactionType;
+
+      // Add date range filter if provided
+      if (fromDate || toDate) {
+        query.transactionDate = {};
+
+        if (fromDate) {
+          // Ensure fromDate is a Date object and set to start of day
+          const startDate = new Date(fromDate);
+          startDate.setHours(0, 0, 0, 0);
+          query.transactionDate.$gte = startDate;
+        }
+
+        if (toDate) {
+          // Ensure toDate is a Date object and set to end of day
+          const endDate = new Date(toDate);
+          endDate.setHours(23, 59, 59, 999);
+          query.transactionDate.$lte = endDate;
+        }
+      }
 
       return await TransactionRecord.countDocuments(query);
     } catch (error) {
