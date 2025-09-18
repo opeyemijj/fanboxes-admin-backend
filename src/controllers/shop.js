@@ -768,6 +768,7 @@ const getShops = async (req, res) => {
         "isActive",
         "createdAt",
         "isBanned",
+        "instagramLink",
       ])
       .sort({ createdAt: -1 });
 
