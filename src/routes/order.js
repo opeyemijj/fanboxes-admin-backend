@@ -21,4 +21,10 @@ router.delete("/admin/orders/:id", verifyToken, orderRoutes.deleteOrderByAdmin);
 //vendor routes
 router.get("/vendor/orders", verifyToken, orderRoutes.getOrdersByVendor);
 
+router.put(
+  "/admin/orders/assign/:slug",
+  verifyToken,
+  withSlug(orderRoutes.updateAssignInOrderByAdmin, "assign_order_to_user")
+);
+
 module.exports = router;

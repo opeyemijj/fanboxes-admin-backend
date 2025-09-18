@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
 // Sub-schema for images
 const ImageSubSchema = new mongoose.Schema({
@@ -225,6 +226,24 @@ const OrderSchema = new mongoose.Schema(
 
     carrier: {
       type: String,
+    },
+
+    assignTo: [
+      {
+        type: String,
+      },
+    ],
+    assignToDetails: [
+      {
+        type: mongoose.Schema.Types.Mixed, // 👈 allows any kind of object/value
+        default: {},
+      },
+    ],
+    assignedBy: {
+      type: Schema.Types.Mixed,
+    },
+    assignedByDetails: {
+      type: Schema.Types.Mixed,
     },
   },
   {
