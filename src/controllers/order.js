@@ -417,7 +417,7 @@ const updateTrackingInOrderByAdmin = async (req, res) => {
       "trackingInfo.trackingNumber": body.trackingNumber,
     });
 
-    if (isTrackingNumberExist) {
+    if (isTrackingNumberExist && isTrackingNumberExist._id != slug) {
       return res.status(400).json({
         success: false,
         message: "Oops! This tracking number has already been used.",
