@@ -23,7 +23,14 @@ const TransactionRecordSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["refund", "deposit", "spend", "withdrawal", "adjustment"],
+      enum: [
+        "refund",
+        "deposit",
+        "spend",
+        "withdrawal",
+        "adjustment",
+        "spin resell",
+      ],
       required: true,
     },
     status: {

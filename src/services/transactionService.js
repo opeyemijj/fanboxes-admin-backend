@@ -207,6 +207,7 @@ class TransactionService {
     const session = await mongoose.startSession();
 
     try {
+      console.log({ p: params.amount });
       return await session.withTransaction(async () => {
         // Validate user
         const user = await this.validateUser(params.userId, session);

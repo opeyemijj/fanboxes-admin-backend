@@ -72,6 +72,8 @@ const SpinSchema = new mongoose.Schema(
       type: String,
       required: [true, "hash is required."],
     },
+    processedForResell: Boolean,
+    resellTransactionId: mongoose.Schema.Types.ObjectId,
   },
   { timestamps: true }
 );

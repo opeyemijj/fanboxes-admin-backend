@@ -147,10 +147,30 @@ const deleteCreditBySlug = async (req, res) => {
   }
 };
 
+const getResellPercentage = async (req, res) => {
+  try {
+    const data = await Credit.findOne({ type: "refund" }).lean();
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const getCashToCreditConversionRate = async (req, res) => {
+  try {
+    const data = await Credit.findOne({ type: "credit rate" }).lean();
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createCreditByAdmin,
   getCreditsByAdmin,
   getCreditBySlug,
   updateCreditBySlug,
   deleteCreditBySlug,
+  getResellPercentage,
+  getCashToCreditConversionRate,
 };

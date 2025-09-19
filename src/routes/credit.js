@@ -35,4 +35,10 @@ router.delete(
   withSlug(credit.deleteCreditBySlug, "delete_conversion")
 );
 
+router.get("/user/credits/get-resell-percentage", credit.getResellPercentage);
+router.get(
+  "/user/credits/cash-to-credit-rate",
+  credit.getCashToCreditConversionRate
+);
+
 module.exports = router;
