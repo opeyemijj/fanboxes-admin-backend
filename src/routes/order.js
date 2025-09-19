@@ -30,13 +30,13 @@ router.put(
 router.put(
   "/admin/orders/tracking/:slug",
   verifyToken,
-  withSlug(orderRoutes.updateTrackingInOrderByAdmin, "assign_order_to_user")
+  withSlug(orderRoutes.updateTrackingInOrderByAdmin, "update_order_tracking")
 );
 
 router.put(
   "/admin/orders/shipping/:slug",
   verifyToken,
-  withSlug(orderRoutes.updateShippingInOrderByAdmin, "assign_order_to_user")
+  withSlug(orderRoutes.updateShippingInOrderByAdmin, "update_order_shipping")
 );
 
 module.exports = router;

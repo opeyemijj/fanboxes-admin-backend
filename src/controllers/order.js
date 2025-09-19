@@ -10,6 +10,7 @@ const path = require("path");
 const { getVendor, getAdmin } = require("../config/getUser");
 const { getUserFromToken } = require("../helpers/userHelper");
 const Order = require("../models/Order");
+const { ASSIGN_TO_ME } = require("../helpers/const");
 function isExpired(expirationDate) {
   const currentDateTime = new Date();
   return currentDateTime >= new Date(expirationDate);
@@ -213,6 +214,8 @@ const getOrderById = async (req, res) => {
   }
 };
 const getOrdersByAdmin = async (req, res) => {
+  const user = getUserFromToken(req);
+  const dataAccessType = user.dataAccess;
   try {
     const {
       page: pageQuery,
@@ -226,6 +229,14 @@ const getOrdersByAdmin = async (req, res) => {
 
     const skip = limit * (page - 1);
     let matchQuery = {};
+
+    // ✅ Apply Assign To Me condition
+    if (
+      dataAccessType &&
+      dataAccessType.toLowerCase() === ASSIGN_TO_ME.toLowerCase()
+    ) {
+      matchQuery.assignTo = { $in: [user._id] };
+    }
 
     if (shop) {
       const currentShop = await Shop.findOne({ slug: shop }).select(["_id"]);
@@ -403,7 +414,7 @@ const updateTrackingInOrderByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
 
-    const { ...body } = req.body;
+    const { trackingNumber, ...body } = req.body;
 
     const targetOrder = await Orders.findOne({ _id: slug });
     if (!targetOrder) {
@@ -414,7 +425,7 @@ const updateTrackingInOrderByAdmin = async (req, res) => {
     }
 
     const isTrackingNumberExist = await Orders.findOne({
-      "trackingInfo.trackingNumber": body.trackingNumber,
+      "trackingInfo.trackingNumber": trackingNumber?.toLowerCase(),
     });
 
     if (isTrackingNumberExist && isTrackingNumberExist._id != slug) {
@@ -427,7 +438,10 @@ const updateTrackingInOrderByAdmin = async (req, res) => {
     const updated = await Orders.findOneAndUpdate(
       { _id: slug },
       {
-        trackingInfo: body,
+        trackingInfo: {
+          ...body,
+          trackingNumber: trackingNumber.toLowerCase(),
+        },
       },
       { new: true, runValidators: true }
     );
