@@ -20,5 +20,6 @@ router.post(
 
 router.post("/user/spin", verifyToken, spin.createSpinByUser);
 router.post("/user/spin-verify", verifyToken, spin.spinVerify);
+router.get("/user/spin-history", verifyToken, spin.getSpinHistory);
 
 module.exports = router;

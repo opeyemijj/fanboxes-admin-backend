@@ -184,10 +184,69 @@ const changePassword = async (req, res) => {
   }
 };
 
+const updateShippingAddress = async (req, res) => {
+  try {
+    const allowedFields = ["address", "city", "zip", "country", "state"];
+    const updates = {};
+
+    // ✅ Validate only provided fields
+    for (const field of allowedFields) {
+      if (field in req.body) {
+        const value = req.body[field];
+        if (!value || !value.toString().trim()) {
+          return res.status(400).json({
+            success: false,
+            message: `${field.charAt(0).toUpperCase() +
+              field.slice(1)} is required.`,
+            type: "validationError",
+          });
+        }
+        updates[`shippingAddress.${field}`] = value.toString().trim();
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No valid fields provided for update.",
+        type: "validationError",
+      });
+    }
+
+    // ✅ Update only specified fields
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+        type: "notFoundError",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Shipping address updated successfully.",
+      data: updatedUser.shippingAddress,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message || "Server error",
+      type: "serverError",
+    });
+  }
+};
+
 module.exports = {
   getOneUser,
   updateUser,
   getInvoice,
   changePassword,
   getUserByAdmin,
+  updateShippingAddress,
 };
