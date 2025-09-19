@@ -228,6 +228,21 @@ const OrderSchema = new mongoose.Schema(
       type: String,
     },
 
+    trackingInfo: {
+      trackingNumber: {
+        type: String,
+      },
+      courier: {
+        type: String,
+      },
+      shipped: {
+        type: String,
+      },
+      expected: {
+        type: String,
+      },
+    },
+
     assignTo: [
       {
         type: String,

@@ -173,7 +173,6 @@ const getProducts = async (req, res) => {
           subCategory: 1,
           subCategoryDetails: 1,
           isFeatured: 1,
-          visitedCount: 1,
         },
       },
       {
@@ -933,6 +932,7 @@ const getProductsByAdmin = async (request, response) => {
           isBanned: 1,
           ownerType: 1,
           shopDetails: 1,
+          visitedCount: 1,
         },
       },
     ]);

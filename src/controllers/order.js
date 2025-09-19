@@ -9,6 +9,7 @@ const fs = require("fs");
 const path = require("path");
 const { getVendor, getAdmin } = require("../config/getUser");
 const { getUserFromToken } = require("../helpers/userHelper");
+const Order = require("../models/Order");
 function isExpired(expirationDate) {
   const currentDateTime = new Date();
   return currentDateTime >= new Date(expirationDate);
@@ -398,6 +399,56 @@ const updateAssignInOrderByAdmin = async (req, res) => {
   }
 };
 
+const updateTrackingInOrderByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const { ...body } = req.body;
+
+    const targetOrder = await Orders.findOne({ _id: slug });
+    if (!targetOrder) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found. Unable to create Tracking Info.",
+      });
+    }
+
+    const isTrackingNumberExist = await Orders.findOne({
+      "trackingInfo.trackingNumber": body.trackingNumber,
+    });
+
+    if (isTrackingNumberExist) {
+      return res.status(400).json({
+        success: false,
+        message: "Oops! This tracking number has already been used.",
+      });
+    }
+
+    const updated = await Orders.findOneAndUpdate(
+      { _id: slug },
+      {
+        trackingInfo: body,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Oops! Something went wrong while update tracking info.",
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: "Success! Tracking details have been saved.",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 // Vendor apis
 const getOrdersByVendor = async (req, res) => {
   try {
@@ -465,4 +516,5 @@ module.exports = {
   deleteOrderByAdmin,
   getOrdersByVendor,
   updateAssignInOrderByAdmin,
+  updateTrackingInOrderByAdmin,
 };
