@@ -1,6 +1,29 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
+const ShippingAddressSubSchema = new mongoose.Schema({
+  address: {
+    type: String,
+    required: [true, "Address is required."],
+  },
+  city: {
+    type: String,
+    required: [true, "City is required."],
+  },
+  zip: {
+    type: String,
+    required: [true, "Postal code is required."],
+  },
+  country: {
+    type: String,
+    required: [true, "Country is required."],
+  },
+  state: {
+    type: String,
+    required: [true, "State is required."],
+  },
+});
+
 const UserSchema = new mongoose.Schema(
   {
     firstName: {
@@ -79,21 +102,22 @@ const UserSchema = new mongoose.Schema(
     status: {
       type: String,
     },
-    address: {
-      type: String,
-    },
-    city: {
-      type: String,
-    },
-    zip: {
-      type: String,
-    },
-    country: {
-      type: String,
-    },
-    state: {
-      type: String,
-    },
+    // address: {
+    //   type: String,
+    // },
+    // city: {
+    //   type: String,
+    // },
+    // zip: {
+    //   type: String,
+    // },
+    // country: {
+    //   type: String,
+    // },
+    // state: {
+    //   type: String,
+    // },
+    shippingAddress: ShippingAddressSubSchema,
     about: {
       type: String,
     },

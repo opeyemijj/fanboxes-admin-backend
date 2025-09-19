@@ -456,4 +456,70 @@ const getSpinsByAdmin = async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 };
-module.exports = { createSpin, spinVerify, getSpinsByAdmin, createSpinByUser };
+
+const getSpinHistory = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { startDate, endDate, page = 1, limit = 20 } = req.query;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(401).json({
+        success: false,
+        message: "Please Login to continue",
+      });
+    }
+
+    // Build filter object
+    const filter = { userId };
+
+    // Add date range filter if provided
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) {
+        filter.createdAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        filter.createdAt.$lte = new Date(endDate);
+      }
+    }
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const parsedLimit = parseInt(limit);
+
+    // Execute query with pagination and sorting
+    const spins = await Spin.find(filter)
+      .sort({ createdAt: -1 }) // Latest first
+      .skip(skip)
+      .limit(parsedLimit)
+      .lean(); // Use lean() for better performance
+
+    // Get total count for pagination info
+    const total = await Spin.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      data: spins,
+      pagination: {
+        page: parseInt(page),
+        limit: parsedLimit,
+        total,
+        pages: Math.ceil(total / parsedLimit),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching spin history:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch spin history",
+    });
+  }
+};
+
+module.exports = {
+  createSpin,
+  spinVerify,
+  getSpinsByAdmin,
+  createSpinByUser,
+  getSpinHistory,
+};

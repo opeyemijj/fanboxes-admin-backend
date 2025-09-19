@@ -82,4 +82,10 @@ router.post(
   adminController.UpdateRoleByAdmin
 );
 
+router.patch(
+  "/users/update-shipping-address",
+  verifyToken,
+  userController.updateShippingAddress
+);
+
 module.exports = router;
