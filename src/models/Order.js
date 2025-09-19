@@ -243,6 +243,18 @@ const OrderSchema = new mongoose.Schema(
       },
     },
 
+    shippingInfo: {
+      status: {
+        type: String,
+      },
+      statusDate: {
+        type: String,
+      },
+      statusComment: {
+        type: String,
+      },
+    },
+
     assignTo: [
       {
         type: String,

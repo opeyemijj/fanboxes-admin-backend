@@ -33,4 +33,10 @@ router.put(
   withSlug(orderRoutes.updateTrackingInOrderByAdmin, "assign_order_to_user")
 );
 
+router.put(
+  "/admin/orders/shipping/:slug",
+  verifyToken,
+  withSlug(orderRoutes.updateShippingInOrderByAdmin, "assign_order_to_user")
+);
+
 module.exports = router;

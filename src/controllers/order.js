@@ -449,6 +449,58 @@ const updateTrackingInOrderByAdmin = async (req, res) => {
   }
 };
 
+const updateShippingInOrderByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const { ...body } = req.body;
+
+    const targetOrder = await Orders.findOne({ _id: slug });
+    if (!targetOrder) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found. Unable to add Shipping Info.",
+      });
+    }
+
+    if (!targetOrder?.trackingInfo) {
+      return res.status(400).json({
+        success: false,
+        message: "Oops! No Tracking info for this order.",
+      });
+    }
+
+    const updated = await Orders.findOneAndUpdate(
+      { _id: slug },
+      [
+        {
+          $set: {
+            shippingInfo: {
+              $concatArrays: [{ $ifNull: ["$shippingInfo", []] }, [body]],
+            },
+          },
+        },
+      ],
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({
+        success: false,
+        message: "Oops! Something went wrong while update shippping info.",
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: "Success! Shipping info has been saved.",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 // Vendor apis
 const getOrdersByVendor = async (req, res) => {
   try {
@@ -517,4 +569,5 @@ module.exports = {
   getOrdersByVendor,
   updateAssignInOrderByAdmin,
   updateTrackingInOrderByAdmin,
+  updateShippingInOrderByAdmin,
 };
