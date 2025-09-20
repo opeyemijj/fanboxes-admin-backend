@@ -220,7 +220,7 @@ class TransactionService {
           currentBalance,
           params.amount,
           params.transactionType,
-          params.balanceType
+          params.balanceType || "available"
         );
 
         // Create transaction record
