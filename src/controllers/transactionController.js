@@ -335,7 +335,7 @@ class TransactionController {
           transactionType: "credit",
           category: "spin resell",
           status: "completed",
-          description: `Token claim for spin win: ${spin.winningItem.name}`,
+          description: `Credits claim for spin win: ${spin.winningItem.name}`,
           metadata: {
             spinResell: true,
             spinId: spin._id,
@@ -375,7 +375,7 @@ class TransactionController {
           {
             $set: {
               processedForResell: true,
-              resellTransactionId: transaction._id,
+              resellTransactionRef: transaction.referenceId,
             },
           },
           { session }
@@ -402,6 +402,41 @@ class TransactionController {
       });
     } finally {
       await session.endSession();
+    }
+  }
+
+  async getTransactionByRefId(req, res) {
+    try {
+      const refId = req.query.refId;
+      if (!refId) {
+        return res.status(400).json({
+          success: false,
+          message: "Transaction rreference is required",
+        });
+      }
+
+      const transaction = await TransactionRecord.findOne({
+        referenceId: refId,
+      }).lean();
+      if (!transaction) {
+        return res
+          .status(404)
+          .json({ success: false, message: "transaction not found" });
+      }
+
+      return res
+        .status(200)
+        .json({
+          success: true,
+          message: "Transaction retreived successfully",
+          data: transaction,
+        });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Failed to process token claim",
+        error: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      });
     }
   }
 }
