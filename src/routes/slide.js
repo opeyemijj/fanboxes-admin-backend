@@ -34,4 +34,10 @@ router.delete(
   withSlug(slide.deleteSlideBySlug, "delete_slide")
 );
 
+router.put(
+  "/admin/slides/active/:slug",
+  verifyToken,
+  withSlug(slide.updateSlideActiveInactiveByAdmin, "approve_slide")
+);
+
 module.exports = router;

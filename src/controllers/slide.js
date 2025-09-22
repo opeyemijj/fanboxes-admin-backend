@@ -118,10 +118,40 @@ const deleteSlideBySlug = async (req, res) => {
   }
 };
 
+const updateSlideActiveInactiveByAdmin = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { isActive } = req.body;
+
+    const updated = await HeroCarousel.findOneAndUpdate(
+      { slug: slug },
+      { $set: { isActive: isActive } },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Slide not found to update status" });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: updated,
+      message: isActive
+        ? "Slide has been activated successfully."
+        : "Slide is inactive now",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   getSlideByAdmin,
   createSlide,
   getSlidesByAdmin,
   updateSlideBySlug,
   deleteSlideBySlug,
+  updateSlideActiveInactiveByAdmin,
 };
