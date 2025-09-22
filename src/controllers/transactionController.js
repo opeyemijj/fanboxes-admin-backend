@@ -1,6 +1,9 @@
+const mongoose = require("mongoose");
 const TransactionService = require("../services/transactionService");
 const RoleBasedTransactionService = require("../services/roleBasedTransactionService");
 const TransactionRecord = require("../models/TransactionRecord");
+const Spin = require("../models/Spin");
+const Credit = require("../models/Credit");
 
 class TransactionController {
   /**
@@ -269,6 +272,171 @@ class TransactionController {
       });
     } catch (error) {
       return res.status(400).json({ success: false, message: error.message });
+    }
+  }
+
+  /**
+   * Controller function to credit user's balance for spin resell
+   */
+  async creditSpinResell(req, res) {
+    const session = await mongoose.startSession();
+
+    try {
+      await session.withTransaction(async () => {
+        const { spinId } = req.body;
+        const userId = req.user._id;
+
+        if (!spinId) {
+          throw new Error("Spin ID is required");
+        }
+
+        // Fetch the spin data
+        const spin = await Spin.findById(spinId).session(session);
+        if (!spin) {
+          throw new Error("Spin record not found");
+        }
+
+        // Verify the spin belongs to the authenticated user
+        if (spin.userId.toString() !== userId.toString()) {
+          throw new Error(
+            "Unauthorized access to resell spin item won, as this spin does not belong to you"
+          );
+        }
+
+        // Get resell rule and conversion rate from app configuration
+        const resellRule = await Credit.findOne({ type: "refund" })
+          .select("value valueType")
+          // .session(session)
+          .lean();
+
+        const cashToCreditConvRate = await Credit.findOne({
+          type: "credit rate",
+        })
+          .select("value")
+          // .session(session)
+          .lean();
+
+        console.log({ resellRule, cashToCreditConvRate });
+
+        // Calculate resell amount
+        const originalValue = spin.winningItem.value;
+        let resellAmount = 0;
+
+        if (resellRule.valueType === "percentage") {
+          resellAmount = (originalValue * (resellRule.value / 100)).toFixed(0);
+        } else {
+          resellAmount = resellRule.value;
+        }
+
+        // Create transaction using TransactionService
+        const transaction = await TransactionService.createTransaction({
+          userId: userId,
+          amount: parseInt(resellAmount),
+          transactionType: "credit",
+          category: "spin resell",
+          status: "completed",
+          description: `Credits claim for spin win: ${spin.winningItem.name}`,
+          metadata: {
+            spinResell: true,
+            spinId: spin._id,
+            originalItemValue: originalValue,
+            box: {
+              _id: spin.boxId,
+              name: spin.boxDetails?.name,
+              slug: spin.boxDetails?.slug,
+              priceSale: spin.boxDetails?.priceSale,
+              images: spin.boxDetails?.images,
+              items: spin.boxDetails?.items,
+            },
+            spinResult: {
+              oddsMap: spin.oddsMap,
+              winningItem: spin.winningItem,
+              verification: {
+                clientSeed: spin.clientSeed,
+                serverSeedHash: spin.serverSeedHash,
+                nonce: spin.nonce,
+                hash: spin.hash,
+                normalized: spin.normalized, // Fixed typo: norrmalized → normalized
+              },
+              initiatedBy: {},
+            },
+            resellRule: resellRule,
+            conversionRate: cashToCreditConvRate.value,
+            calculatedAmount: resellAmount,
+          },
+          paymentMethod: "wallet",
+          currency: "USD",
+          remarks: `Resell of won item: ${spin.winningItem.name} from spin`,
+        });
+
+        // Mark the spin as processed for resell
+        await Spin.findByIdAndUpdate(
+          spinId,
+          {
+            $set: {
+              processedForResell: true,
+              resellTransactionRef: transaction.referenceId,
+            },
+          },
+          { session }
+        );
+
+        return res.status(200).json({
+          success: true,
+          message: "Tokens credited successfully",
+          data: {
+            transaction,
+            originalValue: originalValue,
+            resellAmount: resellAmount,
+            winningItem: spin.winningItem,
+          },
+        });
+      });
+    } catch (error) {
+      console.error("Error in creditSpinResell:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Failed to process token claim",
+        error: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      });
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  async getTransactionByRefId(req, res) {
+    try {
+      const refId = req.query.refId;
+      if (!refId) {
+        return res.status(400).json({
+          success: false,
+          message: "Transaction rreference is required",
+        });
+      }
+
+      const transaction = await TransactionRecord.findOne({
+        referenceId: refId,
+      }).lean();
+      if (!transaction) {
+        return res
+          .status(404)
+          .json({ success: false, message: "transaction not found" });
+      }
+
+      return res
+        .status(200)
+        .json({
+          success: true,
+          message: "Transaction retreived successfully",
+          data: transaction,
+        });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Failed to process token claim",
+        error: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      });
     }
   }
 }

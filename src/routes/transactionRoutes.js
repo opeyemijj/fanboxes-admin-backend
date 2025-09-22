@@ -20,6 +20,18 @@ router.get(
   TransactionController.getMyBalanceAndHistory
 );
 
+router.post(
+  "/wallet/resell-spin-for-credits",
+  verifyToken,
+  TransactionController.creditSpinResell
+);
+
+router.get(
+  "/wallet/get-transaction-by-ref",
+  verifyToken,
+  TransactionController.getTransactionByRefId
+);
+
 // Get specific user's balance (admin access or own account)
 // router.get(
 //   "/balance/:userId",
