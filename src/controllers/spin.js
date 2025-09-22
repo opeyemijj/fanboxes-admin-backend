@@ -339,7 +339,6 @@ const createSpinByUser = async (req, res) => {
       await spin.save({ session });
 
       // If we reach here, both debit and spin creation were successful
-      // Maintain original response structure
       return res.status(200).json({
         success: true,
         data: spin,

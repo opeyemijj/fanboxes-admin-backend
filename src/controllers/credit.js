@@ -165,6 +165,15 @@ const getCashToCreditConversionRate = async (req, res) => {
   }
 };
 
+const getShippingPercentage = async (req, res) => {
+  try {
+    const data = await Credit.findOne({ type: "shipping" }).lean();
+    res.status(200).json({ success: true, data });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createCreditByAdmin,
   getCreditsByAdmin,
@@ -173,4 +182,5 @@ module.exports = {
   deleteCreditBySlug,
   getResellPercentage,
   getCashToCreditConversionRate,
+  getShippingPercentage,
 };

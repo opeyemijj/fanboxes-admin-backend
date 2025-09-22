@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Notifications = require("../models/Notification");
 const Products = require("../models/Product");
 const Orders = require("../models/Order");
@@ -11,6 +12,9 @@ const { getVendor, getAdmin } = require("../config/getUser");
 const { getUserFromToken } = require("../helpers/userHelper");
 const Order = require("../models/Order");
 const { ASSIGN_TO_ME } = require("../helpers/const");
+const transactionService = require("../services/transactionService");
+const { generateReferenceId } = require("../helpers/transactionHelpers");
+
 function isExpired(expirationDate) {
   const currentDateTime = new Date();
   return currentDateTime >= new Date(expirationDate);
@@ -573,6 +577,175 @@ const getOrdersByVendor = async (req, res) => {
   }
 };
 
+// Helper function to generate unique order number
+const generateOrderNo = async () => {
+  const prefix = "FBX";
+  const randomPart = Math.floor(100000 + Math.random() * 900000); // 6-digit random number
+  const orderNo = `${prefix}${randomPart}`;
+
+  // Ensure uniqueness
+  const existing = await Order.findOne({ orderNo });
+  if (existing) {
+    return generateOrderNo(); // try again recursively
+  }
+
+  return orderNo;
+};
+
+// Controller: Create new order with transaction
+const createOrder2 = async (req, res) => {
+  let session;
+
+  try {
+    const {
+      shippingFee,
+      totalAmountPaid,
+      discountApplied,
+      status,
+      items,
+      note,
+      user,
+      spinData,
+      taxApplied = { percentage: "0%", amount: 0 },
+      paymentMethod = "wallet", // Default to wallet
+    } = req.body;
+
+    if (!totalAmountPaid) {
+      return res.status(400).json({
+        success: false,
+        message: "Total amount paid is required.",
+      });
+    }
+
+    // For now, only process wallet payments
+    if (paymentMethod !== "wallet") {
+      return res.status(400).json({
+        success: false,
+        message: "Only wallet payments are currently supported.",
+      });
+    }
+
+    // Validate user has sufficient balance if using wallet
+    if (user?._id) {
+      const userAccount = await User.findById(user._id);
+      if (!userAccount) {
+        return res.status(400).json({
+          success: false,
+          message: "User not found.",
+        });
+      }
+
+      // Use transaction service to get user balance
+      const userBalance = await transactionService.getUserBalance(user._id);
+
+      if (userBalance.availableBalance < totalAmountPaid) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient balance. Available: ${userBalance.availableBalance}, Required: ${totalAmountPaid}`,
+        });
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required for wallet payments.",
+      });
+    }
+
+    const orderNo = await generateOrderNo();
+
+    // Start session only after validations
+    session = await mongoose.startSession();
+    session.startTransaction();
+
+    // Create order
+    const order = new Order({
+      orderNo,
+      shippingFee,
+      totalAmountPaid,
+      discountApplied,
+      status: status || "pending",
+      items,
+      note,
+      user,
+      spinData,
+      paymentMethod,
+      taxApplied,
+    });
+
+    await order.save({ session });
+
+    // Use the transaction service to create debit transaction
+    const metadata = {
+      orderType: spinData ? "post-spin" : "direct",
+      itemsCount: items.length,
+      initiatedBy: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        id: user._id,
+        role: user?.role,
+      },
+      orderDetails: {
+        orderNo,
+        totalAmountPaid,
+        shippingFee,
+        discountApplied,
+        items,
+      },
+    };
+
+    const transactionData = {
+      userId: user._id,
+      amount: totalAmountPaid,
+      transactionType: "debit",
+      status: "completed",
+      description: `Order payment for #${orderNo}`,
+      referenceId: generateReferenceId("ODR"),
+      orderId: order._id,
+      paymentMethod: "wallet",
+      category: "spend",
+      source: "order_payment",
+      metadata,
+      taxAmount: taxApplied.amount,
+      taxDetails: taxApplied,
+    };
+
+    const transaction = await transactionService.createTransaction(
+      transactionData,
+      session
+    );
+
+    // Add transaction reference to order
+    order.transaction = transaction;
+    await order.save({ session });
+
+    // Commit transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // const populatedOrder = await Order.findById(order._id)
+    //   .populate("transaction")
+    //   .populate("user._id", "firstName lastName email");
+
+    res.status(201).json({
+      success: true,
+      message: "Order created successfully",
+      data: order,
+    });
+  } catch (error) {
+    // Abort transaction on any error (only if session was started)
+    if (session) {
+      await session.abortTransaction();
+      session.endSession();
+    }
+
+    console.error("Order creation error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Something went wrong while creating order",
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrderById,
@@ -584,4 +757,5 @@ module.exports = {
   updateAssignInOrderByAdmin,
   updateTrackingInOrderByAdmin,
   updateShippingInOrderByAdmin,
+  createOrder2,
 };
