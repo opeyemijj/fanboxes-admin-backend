@@ -342,6 +342,7 @@ const createSpinByUser = async (req, res) => {
       return res.status(200).json({
         success: true,
         data: spin,
+        availableBalance: debitResult.transaction.availableBalance,
       });
     });
   } catch (error) {
