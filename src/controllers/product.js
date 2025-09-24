@@ -942,8 +942,6 @@ const getProductsByAdmin = async (request, response) => {
       },
     ]);
 
-    console.log(products, "OKK NOW WHAT");
-
     response.status(200).json({
       success: true,
       data: products,
@@ -1550,13 +1548,7 @@ async function deletedProductByAdmin(req, res) {
         message: "Box not found. Please check and try again.",
       });
     }
-    // const length = product?.images?.length || 0;
-    // for (let i = 0; i < length; i++) {
-    //   await multiFilesDelete(product?.images[i]);
-    // }
-    if (product && product.images && product.images.length > 0) {
-      await multiFilesDelete(product.images);
-    }
+
     const deleteProduct = await Product.deleteOne({ slug: slug });
     if (!deleteProduct) {
       return res.status(400).json({
@@ -1564,7 +1556,7 @@ async function deletedProductByAdmin(req, res) {
         message: "Failed to delete the box. Please try again.",
       });
     }
-    await Shop.findByIdAndUpdate(req.body.shop, {
+    await Shop.findByIdAndUpdate(product.shop, {
       $pull: {
         products: product._id,
       },
