@@ -189,6 +189,9 @@ const createShopByAdmin = async (req, res) => {
       vendorDetails: tempVendorDetails,
 
       ...others,
+      slug: `${req.body?.title?.toLowerCase().replace(/\s+/g, "")}-${Math.floor(
+        100 + Math.random() * 900
+      )}`,
       logo: {
         ...logo,
         blurDataURL: logoBlurDataURL,
@@ -535,7 +538,17 @@ const deleteOneShopByAdmin = async (req, res) => {
     }
     await singleFileDelete(shop.cover._id);
     await singleFileDelete(shop.logo._id);
-    // const dataaa = await singleFileDelete(shop?.logo?._id,shop?.cover?._id);
+
+    // delete related products
+    if (shop.products && shop.products.length > 0) {
+      try {
+        await Product.deleteMany({ _id: { $in: shop.products } });
+        // assuming `products` is an array of product ObjectIds or their string representation
+      } catch (e) {
+        console.log("Failed to delete products: ", e);
+      }
+    }
+
     await Shop.deleteOne({ slug }); // Corrected to pass an object to deleteOne method
 
     // delete related user of this shop
@@ -544,7 +557,7 @@ const deleteOneShopByAdmin = async (req, res) => {
         await User.deleteOne({ _id: shop?.vendorDetails._id });
       }
     } catch (e) {
-      console.log(e, "Failed to delte user");
+      console.log(e, "Failed to delete user");
       // return res.status(400).json({ success: false, message: e.message });
     }
     return res.status(200).json({

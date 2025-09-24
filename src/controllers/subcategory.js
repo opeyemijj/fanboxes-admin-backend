@@ -11,6 +11,7 @@ const createSubCategory = async (req, res) => {
 
     const category = await SubCategories.create({
       ...others,
+      slug: `${req.body.slug}-${Math.floor(100 + Math.random() * 900)}`,
     });
     await Category.findByIdAndUpdate(others.parentCategory, {
       $addToSet: {

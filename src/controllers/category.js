@@ -10,6 +10,7 @@ const createCategory = async (req, res) => {
 
     await Categories.create({
       ...others,
+      slug: `${req.body.slug}-${Math.floor(100 + Math.random() * 900)}`,
     });
 
     res.status(201).json({
