@@ -18,7 +18,6 @@ const SubCategory = require("../models/SubCategory");
 const { ASSIGN_TO_ME } = require("../helpers/const");
 // Admin apis
 const getShopsByAdmin = async (req, res) => {
-  console.log("Come here to get the influeners");
   const user = getUserFromToken(req);
   const dataAccessType = user.dataAccess;
 

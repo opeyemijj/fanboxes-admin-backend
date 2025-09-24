@@ -216,6 +216,8 @@ const getOrderById = async (req, res) => {
 const getOrdersByAdmin = async (req, res) => {
   const user = getUserFromToken(req);
   const dataAccessType = user.dataAccess;
+
+  console.log("Checking the query");
   try {
     const {
       page: pageQuery,
@@ -253,7 +255,20 @@ const getOrdersByAdmin = async (req, res) => {
     });
 
     const orders = await Orders.aggregate([
-      { $match: { ...matchQuery } },
+      {
+        $match: {
+          ...matchQuery,
+          ...(searchQuery
+            ? {
+                $or: [
+                  { name: { $regex: searchQuery, $options: "i" } },
+                  { "user.firstName": { $regex: searchQuery, $options: "i" } },
+                  { "user.lastName": { $regex: searchQuery, $options: "i" } },
+                ],
+              }
+            : {}),
+        },
+      },
       { $sort: { createdAt: -1 } },
       { $skip: skip },
       { $limit: limit },
