@@ -223,11 +223,14 @@ const getOrdersByAdmin = async (req, res) => {
       page: pageQuery,
       limit: limitQuery,
       search: searchQuery,
+      status,
       shop,
     } = req.query;
 
     const limit = parseInt(limitQuery) || 10;
     const page = parseInt(pageQuery) || 1;
+
+    console.log(status, "Checking searchQuery");
 
     const skip = limit * (page - 1);
     let matchQuery = {};
@@ -244,6 +247,10 @@ const getOrdersByAdmin = async (req, res) => {
       const currentShop = await Shop.findOne({ slug: shop }).select(["_id"]);
 
       matchQuery["items.shop"] = currentShop._id;
+    }
+
+    if (status) {
+      matchQuery.status = status;
     }
 
     const totalOrders = await Orders.countDocuments({
@@ -504,6 +511,7 @@ const updateShippingInOrderByAdmin = async (req, res) => {
       [
         {
           $set: {
+            status: body.status,
             shippingInfo: {
               $concatArrays: [{ $ifNull: ["$shippingInfo", []] }, [body]],
             },
