@@ -10,6 +10,7 @@ const createCategory = async (req, res) => {
 
     await Categories.create({
       ...others,
+      slug: `${req.body.slug}-${Math.floor(100 + Math.random() * 900)}`,
     });
 
     res.status(201).json({
@@ -130,7 +131,7 @@ const getCategoryBySlug = async (req, res) => {
 const updateCategoryBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { cover, ...others } = req.body;
+    const { slug: SkippingSlug, cover, ...others } = req.body;
 
     await Categories.findOneAndUpdate(
       { slug },
