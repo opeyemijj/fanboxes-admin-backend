@@ -86,7 +86,7 @@ const getSubCategoriesBySlug = async (req, res) => {
 const updateSubCategoriesBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { cover, ...others } = req.body;
+    const { slug: SkippingSlug, cover, ...others } = req.body;
     // Validate if the 'blurDataURL' property exists in the logo object
 
     const currentCategory = await SubCategories.findOneAndUpdate(

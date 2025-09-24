@@ -1157,7 +1157,7 @@ const getOneProductByAdmin = async (req, res) => {
 const updateProductByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { images, ...body } = req.body;
+    const { slug: SkippingSlug, images, ...body } = req.body;
 
     const updatedImages = await Promise.all(
       images.map(async (image) => {
@@ -1169,7 +1169,6 @@ const updateProductByAdmin = async (req, res) => {
     let tempShopDetails = null;
     let shop = null;
 
-    console.log(req.body.shop, "BBB");
     if (req.body.shop) {
       shop = await Shop.findOne({
         _id: req.body.shop,
@@ -1219,6 +1218,7 @@ const updateProductByAdmin = async (req, res) => {
       { slug: slug },
       {
         ...body,
+        isActive: false,
         vendor: shop ? shop.vendor : "",
         images: updatedImages,
         shopDetails: tempShopDetails,

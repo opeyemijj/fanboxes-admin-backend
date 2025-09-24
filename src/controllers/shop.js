@@ -303,7 +303,14 @@ const updateOneShopByAdmin = async (req, res) => {
       });
     }
 
-    const { logo, cover, status, paymentInfo, ...others } = req.body;
+    const {
+      slug: skippngSlug,
+      logo,
+      cover,
+      status,
+      paymentInfo,
+      ...others
+    } = req.body;
     const logoBlurDataURL = await getBlurDataURL(logo.url);
     const coverBlurDataURL = await getBlurDataURL(cover.url);
 
@@ -342,6 +349,7 @@ const updateOneShopByAdmin = async (req, res) => {
       { slug: slug },
       {
         ...others,
+        isActive: false,
         logo: { ...logo, blurDataURL: logoBlurDataURL },
         cover: { ...cover, blurDataURL: coverBlurDataURL },
         paymentInfo: shop.paymentInfo,
