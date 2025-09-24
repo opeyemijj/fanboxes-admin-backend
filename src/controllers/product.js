@@ -843,11 +843,15 @@ const getProductsByAdmin = async (request, response) => {
     let matchQuery = {};
 
     if (shop) {
-      const currentShop = await Shop.findOne({
-        slug: shop,
-      }).select(["slug", "_id"]);
+      if (shop != "admin-box") {
+        const currentShop = await Shop.findOne({
+          slug: shop,
+        }).select(["slug", "_id"]);
 
-      matchQuery.shop = currentShop._id.toString();
+        matchQuery.shop = currentShop._id.toString();
+      } else {
+        matchQuery.shop = "";
+      }
     }
 
     if (category) {
