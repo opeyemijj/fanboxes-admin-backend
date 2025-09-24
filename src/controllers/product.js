@@ -823,6 +823,7 @@ const getFilters = async (req, res) => {
 const getProductsByAdmin = async (request, response) => {
   const user = getUserFromToken(request);
   const dataAccessType = user.dataAccess;
+
   try {
     const {
       page: pageQuery,
@@ -846,8 +847,9 @@ const getProductsByAdmin = async (request, response) => {
         slug: shop,
       }).select(["slug", "_id"]);
 
-      matchQuery.shop = currentShop._id;
+      matchQuery.shop = currentShop._id.toString();
     }
+
     if (category) {
       const currentCategory = await Category.findOne({
         slug: category,
@@ -880,6 +882,9 @@ const getProductsByAdmin = async (request, response) => {
       {
         $match: {
           ...matchQuery,
+          ...(searchQuery
+            ? { name: { $regex: searchQuery, $options: "i" } }
+            : {}),
         },
       },
       {
@@ -1150,7 +1155,16 @@ const getOneProductByAdmin = async (req, res) => {
 const updateProductByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { images, ...body } = req.body;
+    const { slug: SkippingSlug, images, ...body } = req.body;
+
+    const targetedBox = await Product.findOne({ slug: slug });
+    if (!targetedBox) {
+      return res.status(404).json({
+        success: true,
+        data: updated,
+        message: "Box not found to update.",
+      });
+    }
 
     const updatedImages = await Promise.all(
       images.map(async (image) => {
@@ -1162,7 +1176,6 @@ const updateProductByAdmin = async (req, res) => {
     let tempShopDetails = null;
     let shop = null;
 
-    console.log(req.body.shop, "BBB");
     if (req.body.shop) {
       shop = await Shop.findOne({
         _id: req.body.shop,
@@ -1212,6 +1225,7 @@ const updateProductByAdmin = async (req, res) => {
       { slug: slug },
       {
         ...body,
+        isActive: false,
         vendor: shop ? shop.vendor : "",
         images: updatedImages,
         shopDetails: tempShopDetails,
@@ -1221,6 +1235,29 @@ const updateProductByAdmin = async (req, res) => {
       },
       { new: true, runValidators: true }
     );
+
+    try {
+      // if influencer changed then remove old
+      if (req.body.shop != targetedBox?.shop) {
+        if (targetedBox?.shop) {
+          await Shop.findByIdAndUpdate(targetedBox?.shop, {
+            $pull: {
+              products: targetedBox._id,
+            },
+          });
+        }
+
+        if (req.body.shop) {
+          await Shop.findByIdAndUpdate(req.body.shop, {
+            $addToSet: {
+              products: targetedBox._id,
+            },
+          });
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
 
     return res.status(201).json({
       success: true,
@@ -1511,13 +1548,7 @@ async function deletedProductByAdmin(req, res) {
         message: "Box not found. Please check and try again.",
       });
     }
-    // const length = product?.images?.length || 0;
-    // for (let i = 0; i < length; i++) {
-    //   await multiFilesDelete(product?.images[i]);
-    // }
-    if (product && product.images && product.images.length > 0) {
-      await multiFilesDelete(product.images);
-    }
+
     const deleteProduct = await Product.deleteOne({ slug: slug });
     if (!deleteProduct) {
       return res.status(400).json({
@@ -1525,7 +1556,7 @@ async function deletedProductByAdmin(req, res) {
         message: "Failed to delete the box. Please try again.",
       });
     }
-    await Shop.findByIdAndUpdate(req.body.shop, {
+    await Shop.findByIdAndUpdate(product.shop, {
       $pull: {
         products: product._id,
       },
