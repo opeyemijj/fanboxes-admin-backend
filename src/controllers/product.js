@@ -847,8 +847,9 @@ const getProductsByAdmin = async (request, response) => {
         slug: shop,
       }).select(["slug", "_id"]);
 
-      matchQuery.shop = currentShop._id;
+      matchQuery.shop = currentShop._id.toString();
     }
+
     if (category) {
       const currentCategory = await Category.findOne({
         slug: category,
