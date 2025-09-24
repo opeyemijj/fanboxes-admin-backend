@@ -18,11 +18,12 @@ const SubCategory = require("../models/SubCategory");
 const { ASSIGN_TO_ME } = require("../helpers/const");
 // Admin apis
 const getShopsByAdmin = async (req, res) => {
+  console.log("Come here to get the influeners");
   const user = getUserFromToken(req);
   const dataAccessType = user.dataAccess;
 
   try {
-    const { limit = 10, page = 1 } = req.query;
+    const { limit = 10, page = 1, search = "" } = req.query;
 
     const parsedLimit = parseInt(limit);
     const parsedPage = parseInt(page);
@@ -36,6 +37,11 @@ const getShopsByAdmin = async (req, res) => {
       dataAccessType.toLowerCase() === ASSIGN_TO_ME.toLowerCase()
     ) {
       matchQuery.assignTo = { $in: [user._id] };
+    }
+
+    // ✅ Apply search condition if given
+    if (search && search.trim() !== "") {
+      matchQuery.title = { $regex: search, $options: "i" };
     }
 
     const totalShop = await Shop.countDocuments(matchQuery);
