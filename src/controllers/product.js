@@ -1159,6 +1159,15 @@ const updateProductByAdmin = async (req, res) => {
     const { slug } = req.params;
     const { slug: SkippingSlug, images, ...body } = req.body;
 
+    const targetedBox = await Product.findOne({ slug: slug });
+    if (!targetedBox) {
+      return res.status(404).json({
+        success: true,
+        data: updated,
+        message: "Box not found to update.",
+      });
+    }
+
     const updatedImages = await Promise.all(
       images.map(async (image) => {
         const blurDataURL = await blurDataUrl(image.url);
@@ -1228,6 +1237,29 @@ const updateProductByAdmin = async (req, res) => {
       },
       { new: true, runValidators: true }
     );
+
+    try {
+      // if influencer changed then remove old
+      if (req.body.shop != targetedBox?.shop) {
+        if (targetedBox?.shop) {
+          await Shop.findByIdAndUpdate(targetedBox?.shop, {
+            $pull: {
+              products: targetedBox._id,
+            },
+          });
+        }
+
+        if (req.body.shop) {
+          await Shop.findByIdAndUpdate(req.body.shop, {
+            $addToSet: {
+              products: targetedBox._id,
+            },
+          });
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
 
     return res.status(201).json({
       success: true,
