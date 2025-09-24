@@ -823,6 +823,7 @@ const getFilters = async (req, res) => {
 const getProductsByAdmin = async (request, response) => {
   const user = getUserFromToken(request);
   const dataAccessType = user.dataAccess;
+
   try {
     const {
       page: pageQuery,
@@ -880,6 +881,9 @@ const getProductsByAdmin = async (request, response) => {
       {
         $match: {
           ...matchQuery,
+          ...(searchQuery
+            ? { name: { $regex: searchQuery, $options: "i" } }
+            : {}),
         },
       },
       {
@@ -936,6 +940,8 @@ const getProductsByAdmin = async (request, response) => {
         },
       },
     ]);
+
+    console.log(products, "OKK NOW WHAT");
 
     response.status(200).json({
       success: true,
