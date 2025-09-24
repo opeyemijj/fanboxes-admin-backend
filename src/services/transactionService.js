@@ -203,80 +203,184 @@ class TransactionService {
   /**
    * Create a single transaction record
    */
-  async createTransaction(params) {
-    const session = await mongoose.startSession();
+  // async createTransaction(params) {
+  //   const session = await mongoose.startSession();
+
+  //   try {
+  //     console.log({ p: params.amount });
+  //     return await session.withTransaction(async () => {
+  //       // Validate user
+  //       const user = await this.validateUser(params.userId, session);
+
+  //       // Get current balance
+  //       const currentBalance = await this.getUserBalance(params.userId);
+
+  //       // Calculate new balances
+  //       const newBalances = this.calculateNewBalances(
+  //         currentBalance,
+  //         params.amount,
+  //         params.transactionType,
+  //         params.balanceType || "available"
+  //       );
+
+  //       // Create transaction record
+  //       const transactionData = {
+  //         user: params.userId,
+  //         userData: {
+  //           firstName: user.firstName,
+  //           lastName: user.lastName,
+  //           email: user.email,
+  //           id: user._id,
+  //         },
+  //         createdBy: params.createdBy,
+  //         role: user.role,
+  //         amount: params.amount,
+  //         transactionType: params.transactionType,
+  //         status: params.status,
+  //         description:
+  //           params.description || `${params.transactionType} transaction`,
+  //         referenceId: params.referenceId,
+  //         metadata: params.metadata || {},
+  //         availableBalance: newBalances.availableBalance,
+  //         //   pendingBalance: newBalances.pendingBalance; --- IGNORE ---
+  //         orderId: params.orderId,
+  //         paymentMethod: params.paymentMethod,
+  //         transactionMode: params.transactionMode || "online",
+  //         gatewayResponse: params.gatewayResponse || {},
+  //         failureReason: params.failureReason,
+  //         currency: params.currency || null,
+  //         exchangeRate: params.exchangeRate || 1,
+  //         taxAmount: params.taxAmount || 0,
+  //         taxDetails: params.taxDetails,
+  //         remarks: params.remarks,
+  //         status: params.status || "completed",
+  //         referenceId: generateReferenceId("TXN"),
+  //         category: params?.category,
+  //       };
+
+  //       const transaction = new TransactionRecord(transactionData);
+
+  //       await User.findOneAndUpdate(
+  //         { _id: params.userId },
+  //         {
+  //           $set: { currentBalance: Number(transaction?.availableBalance) },
+  //         },
+  //         { new: true, runValidators: true }
+  //       );
+
+  //       await transaction.save({ session });
+
+  //       return transaction;
+  //     });
+  //   } catch (error) {
+  //     throw new Error(`Transaction failed: ${error.message}`);
+  //   } finally {
+  //     await session.endSession();
+  //   }
+  // }
+
+  /**
+   * Create a single transaction record (updated to accept optional session)
+   */
+  async createTransaction(params, externalSession = null) {
+    let session = externalSession;
+    let shouldEndSession = false;
+
+    // If no external session provided, create our own
+    if (!session) {
+      session = await mongoose.startSession();
+      shouldEndSession = true;
+    }
 
     try {
-      console.log({ p: params.amount });
-      return await session.withTransaction(async () => {
-        // Validate user
-        const user = await this.validateUser(params.userId, session);
+      let transactionResult;
 
-        // Get current balance
-        const currentBalance = await this.getUserBalance(params.userId);
+      // Use existing session if provided, otherwise create transaction with new session
+      if (externalSession) {
+        // Use the existing session without starting a new transaction
+        return await this._createTransactionWithinSession(params, session);
+      } else {
+        // Start a new transaction with our own session
+        transactionResult = await session.withTransaction(async () => {
+          return await this._createTransactionWithinSession(params, session);
+        });
+      }
 
-        // Calculate new balances
-        const newBalances = this.calculateNewBalances(
-          currentBalance,
-          params.amount,
-          params.transactionType,
-          params.balanceType || "available"
-        );
-
-        // Create transaction record
-        const transactionData = {
-          user: params.userId,
-          userData: {
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            id: user._id,
-          },
-          createdBy: params.createdBy,
-          role: user.role,
-          amount: params.amount,
-          transactionType: params.transactionType,
-          status: params.status,
-          description:
-            params.description || `${params.transactionType} transaction`,
-          referenceId: params.referenceId,
-          metadata: params.metadata || {},
-          availableBalance: newBalances.availableBalance,
-          //   pendingBalance: newBalances.pendingBalance; --- IGNORE ---
-          orderId: params.orderId,
-          paymentMethod: params.paymentMethod,
-          transactionMode: params.transactionMode || "online",
-          gatewayResponse: params.gatewayResponse || {},
-          failureReason: params.failureReason,
-          currency: params.currency || null,
-          exchangeRate: params.exchangeRate || 1,
-          taxAmount: params.taxAmount || 0,
-          taxDetails: params.taxDetails,
-          remarks: params.remarks,
-          status: params.status || "completed",
-          referenceId: generateReferenceId("TXN"),
-          category: params?.category,
-        };
-
-        const transaction = new TransactionRecord(transactionData);
-
-        await User.findOneAndUpdate(
-          { _id: params.userId },
-          {
-            $set: { currentBalance: Number(transaction?.availableBalance) },
-          },
-          { new: true, runValidators: true }
-        );
-
-        await transaction.save({ session });
-
-        return transaction;
-      });
+      return transactionResult;
     } catch (error) {
       throw new Error(`Transaction failed: ${error.message}`);
     } finally {
-      await session.endSession();
+      // Only end session if we created it
+      if (shouldEndSession && session) {
+        await session.endSession();
+      }
     }
+  }
+
+  /**
+   * Internal method to create transaction within a session
+   */
+  async _createTransactionWithinSession(params, session) {
+    // Validate user
+    const user = await this.validateUser(params.userId, session);
+
+    // Get current balance
+    const currentBalance = await this.getUserBalance(params.userId);
+
+    // Calculate new balances
+    const newBalances = this.calculateNewBalances(
+      currentBalance,
+      params.amount,
+      params.transactionType,
+      params.balanceType || "available"
+    );
+
+    // Create transaction record
+    const transactionData = {
+      user: params.userId,
+      userData: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        id: user._id,
+      },
+      createdBy: params.createdBy,
+      role: user.role,
+      amount: params.amount,
+      transactionType: params.transactionType,
+      status: params.status || "completed",
+      description:
+        params.description || `${params.transactionType} transaction`,
+      referenceId: params.referenceId || generateReferenceId("TXN"),
+      metadata: params.metadata || {},
+      availableBalance: newBalances.availableBalance,
+      orderId: params.orderId,
+      paymentMethod: params.paymentMethod,
+      transactionMode: params.transactionMode || "online",
+      gatewayResponse: params.gatewayResponse || {},
+      failureReason: params.failureReason,
+      currency: params.currency || null,
+      exchangeRate: params.exchangeRate || 1,
+      taxAmount: params.taxAmount || 0,
+      taxDetails: params.taxDetails,
+      remarks: params.remarks,
+      category: params.category,
+    };
+
+    const transaction = new TransactionRecord(transactionData);
+
+    // Update user balance
+    await User.findOneAndUpdate(
+      { _id: params.userId },
+      {
+        $set: { currentBalance: Number(transaction.availableBalance) },
+      },
+      { session, new: true, runValidators: true }
+    );
+
+    await transaction.save({ session });
+
+    return transaction;
   }
 
   /**

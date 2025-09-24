@@ -211,6 +211,8 @@ const OrderSchema = new mongoose.Schema(
       type: String,
     },
 
+    taxApplied: { type: mongoose.Schema.Types.Mixed },
+
     transaction: TransactionSubSchema,
     user: UserSubSchema,
     spinData: SpinSubSchema, //optional, if order was triggered after a successful spin

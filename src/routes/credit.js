@@ -36,6 +36,12 @@ router.delete(
 );
 
 router.get("/user/credits/get-resell-percentage", credit.getResellPercentage);
+
+router.get(
+  "/user/credits/get-shipping-percentage",
+  credit.getShippingPercentage
+);
+
 router.get(
   "/user/credits/cash-to-credit-rate",
   credit.getCashToCreditConversionRate

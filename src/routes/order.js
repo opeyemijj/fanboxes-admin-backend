@@ -39,4 +39,6 @@ router.put(
   withSlug(orderRoutes.updateShippingInOrderByAdmin, "update_order_shipping")
 );
 
+router.post("/orders/create", orderRoutes.createOrder2);
+
 module.exports = router;
