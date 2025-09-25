@@ -877,31 +877,35 @@ const getProductsByAdmin = async (request, response) => {
       matchQuery.assignTo = { $in: [user._id] };
     }
 
-    const totalProducts = await Product.countDocuments({
-      name: { $regex: searchQuery || "", $options: "i" },
-      ...matchQuery,
-    });
+    // build matchQuery before aggregation
+    if (searchQuery) {
+      const lowered = searchQuery.toLowerCase();
+
+      if (lowered === "draft") {
+        matchQuery.isActive = false;
+      } else if (lowered === "approved") {
+        matchQuery.isActive = true;
+      } else if (lowered === "banned") {
+        matchQuery.isBanned = true;
+      } else if (lowered === "unban") {
+        matchQuery.$or = [
+          { isBanned: false },
+          { isBanned: { $exists: false } },
+        ];
+      } else {
+        matchQuery.name = { $regex: searchQuery, $options: "i" };
+      }
+    }
+
+    const totalProducts = await Product.countDocuments(matchQuery);
 
     const products = await Product.aggregate([
       {
-        $match: {
-          ...matchQuery,
-          ...(searchQuery
-            ? { name: { $regex: searchQuery, $options: "i" } }
-            : {}),
-        },
+        $match: matchQuery, // ✅ only use matchQuery
       },
-      {
-        $sort: {
-          createdAt: -1,
-        },
-      },
-      {
-        $skip: skip,
-      },
-      {
-        $limit: limit,
-      },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
       {
         $lookup: {
           from: "productreviews",
@@ -916,7 +920,6 @@ const getProductsByAdmin = async (request, response) => {
           image: { $arrayElemAt: ["$images", 0] },
         },
       },
-
       {
         $project: {
           image: { url: "$image.url", blurDataURL: "$image.blurDataURL" },

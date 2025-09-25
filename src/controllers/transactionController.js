@@ -246,26 +246,40 @@ class TransactionController {
 
   async getTransectionsByAdmin(req, res) {
     try {
-      const { limit = 10, page = 1 } = req.query;
+      const { limit = 10, page = 1, search = "" } = req.query;
 
-      const skip = (parseInt(page) - 1) * parseInt(limit);
-      const totalTransections = await TransactionRecord.countDocuments();
+      const parsedLimit = parseInt(limit);
+      const parsedPage = parseInt(page);
+      const skip = (parsedPage - 1) * parsedLimit;
 
-      const spin = await TransactionRecord.find({}, null, {
-        skip: skip,
-        limit: parseInt(limit),
-      }).sort({
-        createdAt: -1,
-      });
+      // Build search query
+      const searchQuery = search
+        ? {
+            $or: [
+              { "userData.firstName": { $regex: search, $options: "i" } },
+              { "userData.lastName": { $regex: search, $options: "i" } },
+              { transactionType: { $regex: search, $options: "i" } },
+              { paymentMethod: { $regex: search, $options: "i" } },
+              { status: { $regex: search, $options: "i" } },
+            ],
+          }
+        : {};
 
-      // const spin = await Spin.find().sort({
-      //   createdAt: -1,
-      // });
+      const totalTransections = await TransactionRecord.countDocuments(
+        searchQuery
+      );
+
+      const transections = await TransactionRecord.find(searchQuery)
+        .skip(skip)
+        .limit(parsedLimit)
+        .sort({ createdAt: -1 });
 
       return res.status(200).json({
         success: true,
-        data: spin,
-        count: Math.ceil(totalTransections / limit),
+        data: transections,
+        count: Math.ceil(totalTransections / parsedLimit),
+        total: totalTransections,
+        currentPage: parsedPage,
       });
     } catch (error) {
       return res.status(400).json({ success: false, message: error.message });
