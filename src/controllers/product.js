@@ -21,15 +21,12 @@ const getProducts = async (req, res) => {
     delete newQuery.page;
     delete newQuery.limit;
     delete newQuery.prices;
-    delete newQuery.sizes;
-    delete newQuery.colors;
     delete newQuery.name;
     delete newQuery.date;
     delete newQuery.price;
     delete newQuery.top;
     delete newQuery.brand;
     delete newQuery.rate;
-    delete newQuery.gender;
     delete newQuery.category;
     delete newQuery.isActive;
 
@@ -50,52 +47,43 @@ const getProducts = async (req, res) => {
       // DEFAULT FILTERS - ALWAYS APPLIED
       isActive: true,
       $or: [{ isBanned: false }, { isBanned: { $exists: false } }],
-      $and: [
-        { status: { $exists: true } },
-        { status: { $in: ["approved", "active"] } },
-      ],
+      // $and: [
+      //   { status: { $exists: true } },
+      //   { status: { $in: ["approved", "active"] } },
+      // ],
 
       //Query filters
       ...(Boolean(query.brand) && { brand: brand._id }),
-      ...(query.sizes && { sizes: { $in: query.sizes.split("_") } }),
-      ...(query.colors && { colors: { $in: query.colors.split("_") } }),
       ...(query.isActive && { isActive: query.isActive === "true" }),
       // ADD CATEGORY FILTER
       ...(query.category && { category: new ObjectId(query.category) }),
-      priceSale: {
-        $gt: query.prices
-          ? Number(query.prices.split("_")[0]) / Number(query.rate || 1)
-          : 1,
-        $lt: query.prices
-          ? Number(query.prices.split("_")[1]) / Number(query.rate || 1)
-          : 1000000,
-      },
-      status: { $ne: "disabled" },
+      // priceSale: {
+      //   $gt: query.prices
+      //     ? Number(query.prices.split("_")[0]) / Number(query.rate || 1)
+      //     : 1,
+      //   $lt: query.prices
+      //     ? Number(query.prices.split("_")[1]) / Number(query.rate || 1)
+      //     : 1000000,
+      // },
+      // status: { $ne: "disabled" },
     };
 
     const totalProducts = await Product.countDocuments(countQuery).select([""]);
 
-    const minPrice = query.prices
-      ? Number(query.prices.split("_")[0]) / Number(query.rate || 1)
-      : 1;
-    const maxPrice = query.prices
-      ? Number(query.prices.split("_")[1]) / Number(query.rate || 1)
-      : 10000000;
-
     console.log("queryPassd::", query);
 
     const products = await Product.aggregate([
-      {
-        $lookup: {
-          from: "productreviews",
-          localField: "reviews",
-          foreignField: "_id",
-          as: "reviews",
-        },
-      },
+      // {
+      //   $lookup: {
+      //     from: "productreviews",
+      //     localField: "reviews",
+      //     foreignField: "_id",
+      //     as: "reviews",
+      //   },
+      // },
       {
         $addFields: {
-          averageRating: { $avg: "$reviews.rating" },
+          // averageRating: { $avg: "$reviews.rating" },
           image: { $arrayElemAt: ["$images", 0] },
         },
       },
@@ -104,10 +92,10 @@ const getProducts = async (req, res) => {
           // DEFAULT FILTERS - ALWAYS APPLIED
           isActive: true,
           $or: [{ isBanned: false }, { isBanned: { $exists: false } }],
-          $and: [
-            { status: { $exists: true } },
-            { status: { $in: ["approved", "active"] } },
-          ],
+          // $and: [
+          //   { status: { $exists: true } },
+          //   { status: { $in: ["approved", "active"] } },
+          // ],
 
           //Query filters
           ...(query.name && {
@@ -125,22 +113,8 @@ const getProducts = async (req, res) => {
           ...(query.isFeatured && {
             isFeatured: Boolean(query.isFeatured),
           }),
-          ...(query.gender && {
-            gender: { $in: query.gender.split("_") },
-          }),
-          ...(query.sizes && {
-            sizes: { $in: query.sizes.split("_") },
-          }),
-          ...(query.colors && {
-            colors: { $in: query.colors.split("_") },
-          }),
-          ...(query.prices && {
-            priceSale: {
-              $gt: minPrice,
-              $lt: maxPrice,
-            },
-          }),
-          status: { $ne: "disabled" },
+
+          // status: { $ne: "disabled" },
         },
       },
       {
@@ -154,7 +128,6 @@ const getProducts = async (req, res) => {
           likes: 1,
           priceSale: 1,
           price: 1,
-          averageRating: 1,
           vendor: 1,
           shop: 1,
           shopDetails: 1,
@@ -162,9 +135,9 @@ const getProducts = async (req, res) => {
           assignTo: 1,
           assignToDetails: 1,
           isItemOddsHidden: 1,
-          isActive: 1,
-          isBanned: 1,
-          status: 1,
+          // isActive: 1,
+          // isBanned: 1,
+          // status: 1,
           ownerType: 1,
           createdAt: 1,
           category: 1,
@@ -183,29 +156,29 @@ const getProducts = async (req, res) => {
             priceSale: parseInt(query.price) === 1 ? 1 : -1,
           }),
           ...(query.name && { name: parseInt(query.name) === 1 ? 1 : -1 }),
-          ...(query.top && {
-            averageRating: parseInt(query.top) === 1 ? 1 : -1,
-          }),
+          // ...(query.top && {
+          //   averageRating: parseInt(query.top) === 1 ? 1 : -1,
+          // }),
           ...(query.alphabetical && {
             name: parseInt(query.alphabetical) === 1 ? 1 : -1,
           }),
           // Default sorting
-          ...(!query.date &&
-            !query.price &&
-            !query.name &&
-            !query.top &&
-            !query.alphabetical && {
-              averageRating: -1,
-            }),
+          // ...(!query.date &&
+          //   !query.price &&
+          //   !query.name &&
+          //   !query.top &&
+          //   !query.alphabetical && {
+          //     averageRating: -1,
+          //   }),
           createdAt: -1,
         },
       },
-      {
-        $skip: Number(skip * parseInt(query.page ? query.page[0] - 1 : 0)),
-      },
-      {
-        $limit: Number(skip),
-      },
+      // {
+      //   $skip: Number(skip * parseInt(query.page ? query.page[0] - 1 : 0)),
+      // },
+      // {
+      //   $limit: Number(skip),
+      // },
     ]);
 
     res.status(200).json({
