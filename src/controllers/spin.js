@@ -7,16 +7,7 @@ const User = require("../models/User");
 const transactionService = require("../services/transactionService");
 
 const createSpin = async (req, res) => {
-  // const admin = await getAdmin(req, res);
-
-  // if (!admin) {
-  //   return res.status(401).json({
-  //     success: false,
-  //     message: "Sorry, you don't have the necessary access to this.",
-  //   });
-  // }
   try {
-    // const user = await getUser(req, res, true);
     const user = req?.user;
     if (!user) {
       return res
@@ -405,14 +396,51 @@ const spinVerify = async (req, res) => {
 
 const getSpinsByAdmin = async (req, res) => {
   try {
-    const { limit = 10, page = 1 } = req.query;
+    const { limit = 10, page = 1, search = "" } = req.query;
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const totalShop = await Spin.countDocuments();
+    const parsedLimit = parseInt(limit, 10) || 10;
+    const parsedPage = parseInt(page, 10) || 1;
+    const skip = (parsedPage - 1) * parsedLimit;
 
-    const spin = await Spin.find({}, null, {
-      skip: skip,
-      limit: parseInt(limit),
+    // escape user input for regex safety
+    const escapeRegex = (str = "") =>
+      str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const trimmed = (search || "").trim();
+    const pattern = escapeRegex(trimmed);
+
+    let matchQuery = {};
+
+    if (pattern) {
+      matchQuery.$or = [
+        { "boxDetails.name": { $regex: pattern, $options: "i" } },
+        { "winningItem.name": { $regex: pattern, $options: "i" } },
+        { "userDetails.firstName": { $regex: pattern, $options: "i" } },
+        { "userDetails.lastName": { $regex: pattern, $options: "i" } },
+        { "shopDetails.title": { $regex: pattern, $options: "i" } },
+        // full name match (first + " " + last)
+        {
+          $expr: {
+            $regexMatch: {
+              input: {
+                $concat: [
+                  { $ifNull: ["$userDetails.firstName", ""] },
+                  " ",
+                  { $ifNull: ["$userDetails.lastName", ""] },
+                ],
+              },
+              regex: pattern, // <-- string pattern, NOT a RegExp object
+              options: "i",
+            },
+          },
+        },
+      ];
+    }
+
+    const totalSpins = await Spin.countDocuments(matchQuery);
+
+    const spins = await Spin.find(matchQuery, null, {
+      skip,
+      limit: parsedLimit,
     })
       .select([
         "boxId",
@@ -432,18 +460,14 @@ const getSpinsByAdmin = async (req, res) => {
         "hash",
         "createdAt",
       ])
-      .sort({
-        createdAt: -1,
-      });
-
-    // const spin = await Spin.find().sort({
-    //   createdAt: -1,
-    // });
+      .sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
-      data: spin,
-      count: Math.ceil(totalShop / limit),
+      data: spins,
+      total: totalSpins,
+      count: Math.ceil(totalSpins / parsedLimit),
+      currentPage: parsedPage,
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });

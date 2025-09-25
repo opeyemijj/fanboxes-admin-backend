@@ -22,7 +22,7 @@ const getShopsByAdmin = async (req, res) => {
   const dataAccessType = user.dataAccess;
 
   try {
-    const { limit = 10, page = 1 } = req.query;
+    const { limit = 10, page = 1, search = "", category } = req.query;
 
     const parsedLimit = parseInt(limit);
     const parsedPage = parseInt(page);
@@ -30,12 +30,41 @@ const getShopsByAdmin = async (req, res) => {
 
     let matchQuery = {};
 
+    if (category) {
+      const currentCategory = await Category.findOne({
+        slug: category,
+      }).select(["slug", "_id"]);
+
+      matchQuery.category = currentCategory._id;
+    }
+
     // ✅ Apply Assign To Me condition
     if (
       dataAccessType &&
       dataAccessType.toLowerCase() === ASSIGN_TO_ME.toLowerCase()
     ) {
       matchQuery.assignTo = { $in: [user._id] };
+    }
+
+    // ✅ Apply search condition if given
+    // build matchQuery before aggregation
+    if (search) {
+      const lowered = search.toLowerCase();
+
+      if (lowered === "draft") {
+        matchQuery.isActive = false;
+      } else if (lowered === "approved") {
+        matchQuery.isActive = true;
+      } else if (lowered === "banned") {
+        matchQuery.isBanned = true;
+      } else if (lowered === "unban") {
+        matchQuery.$or = [
+          { isBanned: false },
+          { isBanned: { $exists: false } },
+        ];
+      } else {
+        matchQuery.title = { $regex: search, $options: "i" };
+      }
     }
 
     const totalShop = await Shop.countDocuments(matchQuery);
