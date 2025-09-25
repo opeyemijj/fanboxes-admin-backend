@@ -84,6 +84,63 @@ export class ProvablyFair {
     };
   }
 
+  static generateDemoSpinResult(serverSeed, clientSeed, nonce, items) {
+    console.log(
+      "🎲 Generating demo spin result (provably fair hash generated but not used)"
+    );
+
+    if (!items || items.length === 0) {
+      throw new Error("No items available for demo spin");
+    }
+
+    // --- Do the full provably fair hashing like the real method ---
+    const combined = `${serverSeed}-${clientSeed}-${nonce}`;
+    const hash = crypto
+      .createHash("sha256")
+      .update(combined)
+      .digest("hex");
+
+    const hexSubstring = hash.substring(0, 8);
+    const decimal = Number.parseInt(hexSubstring, 16);
+    const normalized = decimal / 0xffffffff;
+
+    // Build odds map exactly like real spins
+    let cumulativeOdds = 0;
+    const oddsMap = items.map((item) => {
+      const range = {
+        _id: item._id,
+        slug: item.slug,
+        item: item.name,
+        start: cumulativeOdds,
+        end: cumulativeOdds + item.odd,
+      };
+      cumulativeOdds += item.odd;
+      return range;
+    });
+
+    // --- Ignore the provably fair normalized value ---
+    // Instead pick a random winning item
+    const randomIndex = Math.floor(Math.random() * items.length);
+    const winningItem = items[randomIndex];
+
+    console.log("🏆 Demo Winning item (random):", winningItem?.name);
+
+    return {
+      oddsMap,
+      winningItem,
+      hash, // still returned for transparency
+      normalized, // still returned for transparency
+      verification: {
+        method: "demo_random",
+        serverSeed,
+        clientSeed,
+        nonce,
+        hash,
+        normalized,
+      },
+    };
+  }
+
   static verifyResult(serverSeed, clientSeed, nonce, expectedHash) {
     const combined = `${serverSeed}-${clientSeed}-${nonce}`;
     const hash = crypto

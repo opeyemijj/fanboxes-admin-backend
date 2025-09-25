@@ -509,10 +509,104 @@ const getSpinHistory = async (req, res) => {
   }
 };
 
+const createDemoSpin = async (req, res) => {
+  try {
+    const user = req?.user;
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Please Login To Continue" });
+    }
+
+    const requestData = req.body;
+    const boxId = requestData.boxId;
+    const clientSeed =
+      requestData.clientSeed || ProvablyFair.generateClientSeed();
+
+    const boxDetails = await Product.findOne({ _id: boxId });
+
+    if (!boxDetails) {
+      return res.status(404).json({
+        success: false,
+        message: "We couldn't find the box you're looking for.",
+      });
+    }
+
+    if (!boxDetails?.items || boxDetails?.items.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "This box is currently empty." });
+    }
+
+    // Generate fake server seed & nonce
+    const serverSeed = ProvablyFair.generateServerSeed();
+    const nonce = 1; // always 1 in demo, since no persistent spins
+
+    // Use demo generator
+    const result = ProvablyFair.generateDemoSpinResult(
+      serverSeed,
+      clientSeed,
+      nonce,
+      boxDetails.items
+    );
+
+    if (!result.winningItem) {
+      return res.status(403).json({
+        success: false,
+        message: "Failed to generate demo spin. Please try again.",
+        errorCode: "DEMO_SPIN_ERROR",
+      });
+    }
+
+    const demoSpinData = {
+      boxId,
+      boxDetails: {
+        _id: boxDetails._id,
+        name: boxDetails.name,
+        slug: boxDetails.slug,
+        images: boxDetails.images,
+        items: boxDetails?.items,
+        priceSale: boxDetails?.priceSale,
+      },
+      userId: user._id,
+      userDetails: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        gender: user.gender,
+      },
+      shopDetails: boxDetails.shopDetails,
+      winningItem: result.winningItem,
+      nonce,
+      clientSeed,
+      serverSeed,
+      serverSeedHash: ProvablyFair.hashServerSeed(serverSeed),
+      normalized: result.normalized,
+      hash: result.hash,
+      oddsMap: result.oddsMap,
+    };
+
+    return res.status(200).json({
+      success: true,
+      data: demoSpinData,
+      availableBalance: null, // no debit in demo
+    });
+  } catch (error) {
+    console.error("Error in createDemoSpin:", error);
+
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+      errorCode: "DEMO_SPIN_ERROR",
+    });
+  }
+};
+
 module.exports = {
   createSpin,
   spinVerify,
   getSpinsByAdmin,
   createSpinByUser,
   getSpinHistory,
+  createDemoSpin,
 };
