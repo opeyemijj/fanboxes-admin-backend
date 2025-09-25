@@ -39,8 +39,24 @@ const getShopsByAdmin = async (req, res) => {
     }
 
     // ✅ Apply search condition if given
-    if (search && search.trim() !== "") {
-      matchQuery.title = { $regex: search, $options: "i" };
+    // build matchQuery before aggregation
+    if (search) {
+      const lowered = search.toLowerCase();
+
+      if (lowered === "draft") {
+        matchQuery.isActive = false;
+      } else if (lowered === "approved") {
+        matchQuery.isActive = true;
+      } else if (lowered === "banned") {
+        matchQuery.isBanned = true;
+      } else if (lowered === "unban") {
+        matchQuery.$or = [
+          { isBanned: false },
+          { isBanned: { $exists: false } },
+        ];
+      } else {
+        matchQuery.title = { $regex: search, $options: "i" };
+      }
     }
 
     const totalShop = await Shop.countDocuments(matchQuery);
