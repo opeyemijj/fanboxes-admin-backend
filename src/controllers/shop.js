@@ -22,13 +22,21 @@ const getShopsByAdmin = async (req, res) => {
   const dataAccessType = user.dataAccess;
 
   try {
-    const { limit = 10, page = 1, search = "" } = req.query;
+    const { limit = 10, page = 1, search = "", category } = req.query;
 
     const parsedLimit = parseInt(limit);
     const parsedPage = parseInt(page);
     const skip = (parsedPage - 1) * parsedLimit;
 
     let matchQuery = {};
+
+    if (category) {
+      const currentCategory = await Category.findOne({
+        slug: category,
+      }).select(["slug", "_id"]);
+
+      matchQuery.category = currentCategory._id;
+    }
 
     // ✅ Apply Assign To Me condition
     if (
