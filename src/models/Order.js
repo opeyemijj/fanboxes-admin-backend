@@ -135,7 +135,13 @@ const TransactionSubSchema = new mongoose.Schema({
 });
 
 const SpinSubSchema = new mongoose.Schema({
+  _id: mongoose.Types.ObjectId,
+
   oddsMap: {
+    type: mongoose.Schema.Types.Mixed,
+  },
+
+  boxDetails: {
     type: mongoose.Schema.Types.Mixed,
   },
 

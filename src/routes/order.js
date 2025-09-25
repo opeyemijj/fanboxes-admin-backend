@@ -7,6 +7,8 @@ const { withSlug } = require("../helpers/routeSlugHelper");
 //user routes
 router.post("/orders", orderRoutes.createOrder);
 router.get("/orders/:id", orderRoutes.getOrderById);
+router.post("/orders/create", verifyToken, orderRoutes.createOrder2);
+router.get("/user/orders", verifyToken, orderRoutes.getOrderHistory);
 
 //admin routes
 router.get(
@@ -38,7 +40,5 @@ router.put(
   verifyToken,
   withSlug(orderRoutes.updateShippingInOrderByAdmin, "update_order_shipping")
 );
-
-router.post("/orders/create", orderRoutes.createOrder2);
 
 module.exports = router;

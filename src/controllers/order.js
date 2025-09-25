@@ -604,11 +604,13 @@ const createOrder2 = async (req, res) => {
       status,
       items,
       note,
-      user,
+      // user,
       spinData,
       taxApplied = { percentage: "0%", amount: 0 },
       paymentMethod = "wallet", // Default to wallet
     } = req.body;
+
+    let user = req?.user;
 
     if (!totalAmountPaid) {
       return res.status(400).json({
@@ -627,8 +629,8 @@ const createOrder2 = async (req, res) => {
 
     // Validate user has sufficient balance if using wallet
     if (user?._id) {
-      const userAccount = await User.findById(user._id);
-      if (!userAccount) {
+      user = await User.findById(user._id);
+      if (!user) {
         return res.status(400).json({
           success: false,
           message: "User not found.",
@@ -746,6 +748,80 @@ const createOrder2 = async (req, res) => {
   }
 };
 
+const getOrderHistory = async (req, res) => {
+  try {
+    const userId = req?.user?._id;
+    const { startDate, endDate, page = 1, limit = 20 } = req.query;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(401).json({
+        success: false,
+        message: "Please Login to continue",
+      });
+    }
+
+    // Build filter object
+    const filter = { "user._id": userId };
+
+    // Add date range filter if provided
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) {
+        filter.createdAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        filter.createdAt.$lte = new Date(endDate);
+      }
+    }
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const parsedLimit = parseInt(limit);
+
+    // Execute query with pagination and sorting
+    const orders = await Order.find(filter)
+      .sort({ createdAt: -1 }) // Latest first
+      .skip(skip)
+      .limit(parsedLimit)
+      .lean();
+
+    // Get total count for pagination info
+    const total = await Order.countDocuments(filter);
+    const totalProcessing = await Order.countDocuments({
+      ...filter,
+      status: { $in: ["processing", "confirmed"] },
+    });
+    const totalOnTheWay = await Order.countDocuments({
+      ...filter,
+      status: { $in: ["shipped", "out-for-delivery"] },
+    });
+    const totalDelivered = await Order.countDocuments({
+      ...filter,
+      status: "delivered",
+    });
+
+    res.status(200).json({
+      success: true,
+      data: orders,
+      pagination: {
+        page: parseInt(page),
+        limit: parsedLimit,
+        pages: Math.ceil(total / parsedLimit),
+        total,
+        totalDelivered,
+        totalOnTheWay,
+        totalProcessing,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching order history:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch order history",
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrderById,
@@ -758,4 +834,5 @@ module.exports = {
   updateTrackingInOrderByAdmin,
   updateShippingInOrderByAdmin,
   createOrder2,
+  getOrderHistory,
 };
