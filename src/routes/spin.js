@@ -18,7 +18,7 @@ router.post(
   withSlug(spin.spinVerify, "verify_spin")
 );
 
-router.post("/user/demo-spin", verifyToken, spin.createDemoSpin);
+router.post("/user/demo-spin", spin.createDemoSpin);
 router.post("/user/spin", verifyToken, spin.createSpinByUser);
 router.post("/user/spin-verify", verifyToken, spin.spinVerify);
 router.get("/user/spin-history", verifyToken, spin.getSpinHistory);

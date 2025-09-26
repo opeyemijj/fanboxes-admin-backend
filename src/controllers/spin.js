@@ -512,11 +512,11 @@ const getSpinHistory = async (req, res) => {
 const createDemoSpin = async (req, res) => {
   try {
     const user = req?.user;
-    if (!user) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Please Login To Continue" });
-    }
+    // if (!user) {
+    //   return res
+    //     .status(401)
+    //     .json({ success: false, message: "Please Login To Continue" });
+    // }
 
     const requestData = req.body;
     const boxId = requestData.boxId;
@@ -568,12 +568,12 @@ const createDemoSpin = async (req, res) => {
         items: boxDetails?.items,
         priceSale: boxDetails?.priceSale,
       },
-      userId: user._id,
+      userId: user?._id || null,
       userDetails: {
-        _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        gender: user.gender,
+        _id: user?._id || null,
+        firstName: user?.firstName || null,
+        lastName: user?.lastName || null,
+        gender: user?.gender || null,
       },
       shopDetails: boxDetails.shopDetails,
       winningItem: result.winningItem,
