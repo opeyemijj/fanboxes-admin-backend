@@ -220,16 +220,21 @@ const getOrderById = async (req, res) => {
 const getOrdersByAdmin = async (req, res) => {
   const user = getUserFromToken(req);
   const dataAccessType = user.dataAccess;
+
+  console.log("Checking the query");
   try {
     const {
       page: pageQuery,
       limit: limitQuery,
       search: searchQuery,
+      status,
       shop,
     } = req.query;
 
     const limit = parseInt(limitQuery) || 10;
     const page = parseInt(pageQuery) || 1;
+
+    console.log(status, "Checking searchQuery");
 
     const skip = limit * (page - 1);
     let matchQuery = {};
@@ -248,6 +253,10 @@ const getOrdersByAdmin = async (req, res) => {
       matchQuery["items.shop"] = currentShop._id;
     }
 
+    if (status) {
+      matchQuery.status = status;
+    }
+
     const totalOrders = await Orders.countDocuments({
       $or: [
         { "user.firstName": { $regex: searchQuery || "", $options: "i" } },
@@ -257,7 +266,20 @@ const getOrdersByAdmin = async (req, res) => {
     });
 
     const orders = await Orders.aggregate([
-      { $match: { ...matchQuery } },
+      {
+        $match: {
+          ...matchQuery,
+          ...(searchQuery
+            ? {
+                $or: [
+                  { name: { $regex: searchQuery, $options: "i" } },
+                  { "user.firstName": { $regex: searchQuery, $options: "i" } },
+                  { "user.lastName": { $regex: searchQuery, $options: "i" } },
+                ],
+              }
+            : {}),
+        },
+      },
       { $sort: { createdAt: -1 } },
       { $skip: skip },
       { $limit: limit },
@@ -493,6 +515,7 @@ const updateShippingInOrderByAdmin = async (req, res) => {
       [
         {
           $set: {
+            status: body.status,
             shippingInfo: {
               $concatArrays: [{ $ifNull: ["$shippingInfo", []] }, [body]],
             },
