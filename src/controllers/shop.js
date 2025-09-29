@@ -300,6 +300,7 @@ const getOneShopByAdmin = async (req, res) => {
     const { totalCommission, totalEarnings } = await getTotalEarningsByShopId(
       shop._id
     );
+
     // stats
     const totalProducts = await Product.countDocuments({
       shop: shop._id?.toString(),
