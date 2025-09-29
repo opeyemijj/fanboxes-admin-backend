@@ -35,6 +35,12 @@ router.get(
   shop.getShopwiseProductByAdmin
 );
 
+router.get(
+  "/admin/shops/orders/:slug",
+  verifyToken,
+  shop.getShopwiseOrderByAdmin
+);
+
 router.put(
   "/admin/shops/:slug",
   verifyToken,

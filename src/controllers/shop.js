@@ -16,6 +16,7 @@ const { splitUserName, getUserFromToken } = require("../helpers/userHelper");
 const Category = require("../models/Category");
 const SubCategory = require("../models/SubCategory");
 const { ASSIGN_TO_ME } = require("../helpers/const");
+const Order = require("../models/Order");
 // Admin apis
 const getShopsByAdmin = async (req, res) => {
   const user = getUserFromToken(req);
@@ -341,6 +342,32 @@ const getShopwiseProductByAdmin = async (req, res) => {
     return res.status(200).json({
       success: true,
       data: products,
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const getShopwiseOrderByAdmin = async (req, res) => {
+  try {
+    // const admin = await getAdmin(req, res);
+    const { slug } = req.params;
+    const shop = await Shop.findOne({ slug: slug });
+    if (!shop) {
+      return res
+        .status(404)
+        .json({ message: "We couldn’t find the shop you're looking for." });
+    }
+    // stats
+    const orders = await Order.find({
+      "items.0.associatedBox.shopDetails._id": shop._id,
+    });
+
+    console.log(orders, "Come here to getting orders");
+
+    return res.status(200).json({
+      success: true,
+      data: orders,
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -1093,6 +1120,7 @@ module.exports = {
   createShopByAdmin,
   getOneShopByAdmin,
   getShopwiseProductByAdmin,
+  getShopwiseOrderByAdmin,
   updateOneShopByAdmin,
   updateShopStatusByAdmin,
   deleteOneShopByAdmin,
