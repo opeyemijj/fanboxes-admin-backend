@@ -322,6 +322,30 @@ const getOneShopByAdmin = async (req, res) => {
   }
 };
 
+const getShopwiseProductByAdmin = async (req, res) => {
+  try {
+    // const admin = await getAdmin(req, res);
+    const { slug } = req.params;
+    const shop = await Shop.findOne({ slug: slug });
+    if (!shop) {
+      return res
+        .status(404)
+        .json({ message: "We couldn’t find the shop you're looking for." });
+    }
+    // stats
+    const products = await Product.find({
+      shop: shop._id?.toString(),
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: products,
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 const updateOneShopByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -1067,6 +1091,7 @@ module.exports = {
   getShopsByAdmin,
   createShopByAdmin,
   getOneShopByAdmin,
+  getShopwiseProductByAdmin,
   updateOneShopByAdmin,
   updateShopStatusByAdmin,
   deleteOneShopByAdmin,
