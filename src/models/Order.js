@@ -24,9 +24,17 @@ const ItemboxSubSchema = new mongoose.Schema({
     gender: String,
   },
 
-  logo: ImageSubSchema,
-  cover: ImageSubSchema,
-  title: String,
+  shopDetails: {
+    _id: mongoose.Types.ObjectId,
+    title: String,
+    slug: String,
+    logo: ImageSubSchema,
+    cover: ImageSubSchema,
+  },
+
+  images: [ImageSubSchema],
+  // cover: ImageSubSchema,
+  name: String,
   description: String,
   slug: String,
 

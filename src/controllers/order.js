@@ -14,6 +14,7 @@ const Order = require("../models/Order");
 const { ASSIGN_TO_ME } = require("../helpers/const");
 const transactionService = require("../services/transactionService");
 const { generateReferenceId } = require("../helpers/transactionHelpers");
+const Product = require("../models/Product");
 
 function isExpired(expirationDate) {
   const currentDateTime = new Date();
@@ -616,6 +617,161 @@ const generateOrderNo = async () => {
 };
 
 // Controller: Create new order with transaction
+// const createOrder2 = async (req, res) => {
+//   let session;
+
+//   try {
+//     const {
+//       shippingFee,
+//       totalAmountPaid,
+//       discountApplied,
+//       status,
+//       items,
+//       note,
+//       // user,
+//       spinData,
+//       taxApplied = { percentage: "0%", amount: 0 },
+//       paymentMethod = "wallet", // Default to wallet
+//     } = req.body;
+
+//     let user = req?.user;
+
+//     if (!totalAmountPaid) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Total amount paid is required.",
+//       });
+//     }
+
+//     // For now, only process wallet payments
+//     if (paymentMethod !== "wallet") {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Only wallet payments are currently supported.",
+//       });
+//     }
+
+//     // Validate user has sufficient balance if using wallet
+//     if (user?._id) {
+//       user = await User.findById(user._id);
+//       if (!user) {
+//         return res.status(400).json({
+//           success: false,
+//           message: "User not found.",
+//         });
+//       }
+
+//       // Use transaction service to get user balance
+//       const userBalance = await transactionService.getUserBalance(user._id);
+
+//       if (userBalance.availableBalance < totalAmountPaid) {
+//         return res.status(400).json({
+//           success: false,
+//           message: `Insufficient balance. Available: ${userBalance.availableBalance}, Required: ${totalAmountPaid}`,
+//         });
+//       }
+//     } else {
+//       return res.status(400).json({
+//         success: false,
+//         message: "User ID is required for wallet payments.",
+//       });
+//     }
+
+//     const orderNo = await generateOrderNo();
+
+//     // Start session only after validations
+//     session = await mongoose.startSession();
+//     session.startTransaction();
+
+//     // Create order
+//     const order = new Order({
+//       orderNo,
+//       shippingFee,
+//       totalAmountPaid,
+//       discountApplied,
+//       status: status || "pending",
+//       items,
+//       note,
+//       user,
+//       spinData,
+//       paymentMethod,
+//       taxApplied,
+//     });
+
+//     await order.save({ session });
+
+//     // Use the transaction service to create debit transaction
+//     const metadata = {
+//       orderType: spinData ? "post-spin" : "direct",
+//       itemsCount: items.length,
+//       initiatedBy: {
+//         firstName: user.firstName,
+//         lastName: user.lastName,
+//         id: user._id,
+//         role: user?.role,
+//       },
+//       orderDetails: {
+//         orderNo,
+//         totalAmountPaid,
+//         shippingFee,
+//         discountApplied,
+//         items,
+//       },
+//     };
+
+//     const transactionData = {
+//       userId: user._id,
+//       amount: totalAmountPaid,
+//       transactionType: "debit",
+//       status: "completed",
+//       description: `Order payment for #${orderNo}`,
+//       referenceId: generateReferenceId("ODR"),
+//       orderId: order._id,
+//       paymentMethod: "wallet",
+//       category: "spend",
+//       source: "order_payment",
+//       metadata,
+//       taxAmount: taxApplied.amount,
+//       taxDetails: taxApplied,
+//     };
+
+//     const transaction = await transactionService.createTransaction(
+//       transactionData,
+//       session
+//     );
+
+//     // Add transaction reference to order
+//     order.transaction = transaction;
+//     await order.save({ session });
+
+//     // Commit transaction
+//     await session.commitTransaction();
+//     session.endSession();
+
+//     // const populatedOrder = await Order.findById(order._id)
+//     //   .populate("transaction")
+//     //   .populate("user._id", "firstName lastName email");
+
+//     res.status(201).json({
+//       success: true,
+//       message: "Order created successfully",
+//       data: order,
+//     });
+//   } catch (error) {
+//     // Abort transaction on any error (only if session was started)
+//     if (session) {
+//       await session.abortTransaction();
+//       session.endSession();
+//     }
+
+//     console.error("Order creation error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: error.message || "Something went wrong while creating order",
+//     });
+//   }
+// };
+
 const createOrder2 = async (req, res) => {
   let session;
 
@@ -627,10 +783,9 @@ const createOrder2 = async (req, res) => {
       status,
       items,
       note,
-      // user,
       spinData,
       taxApplied = { percentage: "0%", amount: 0 },
-      paymentMethod = "wallet", // Default to wallet
+      paymentMethod = "wallet",
     } = req.body;
 
     let user = req?.user;
@@ -642,7 +797,6 @@ const createOrder2 = async (req, res) => {
       });
     }
 
-    // For now, only process wallet payments
     if (paymentMethod !== "wallet") {
       return res.status(400).json({
         success: false,
@@ -650,7 +804,6 @@ const createOrder2 = async (req, res) => {
       });
     }
 
-    // Validate user has sufficient balance if using wallet
     if (user?._id) {
       user = await User.findById(user._id);
       if (!user) {
@@ -660,7 +813,6 @@ const createOrder2 = async (req, res) => {
         });
       }
 
-      // Use transaction service to get user balance
       const userBalance = await transactionService.getUserBalance(user._id);
 
       if (userBalance.availableBalance < totalAmountPaid) {
@@ -682,16 +834,129 @@ const createOrder2 = async (req, res) => {
     session = await mongoose.startSession();
     session.startTransaction();
 
-    // Create order
+    // Fetch associated box details for each item
+    const itemsWithBoxDetails = await Promise.all(
+      items.map(async (item) => {
+        try {
+          // Find the product that contains this item and populate necessary fields
+          const product = await Product.findOne(
+            { "items._id": item._id },
+            {
+              _id: 1,
+              ownerType: 1,
+              instagramLink: 1,
+              vendor: 1,
+              shopDetails: 1,
+              images: 1,
+              name: 1,
+              description: 1,
+              slug: 1,
+              category: 1,
+              subCategory: 1,
+              "items.$": 1, // Only get the matching item
+            }
+          )
+            .populate("category", "name slug")
+            .populate("subCategory", "name slug")
+            .populate("vendor", "firstName lastName gender")
+            .session(session);
+
+          if (!product) {
+            throw new Error(`Product not found for item with id: ${item._id}`);
+          }
+
+          // Find the specific item details from the product
+          const itemDetails = product.items.find(
+            (productItem) => productItem._id.toString() === item._id.toString()
+          );
+
+          if (!itemDetails) {
+            throw new Error(`Item not found in product: ${item._id}`);
+          }
+
+          // Create associatedBox with the exact structure from ItemboxSubSchema
+          const associatedBox = {
+            _id: product._id,
+            ownerType: product.ownerType || "",
+            instagramLink: product.instagramLink || "",
+            vendorDetails: {
+              _id: product.vendor?._id || null,
+              firstName: product.vendor?.firstName || "",
+              lastName: product.vendor?.lastName || "",
+              gender: product.vendor?.gender || "",
+            },
+            shopDetails: {
+              _id: product.shopDetails?._id || null,
+              title: product.shopDetails?.title || "",
+              slug: product.shopDetails?.slug || "",
+              logo: product?.shopDetails?.logo || "",
+              cover: product?.shopDetails?.cover || null,
+            },
+            images: product?.images || {
+              _id: "",
+              url: "",
+              blurDataURL: "",
+            },
+            // cover: product.cover || {
+            //   _id: "",
+            //   url: "",
+            //   blurDataURL: "",
+            // },
+            name: product.name || "",
+            description: product.description || "",
+            slug: product.slug || "",
+            categoryDetails: {
+              _id: product.category?._id || null,
+              name: product.category?.name || "",
+              slug: product.category?.slug || "",
+            },
+            subCategoryDetails: {
+              _id: product.subCategory?._id || null,
+              name: product.subCategory?.name || "",
+              slug: product.subCategory?.slug || "",
+            },
+          };
+
+          // Return the enhanced item with the exact structure from ItemSubSchema
+          return {
+            _id: item._id,
+            name: itemDetails.name,
+            slug: itemDetails.slug,
+            description: itemDetails.description,
+            images: itemDetails.images || [],
+            value: itemDetails.value,
+            weight: itemDetails.weight,
+            odd: itemDetails.odd,
+            status: itemDetails.status,
+            associatedBox: associatedBox,
+          };
+        } catch (error) {
+          console.error(
+            `Error fetching box details for item ${item._id}:`,
+            error
+          );
+          throw error;
+        }
+      })
+    );
+
+    // Create order with enhanced items
     const order = new Order({
       orderNo,
       shippingFee,
       totalAmountPaid,
       discountApplied,
       status: status || "pending",
-      items,
+      items: itemsWithBoxDetails,
       note,
-      user,
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        shippingAddress: user.shippingAddress,
+      },
       spinData,
       paymentMethod,
       taxApplied,
@@ -714,7 +979,7 @@ const createOrder2 = async (req, res) => {
         totalAmountPaid,
         shippingFee,
         discountApplied,
-        items,
+        items: itemsWithBoxDetails,
       },
     };
 
@@ -740,16 +1005,29 @@ const createOrder2 = async (req, res) => {
     );
 
     // Add transaction reference to order
-    order.transaction = transaction;
+    order.transaction = {
+      _id: transaction._id,
+      amount: transaction.amount,
+      transactionType: transaction.transactionType,
+      category: transaction.category,
+      status: transaction.status,
+      description: transaction.description,
+      referenceId: transaction.referenceId,
+      paymentMethod: transaction.paymentMethod,
+      transactionMode: transaction.transactionMode,
+      currency: transaction.currency,
+      exchangeRate: transaction.exchangeRate,
+      fxRate: transaction.fxRate,
+      taxAmount: transaction.taxAmount,
+      taxDetails: transaction.taxDetails,
+      metadata: transaction.metadata,
+    };
+
     await order.save({ session });
 
     // Commit transaction
     await session.commitTransaction();
     session.endSession();
-
-    // const populatedOrder = await Order.findById(order._id)
-    //   .populate("transaction")
-    //   .populate("user._id", "firstName lastName email");
 
     res.status(201).json({
       success: true,
