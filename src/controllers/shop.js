@@ -302,8 +302,9 @@ const getOneShopByAdmin = async (req, res) => {
     );
     // stats
     const totalProducts = await Product.countDocuments({
-      shop: shop._id,
+      shop: shop._id?.toString(),
     });
+
     const totalOrders = await Orders.countDocuments({
       "items.shop": shop._id,
     });
