@@ -134,6 +134,7 @@ const createAdminUserByAdmin = async (req, res) => {
       roleDetails: tempRoleDetails,
       password: requestData?.password,
       isActive: true,
+      dataAccess: requestData?.dataAccess,
     });
 
     return res.status(201).json({
