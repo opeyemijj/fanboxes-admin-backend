@@ -29,6 +29,18 @@ router.get(
   withSlug(shop.getOneShopByAdmin, "view_influencer_details")
 );
 
+router.get(
+  "/admin/shops/products/:slug",
+  verifyToken,
+  shop.getShopwiseProductByAdmin
+);
+
+router.get(
+  "/admin/shops/orders/:slug",
+  verifyToken,
+  shop.getShopwiseOrderByAdmin
+);
+
 router.put(
   "/admin/shops/:slug",
   verifyToken,

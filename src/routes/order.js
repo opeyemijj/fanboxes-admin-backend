@@ -16,6 +16,13 @@ router.get(
   verifyToken,
   withSlug(orderRoutes.getOrdersByAdmin, "view_order_listing")
 );
+
+router.put(
+  "/admin/orders/multiple-assign",
+  verifyToken,
+  orderRoutes.updateMulitpleAssignInOrderByAdmin
+);
+
 router.get("/admin/orders/:id", verifyToken, orderRoutes.getOneOrderByAdmin);
 router.put("/admin/orders/:id", verifyToken, orderRoutes.updateOrderByAdmin);
 router.delete("/admin/orders/:id", verifyToken, orderRoutes.deleteOrderByAdmin);

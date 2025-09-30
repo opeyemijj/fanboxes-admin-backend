@@ -71,6 +71,10 @@ const ShopSchema = new mongoose.Schema(
       maxlength: [500, "Description cannot exceed 500 characters."],
     },
 
+    commission: {
+      type: Number,
+    },
+
     slug: {
       type: String,
       unique: true,

@@ -16,6 +16,7 @@ const { splitUserName, getUserFromToken } = require("../helpers/userHelper");
 const Category = require("../models/Category");
 const SubCategory = require("../models/SubCategory");
 const { ASSIGN_TO_ME } = require("../helpers/const");
+const Order = require("../models/Order");
 // Admin apis
 const getShopsByAdmin = async (req, res) => {
   const user = getUserFromToken(req);
@@ -300,10 +301,12 @@ const getOneShopByAdmin = async (req, res) => {
     const { totalCommission, totalEarnings } = await getTotalEarningsByShopId(
       shop._id
     );
+
     // stats
     const totalProducts = await Product.countDocuments({
-      shop: shop._id,
+      shop: shop._id?.toString(),
     });
+
     const totalOrders = await Orders.countDocuments({
       "items.shop": shop._id,
     });
@@ -315,6 +318,56 @@ const getOneShopByAdmin = async (req, res) => {
       totalEarnings,
       totalCommission,
       totalProducts,
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const getShopwiseProductByAdmin = async (req, res) => {
+  try {
+    // const admin = await getAdmin(req, res);
+    const { slug } = req.params;
+    const shop = await Shop.findOne({ slug: slug });
+    if (!shop) {
+      return res
+        .status(404)
+        .json({ message: "We couldn’t find the shop you're looking for." });
+    }
+    // stats
+    const products = await Product.find({
+      shop: shop._id?.toString(),
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: products,
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const getShopwiseOrderByAdmin = async (req, res) => {
+  try {
+    // const admin = await getAdmin(req, res);
+    const { slug } = req.params;
+    const shop = await Shop.findOne({ slug: slug });
+    if (!shop) {
+      return res
+        .status(404)
+        .json({ message: "We couldn’t find the shop you're looking for." });
+    }
+    // stats
+    const orders = await Order.find({
+      "items.0.associatedBox.shopDetails._id": shop._id,
+    });
+
+    console.log(orders, "Come here to getting orders");
+
+    return res.status(200).json({
+      success: true,
+      data: orders,
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -1066,6 +1119,8 @@ module.exports = {
   getShopsByAdmin,
   createShopByAdmin,
   getOneShopByAdmin,
+  getShopwiseProductByAdmin,
+  getShopwiseOrderByAdmin,
   updateOneShopByAdmin,
   updateShopStatusByAdmin,
   deleteOneShopByAdmin,

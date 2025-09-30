@@ -223,7 +223,6 @@ const getOrdersByAdmin = async (req, res) => {
   const user = getUserFromToken(req);
   const dataAccessType = user.dataAccess;
 
-  console.log("Checking the query");
   try {
     const {
       page: pageQuery,
@@ -235,8 +234,6 @@ const getOrdersByAdmin = async (req, res) => {
 
     const limit = parseInt(limitQuery) || 10;
     const page = parseInt(pageQuery) || 1;
-
-    console.log(status, "Checking searchQuery");
 
     const skip = limit * (page - 1);
     let matchQuery = {};
@@ -252,7 +249,7 @@ const getOrdersByAdmin = async (req, res) => {
     if (shop) {
       const currentShop = await Shop.findOne({ slug: shop }).select(["_id"]);
 
-      matchQuery["items.shop"] = currentShop._id;
+      matchQuery["items.0.associatedBox.shopDetails._id"] = currentShop._id;
     }
 
     if (status) {
@@ -435,6 +432,64 @@ const updateAssignInOrderByAdmin = async (req, res) => {
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const updateMulitpleAssignInOrderByAdmin = async (req, res) => {
+  try {
+    const user = getUserFromToken(req);
+    if (!user) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Please Login To Continue" });
+    }
+
+    const { selectedItems, selectedUsers, selectedUserDetails } = req.body;
+
+    if (!selectedItems?.length || !selectedUsers?.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select at least one order and one user.",
+      });
+    }
+
+    // iterate over all orders
+    for (const orderId of selectedItems) {
+      const order = await Orders.findById(orderId);
+      if (!order) continue; // skip invalid orders
+
+      const assignTo = order.assignTo || [];
+      const assignToDetails = order.assignToDetails || [];
+
+      // iterate over each selected user
+      selectedUsers.forEach((userId, index) => {
+        if (!assignTo.includes(userId)) {
+          assignTo.push(userId);
+          assignToDetails.push(selectedUserDetails[index]);
+        }
+      });
+
+      order.assignTo = assignTo;
+      order.assignToDetails = assignToDetails;
+      order.assignedBy = user._id;
+      order.assignedByDetails = {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      };
+
+      await order.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Users assigned successfully to selected orders.",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Something went wrong.",
+    });
   }
 };
 
@@ -1021,6 +1076,7 @@ module.exports = {
   deleteOrderByAdmin,
   getOrdersByVendor,
   updateAssignInOrderByAdmin,
+  updateMulitpleAssignInOrderByAdmin,
   updateTrackingInOrderByAdmin,
   updateShippingInOrderByAdmin,
   createOrder2,
