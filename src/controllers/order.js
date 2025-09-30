@@ -221,7 +221,6 @@ const getOrdersByAdmin = async (req, res) => {
   const user = getUserFromToken(req);
   const dataAccessType = user.dataAccess;
 
-  console.log("Checking the query");
   try {
     const {
       page: pageQuery,
@@ -233,8 +232,6 @@ const getOrdersByAdmin = async (req, res) => {
 
     const limit = parseInt(limitQuery) || 10;
     const page = parseInt(pageQuery) || 1;
-
-    console.log(status, "Checking searchQuery");
 
     const skip = limit * (page - 1);
     let matchQuery = {};
@@ -250,7 +247,7 @@ const getOrdersByAdmin = async (req, res) => {
     if (shop) {
       const currentShop = await Shop.findOne({ slug: shop }).select(["_id"]);
 
-      matchQuery["items.shop"] = currentShop._id;
+      matchQuery["items.0.associatedBox.shopDetails._id"] = currentShop._id;
     }
 
     if (status) {
@@ -821,7 +818,6 @@ const createOrder2 = async (req, res) => {
       session.endSession();
     }
 
-    console.error("Order creation error:", error);
     res.status(500).json({
       success: false,
       message: error.message || "Something went wrong while creating order",
