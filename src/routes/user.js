@@ -88,4 +88,7 @@ router.patch(
   userController.updateShippingAddress
 );
 
+// DELETE /api/users/account - Delete user account and all data
+router.post("/users/account", verifyToken, userController.deleteAccount);
+
 module.exports = router;

@@ -53,6 +53,7 @@ const UserSchema = new mongoose.Schema(
 
     currentBalance: {
       type: Number,
+      default: 0,
     },
     dataAccess: {
       type: String,

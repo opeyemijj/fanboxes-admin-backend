@@ -1,7 +1,9 @@
+const mongoose = require("mongoose");
 const User = require("../models/User");
 const Orders = require("../models/Order");
 const bcrypt = require("bcrypt");
 const { getUser } = require("../config/getUser");
+const Order = require("../models/Order");
 
 const getOneUser = async (req, res) => {
   try {
@@ -242,6 +244,131 @@ const updateShippingAddress = async (req, res) => {
   }
 };
 
+/**
+ * Delete user account and all associated data
+ * @route DELETE /api/users/account
+ * @access Private
+ */
+const deleteAccount = async (req, res) => {
+  let session;
+
+  try {
+    const { password } = req.body;
+    const userId = req.user._id;
+
+    // Validate password
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: "Password is required to confirm account deletion.",
+      });
+    }
+
+    // Start session for transaction
+    session = await mongoose.startSession();
+    session.startTransaction();
+
+    // Find user with password selected for verification
+    const user = await User.findById(userId)
+      .select("+password")
+      .session(session);
+    if (!user) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid password. Please enter your correct password to delete your account.",
+      });
+    }
+
+    // Store user email for logging before deletion
+    const userEmail = user.email;
+
+    // Step 1: Delete all orders associated with the user
+    // const deleteOrdersResult = await Order.deleteMany(
+    //   { "user._id": userId },
+    //   { session }
+    // );
+
+    // console.log(`Deleted ${deleteOrdersResult.deletedCount} orders for user ${userEmail}`);
+
+    // Step 2: Delete associated transactions (if you have a separate Transaction model)
+    // If transactions are embedded in orders, this step might not be needed
+    /*
+    const Transaction = require("../models/Transaction");
+    const deleteTransactionsResult = await Transaction.deleteMany(
+      { userId: userId },
+      { session }
+    );
+    console.log(`Deleted ${deleteTransactionsResult.deletedCount} transactions for user ${userEmail}`);
+    */
+
+    //  Delete the user account
+    const deleteUserResult = await User.deleteOne({ _id: userId }, { session });
+
+    if (deleteUserResult.deletedCount === 0) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(500).json({
+        success: false,
+        message: "Failed to delete user account.",
+      });
+    }
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    console.log(`Successfully deleted account for user: ${userEmail}`);
+
+    // Return success response
+    return res.status(200).json({
+      success: true,
+      message: "Account and all associated data have been permanently deleted.",
+      data: {
+        // deletedOrders: deleteOrdersResult.deletedCount,
+        // deletedTransactions: deleteTransactionsResult?.deletedCount || 0,
+        userEmail: userEmail,
+      },
+    });
+  } catch (error) {
+    // Abort transaction on any error
+    if (session) {
+      await session.abortTransaction();
+      session.endSession();
+    }
+
+    console.error("Account deletion error:", error);
+
+    // Handle specific error types
+    if (error.name === "CastError") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID.",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "An error occurred while deleting your account. Please try again.",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
 module.exports = {
   getOneUser,
   updateUser,
@@ -249,4 +376,5 @@ module.exports = {
   changePassword,
   getUserByAdmin,
   updateShippingAddress,
+  deleteAccount,
 };
