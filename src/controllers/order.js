@@ -436,6 +436,64 @@ const updateAssignInOrderByAdmin = async (req, res) => {
   }
 };
 
+const updateMulitpleAssignInOrderByAdmin = async (req, res) => {
+  try {
+    const user = getUserFromToken(req);
+    if (!user) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Please Login To Continue" });
+    }
+
+    const { selectedItems, selectedUsers, selectedUserDetails } = req.body;
+
+    if (!selectedItems?.length || !selectedUsers?.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select at least one order and one user.",
+      });
+    }
+
+    // iterate over all orders
+    for (const orderId of selectedItems) {
+      const order = await Orders.findById(orderId);
+      if (!order) continue; // skip invalid orders
+
+      const assignTo = order.assignTo || [];
+      const assignToDetails = order.assignToDetails || [];
+
+      // iterate over each selected user
+      selectedUsers.forEach((userId, index) => {
+        if (!assignTo.includes(userId)) {
+          assignTo.push(userId);
+          assignToDetails.push(selectedUserDetails[index]);
+        }
+      });
+
+      order.assignTo = assignTo;
+      order.assignToDetails = assignToDetails;
+      order.assignedBy = user._id;
+      order.assignedByDetails = {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      };
+
+      await order.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Users assigned successfully to selected orders.",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Something went wrong.",
+    });
+  }
+};
+
 const updateTrackingInOrderByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -854,6 +912,7 @@ module.exports = {
   deleteOrderByAdmin,
   getOrdersByVendor,
   updateAssignInOrderByAdmin,
+  updateMulitpleAssignInOrderByAdmin,
   updateTrackingInOrderByAdmin,
   updateShippingInOrderByAdmin,
   createOrder2,
