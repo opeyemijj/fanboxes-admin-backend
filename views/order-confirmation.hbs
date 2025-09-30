@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Confirmation - FanBoxes</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #f5f5f5;
+        margin: 0;
+        padding: 0;
+        line-height: 1.5;
+      }
+
+      .email-wrapper {
+        max-width: 600px;
+        margin: 0 auto;
+        background: #ffffff;
+      }
+
+      /* Header */
+      .header {
+        padding: 32px 40px;
+        background: #ffffff;
+        border-bottom: 1px solid #eeeeee;
+      }
+
+      .logo {
+        max-width: 140px;
+        height: auto;
+      }
+
+      /* Hero */
+      .hero {
+        padding: 48px 40px;
+        text-align: center;
+        background: #ffffff;
+      }
+
+      .success-icon {
+        width: 56px;
+        height: 56px;
+        background: #11f2eb;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        font-size: 28px;
+      }
+
+      .hero h1 {
+        font-size: 28px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 8px;
+      }
+
+      .hero-text {
+        font-size: 16px;
+        color: #666666;
+      }
+
+      /* Order Info */
+      .order-info {
+        padding: 24px 40px;
+        background: #1a1a1a;
+        color: #ffffff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .order-number {
+        font-size: 20px;
+        font-weight: 700;
+        color: #11f2eb;
+      }
+
+      .order-date {
+        font-size: 14px;
+        color: #cccccc;
+      }
+
+      /* Content */
+      .content {
+        padding: 40px;
+      }
+
+      .section {
+        margin-bottom: 40px;
+      }
+
+      .section-title {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #1a1a1a;
+        margin-bottom: 20px;
+      }
+
+      /* Items */
+      .item {
+        display: flex;
+        gap: 16px;
+        padding: 20px;
+        background: #fafafa;
+        border-radius: 8px;
+        margin-bottom: 12px;
+      }
+
+      .item:last-child {
+        margin-bottom: 0;
+      }
+
+      .item-image-box {
+        width: 90px;
+        height: 90px;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #e8e8e8;
+        flex-shrink: 0;
+      }
+
+      .item-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .item-no-image {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: #aaaaaa;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .item-content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .item-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 4px;
+      }
+
+      .item-meta {
+        font-size: 13px;
+        color: #888888;
+        margin-bottom: 8px;
+      }
+
+      .item-price {
+        font-size: 16px;
+        font-weight: 700;
+        color: #11f2eb;
+      }
+
+      /* Summary */
+      .summary-box {
+        background: #fafafa;
+        border-radius: 8px;
+        padding: 24px;
+      }
+
+      .summary-line {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        font-size: 15px;
+      }
+
+      .summary-line-label {
+        color: #666666;
+      }
+
+      .summary-line-value {
+        font-weight: 600;
+        color: #1a1a1a;
+      }
+
+      .summary-discount {
+        color: #22c55e !important;
+      }
+
+      .summary-divider {
+        height: 1px;
+        background: #e0e0e0;
+        margin: 12px 0;
+      }
+
+      .summary-total {
+        display: flex;
+        justify-content: space-between;
+        padding-top: 12px;
+        font-size: 16px;
+      }
+
+      .summary-total-label {
+        font-weight: 700;
+        color: #1a1a1a;
+      }
+
+      .summary-total-value {
+        font-size: 22px;
+        font-weight: 700;
+        color: #11f2eb;
+      }
+
+      /* Info Cards */
+      .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+
+      .info-card {
+        background: #fafafa;
+        border-radius: 8px;
+        padding: 20px;
+      }
+
+      .info-card-title {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: #1a1a1a;
+        margin-bottom: 12px;
+      }
+
+      .info-card-line {
+        font-size: 14px;
+        color: #666666;
+        margin-bottom: 4px;
+        line-height: 1.6;
+      }
+
+      .info-card-line:last-child {
+        margin-bottom: 0;
+      }
+
+      .info-card-line strong {
+        color: #1a1a1a;
+      }
+
+      .info-highlight {
+        color: #22c55e;
+        font-weight: 600;
+      }
+
+      /* Help Box */
+      .help-box {
+        background: #f0fffe;
+        border-left: 3px solid #11f2eb;
+        border-radius: 4px;
+        padding: 20px;
+        margin-top: 32px;
+      }
+
+      .help-box p {
+        font-size: 14px;
+        color: #333333;
+        margin-bottom: 8px;
+        line-height: 1.6;
+      }
+
+      .help-box p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* Footer */
+      .footer {
+        padding: 32px 40px;
+        background: #fafafa;
+        text-align: center;
+      }
+
+      .social-links {
+        margin-bottom: 20px;
+      }
+
+      .social-link {
+        display: inline-block;
+        margin: 0 8px;
+      }
+
+      .social-icon {
+        width: 32px;
+        height: 32px;
+      }
+
+      .footer-nav {
+        margin-bottom: 20px;
+      }
+
+      .footer-link {
+        color: #1a1a1a;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0 12px;
+      }
+
+      .footer-text {
+        font-size: 12px;
+        color: #999999;
+        line-height: 1.8;
+      }
+
+      /* Responsive */
+      @media (max-width: 600px) {
+        .header,
+        .hero,
+        .content,
+        .footer {
+          padding-left: 24px;
+          padding-right: 24px;
+        }
+
+        .order-info {
+          flex-direction: column;
+          gap: 12px;
+          text-align: center;
+          padding: 20px 24px;
+        }
+
+        .item {
+          flex-direction: column;
+        }
+
+        .item-image-box {
+          width: 100%;
+          height: 180px;
+        }
+
+        .info-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .hero h1 {
+          font-size: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-wrapper">
+      <!-- Header -->
+      <div class="header">
+        <img
+          src="https://fanboxes-user-frontend.vercel.app/images/fanbox-logo-main.png"
+          alt="FanBoxes"
+          class="logo"
+        />
+      </div>
+
+      <!-- Hero -->
+      <div class="hero">
+        <div class="success-icon">✓</div>
+        <h1>Order Confirmed</h1>
+        <p class="hero-text">Thanks {{user.firstName}}, we're preparing your items!</p>
+      </div>
+
+      <!-- Order Info Bar -->
+      <div class="order-info">
+        <div class="order-number">#{{order.orderNo}}</div>
+        <div class="order-date">{{formatDate order.createdAt}}</div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="content">
+      
+           <!-- Items -->
+<div class="section">
+  <h2 class="section-title">Items ({{order.items.length}})</h2>
+  {{#each order.items}}
+  <div class="item">
+    <div class="item-image-box">
+      {{#if this.image}}
+        <img src="{{this.image}}" alt="{{this.name}}" class="item-image" />
+      {{else}}
+        <div class="item-no-image">No Image</div>
+      {{/if}}
+    </div>
+    <div class="item-content">
+      <div class="item-name">{{this.name}}</div>
+      {{#if this.associatedBox.name}}
+        <div class="item-meta">{{this.associatedBox.name}}</div>
+      {{/if}}
+      {{#if this.description}}
+        <div class="item-meta">{{this.description}}</div>
+      {{/if}}
+      <div class="item-price">${{this.value}}</div>
+    </div>
+  </div>
+  {{/each}}
+</div>
+
+        <!-- Summary -->
+        <div class="section">
+          <h2 class="section-title">Order Summary</h2>
+          <div class="summary-box">
+            <div class="summary-line">
+              <span class="summary-line-label">Subtotal</span>
+              <span class="summary-line-value">${{calculateItemsTotal order.items}}</span>
+            </div>
+            {{#if order.discountApplied.amount}}
+            <div class="summary-line">
+              <span class="summary-line-label">Discount</span>
+              <span class="summary-line-value summary-discount">-${{order.discountApplied.amount}}</span>
+            </div>
+            {{/if}}
+            {{#if order.taxApplied.amount}}
+            <div class="summary-line">
+              <span class="summary-line-label">Tax</span>
+              <span class="summary-line-value">${{order.taxApplied.amount}}</span>
+            </div>
+            {{/if}}
+            <div class="summary-line">
+              <span class="summary-line-label">Shipping</span>
+              <span class="summary-line-value">${{order.shippingFee}}</span>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-total">
+              <span class="summary-total-label">Total</span>
+              <span class="summary-total-value">${{order.totalAmountPaid}}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shipping & Payment -->
+        <div class="section">
+          <h2 class="section-title">Details</h2>
+          <div class="info-grid">
+            {{#if user.shippingAddress}}
+            <div class="info-card">
+              <div class="info-card-title">Shipping To</div>
+              <div class="info-card-line"><strong>{{user.firstName}} {{user.lastName}}</strong></div>
+              <div class="info-card-line">{{user.shippingAddress.address}}</div>
+              <div class="info-card-line">{{user.shippingAddress.city}}, {{user.shippingAddress.state}} {{user.shippingAddress.zip}}</div>
+              <div class="info-card-line">{{user.shippingAddress.country}}</div>
+            </div>
+            {{/if}}
+            <div class="info-card">
+              <div class="info-card-title">Payment</div>
+              <div class="info-card-line"><strong>{{order.transaction.paymentMethod}}</strong></div>
+              <div class="info-card-line">{{order.transaction.referenceId}}</div>
+              <div class="info-card-line info-highlight">{{order.transaction.status}}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Help -->
+        <div class="help-box">
+          <p><strong>📦 Processing:</strong> Your order will be prepared within 24 hours.</p>
+          <p><strong>🚚 Shipping:</strong> You'll receive tracking info once shipped.</p>
+          <p><strong>💬 Questions?</strong> Our support team is here to help.</p>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div class="social-links">
+          <a href="#" class="social-link">
+            <img src="https://cdn-icons-png.flaticon.com/128/733/733547.png" alt="Facebook" class="social-icon" />
+          </a>
+          <a href="#" class="social-link">
+            <img src="https://img.icons8.com/color/48/instagram-new.png" alt="Instagram" class="social-icon" />
+          </a>
+          <a href="#" class="social-link">
+            <img src="https://cdn-icons-png.flaticon.com/128/5968/5968830.png" alt="X" class="social-icon" />
+          </a>
+        </div>
+        <div class="footer-nav">
+          <a href="#" class="footer-link">Help Center</a>
+          <a href="#" class="footer-link">Track Order</a>
+          <a href="#" class="footer-link">Contact</a>
+        </div>
+        <div class="footer-text">
+          © {{currentYear}} FanBoxes. All rights reserved.<br />
+          {{user.email}}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

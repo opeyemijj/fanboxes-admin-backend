@@ -15,6 +15,7 @@ const { ASSIGN_TO_ME } = require("../helpers/const");
 const transactionService = require("../services/transactionService");
 const { generateReferenceId } = require("../helpers/transactionHelpers");
 const Product = require("../models/Product");
+const { sendEmail } = require("../utils/sendEmail");
 
 function isExpired(expirationDate) {
   const currentDateTime = new Date();
@@ -617,161 +618,6 @@ const generateOrderNo = async () => {
 };
 
 // Controller: Create new order with transaction
-// const createOrder2 = async (req, res) => {
-//   let session;
-
-//   try {
-//     const {
-//       shippingFee,
-//       totalAmountPaid,
-//       discountApplied,
-//       status,
-//       items,
-//       note,
-//       // user,
-//       spinData,
-//       taxApplied = { percentage: "0%", amount: 0 },
-//       paymentMethod = "wallet", // Default to wallet
-//     } = req.body;
-
-//     let user = req?.user;
-
-//     if (!totalAmountPaid) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Total amount paid is required.",
-//       });
-//     }
-
-//     // For now, only process wallet payments
-//     if (paymentMethod !== "wallet") {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Only wallet payments are currently supported.",
-//       });
-//     }
-
-//     // Validate user has sufficient balance if using wallet
-//     if (user?._id) {
-//       user = await User.findById(user._id);
-//       if (!user) {
-//         return res.status(400).json({
-//           success: false,
-//           message: "User not found.",
-//         });
-//       }
-
-//       // Use transaction service to get user balance
-//       const userBalance = await transactionService.getUserBalance(user._id);
-
-//       if (userBalance.availableBalance < totalAmountPaid) {
-//         return res.status(400).json({
-//           success: false,
-//           message: `Insufficient balance. Available: ${userBalance.availableBalance}, Required: ${totalAmountPaid}`,
-//         });
-//       }
-//     } else {
-//       return res.status(400).json({
-//         success: false,
-//         message: "User ID is required for wallet payments.",
-//       });
-//     }
-
-//     const orderNo = await generateOrderNo();
-
-//     // Start session only after validations
-//     session = await mongoose.startSession();
-//     session.startTransaction();
-
-//     // Create order
-//     const order = new Order({
-//       orderNo,
-//       shippingFee,
-//       totalAmountPaid,
-//       discountApplied,
-//       status: status || "pending",
-//       items,
-//       note,
-//       user,
-//       spinData,
-//       paymentMethod,
-//       taxApplied,
-//     });
-
-//     await order.save({ session });
-
-//     // Use the transaction service to create debit transaction
-//     const metadata = {
-//       orderType: spinData ? "post-spin" : "direct",
-//       itemsCount: items.length,
-//       initiatedBy: {
-//         firstName: user.firstName,
-//         lastName: user.lastName,
-//         id: user._id,
-//         role: user?.role,
-//       },
-//       orderDetails: {
-//         orderNo,
-//         totalAmountPaid,
-//         shippingFee,
-//         discountApplied,
-//         items,
-//       },
-//     };
-
-//     const transactionData = {
-//       userId: user._id,
-//       amount: totalAmountPaid,
-//       transactionType: "debit",
-//       status: "completed",
-//       description: `Order payment for #${orderNo}`,
-//       referenceId: generateReferenceId("ODR"),
-//       orderId: order._id,
-//       paymentMethod: "wallet",
-//       category: "spend",
-//       source: "order_payment",
-//       metadata,
-//       taxAmount: taxApplied.amount,
-//       taxDetails: taxApplied,
-//     };
-
-//     const transaction = await transactionService.createTransaction(
-//       transactionData,
-//       session
-//     );
-
-//     // Add transaction reference to order
-//     order.transaction = transaction;
-//     await order.save({ session });
-
-//     // Commit transaction
-//     await session.commitTransaction();
-//     session.endSession();
-
-//     // const populatedOrder = await Order.findById(order._id)
-//     //   .populate("transaction")
-//     //   .populate("user._id", "firstName lastName email");
-
-//     res.status(201).json({
-//       success: true,
-//       message: "Order created successfully",
-//       data: order,
-//     });
-//   } catch (error) {
-//     // Abort transaction on any error (only if session was started)
-//     if (session) {
-//       await session.abortTransaction();
-//       session.endSession();
-//     }
-
-//     console.error("Order creation error:", error);
-//     res.status(500).json({
-//       success: false,
-//       message: error.message || "Something went wrong while creating order",
-//     });
-//   }
-// };
-
 const createOrder2 = async (req, res) => {
   let session;
 
@@ -889,7 +735,7 @@ const createOrder2 = async (req, res) => {
               _id: product.shopDetails?._id || null,
               title: product.shopDetails?.title || "",
               slug: product.shopDetails?.slug || "",
-              logo: product?.shopDetails?.logo || "",
+              logo: product?.shopDetails?.logo || null,
               cover: product?.shopDetails?.cover || null,
             },
             images: product?.images || {
@@ -1029,19 +875,62 @@ const createOrder2 = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    res.status(201).json({
+    if (user && user.email) {
+      const context = {
+        user: {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phone: user.phone,
+          shippingAddress: user.shippingAddress,
+        },
+        order: {
+          orderNo: orderNo,
+          status: "confirmed",
+          createdAt: new Date(),
+          items: itemsWithBoxDetails?.map((it) => ({
+            ...it,
+            image: it.images[0]?.url,
+          })),
+          totalAmountPaid: totalAmountPaid,
+          shippingFee: shippingFee,
+          discountApplied: discountApplied,
+          taxApplied: taxApplied,
+          transaction: {
+            paymentMethod: paymentMethod,
+            referenceId: transaction.referenceId,
+            status: "completed",
+          },
+        },
+        currentYear: new Date().getFullYear(),
+      };
+      // console.log("CC::", context.user);
+      await sendEmail({
+        to: user.email,
+        subject: `Order Confirmation - #${orderNo}`,
+        template: "order-confirmation",
+        context,
+      });
+      console.log("Order confirmation email sent successfully");
+    } else {
+      console.warn(
+        "User email not available, skipping order confirmation email"
+      );
+    }
+
+    return res.status(201).json({
       success: true,
       message: "Order created successfully",
       data: order,
     });
   } catch (error) {
+    console.error("Order creation error:", error);
     // Abort transaction on any error (only if session was started)
     if (session) {
       await session.abortTransaction();
       session.endSession();
     }
 
-    console.error("Order creation error:", error);
     res.status(500).json({
       success: false,
       message: error.message || "Something went wrong while creating order",
