@@ -382,13 +382,13 @@ const getIncomeByShop = async (req, res) => {
     const skip = parseInt(limit) * (parseInt(page) - 1) || 0;
 
     function getTotalAfterComission(param) {
-      const commissionRate = process.env.COMMISSION / 100;
+      const commissionRate = shop.commission / 100;
       const finalPaymentAfterComission = param * (1 - commissionRate);
       return finalPaymentAfterComission;
     }
 
     function getComission(param) {
-      const commissionRate = process.env.COMMISSION / 100;
+      const commissionRate = shop.commission / 100;
       const finalPaymentAfterComission = param * (1 - commissionRate);
 
       const totalComission = param - finalPaymentAfterComission;
@@ -499,12 +499,12 @@ const getIncomeByvendor = async (req, res) => {
     const skip = parseInt(limit) * (parseInt(page) - 1) || 0;
 
     function getTotalAfterComission(param) {
-      const commissionRate = process.env.COMMISSION / 100;
+      const commissionRate = shop.commission / 100;
       const finalPaymentAfterComission = param * (1 - commissionRate);
       return finalPaymentAfterComission;
     }
     function getComission(param) {
-      const commissionRate = process.env.COMMISSION / 100;
+      const commissionRate = shop.commission / 100;
       const finalPaymentAfterComission = param * (1 - commissionRate);
 
       const totalComission = param - finalPaymentAfterComission;
