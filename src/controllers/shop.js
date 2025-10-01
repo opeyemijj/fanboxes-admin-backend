@@ -17,6 +17,7 @@ const Category = require("../models/Category");
 const SubCategory = require("../models/SubCategory");
 const { ASSIGN_TO_ME } = require("../helpers/const");
 const Order = require("../models/Order");
+const Spin = require("../models/Spin");
 // Admin apis
 const getShopsByAdmin = async (req, res) => {
   const user = getUserFromToken(req);
@@ -307,8 +308,12 @@ const getOneShopByAdmin = async (req, res) => {
       shop: shop._id?.toString(),
     });
 
+    const totalSpins = await Spin.countDocuments({
+      shop: shop._id,
+    });
+
     const totalOrders = await Orders.countDocuments({
-      "items.shop": shop._id,
+      "items.0.associatedBox.shopDetails._id": shop._id,
     });
 
     return res.status(200).json({
@@ -318,6 +323,7 @@ const getOneShopByAdmin = async (req, res) => {
       totalEarnings,
       totalCommission,
       totalProducts,
+      totalSpins,
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });

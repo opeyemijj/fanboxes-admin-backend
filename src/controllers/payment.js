@@ -392,6 +392,7 @@ const getIncomeByShop = async (req, res) => {
       const finalPaymentAfterComission = param * (1 - commissionRate);
 
       const totalComission = param - finalPaymentAfterComission;
+
       return totalComission;
     }
 
