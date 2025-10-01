@@ -363,8 +363,6 @@ const getShopwiseOrderByAdmin = async (req, res) => {
       "items.0.associatedBox.shopDetails._id": shop._id,
     });
 
-    console.log(orders, "Come here to getting orders");
-
     return res.status(200).json({
       success: true,
       data: orders,
