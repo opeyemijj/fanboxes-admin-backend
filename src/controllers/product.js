@@ -1252,26 +1252,59 @@ const updateProductByAdmin = async (req, res) => {
 const updateProductActiveInactiveByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { isActive } = req.body;
+    const { isActive, mutationType } = req.body;
 
-    const updated = await Product.findOneAndUpdate(
-      { slug: slug },
-      { $set: { isActive: isActive, status: isActive ? "approved" : "draft" } },
-      { new: true, runValidators: true }
-    );
+    if (mutationType === "single") {
+      const updated = await Product.findOneAndUpdate(
+        { slug: slug },
+        {
+          $set: { isActive: isActive, status: isActive ? "approved" : "draft" },
+        },
+        { new: true, runValidators: true }
+      );
 
-    if (!updated) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Box not found to update status" });
+      if (!updated) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Box not found to update status" });
+      }
+    } else if (mutationType === "multiple") {
+      try {
+        const { selectedItems } = req.body; // e.g. [ '68da4f05264926ae938a7ba1', '68d4faa8bee4a497b74cd94b' ]
+
+        if (
+          !selectedItems ||
+          !Array.isArray(selectedItems) ||
+          selectedItems.length === 0
+        ) {
+          return res
+            .status(400)
+            .json({ success: false, message: "No Boxes selected" });
+        }
+
+        // Update all matching products
+        const result = await Product.updateMany(
+          { _id: { $in: selectedItems } },
+          {
+            $set: {
+              isActive: isActive,
+              status: isActive ? "approved" : "draft",
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Error updating products:", error);
+        return res
+          .status(500)
+          .json({ success: false, message: "Internal server error" });
+      }
     }
 
     return res.status(201).json({
       success: true,
-      data: updated,
       message: isActive
-        ? "Box has been activated successfully."
-        : "Box is inactive now",
+        ? "Box has been approved successfully."
+        : "Box is draft now",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
