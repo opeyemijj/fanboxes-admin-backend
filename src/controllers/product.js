@@ -1402,23 +1402,52 @@ const updateItemOddHideShowByAdmin = async (req, res) => {
 const bannedProductByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { isBanned } = req.body;
+    const { isBanned, mutationType } = req.body;
 
-    const updated = await Product.findOneAndUpdate(
-      { slug: slug },
-      { $set: { isBanned: isBanned } },
-      { new: true, runValidators: true }
-    );
+    if (mutationType === "single") {
+      const updated = await Product.findOneAndUpdate(
+        { slug: slug },
+        { $set: { isBanned: isBanned } },
+        { new: true, runValidators: true }
+      );
 
-    if (!updated) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Box not found to Banned" });
+      if (!updated) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Box not found to Banned" });
+      }
+    } else if (mutationType === "multiple") {
+      try {
+        const { selectedItems } = req.body;
+
+        if (
+          !selectedItems ||
+          !Array.isArray(selectedItems) ||
+          selectedItems.length === 0
+        ) {
+          return res
+            .status(400)
+            .json({ success: false, message: "No Boxes selected" });
+        }
+
+        // Update all matching products
+        const result = await Product.updateMany(
+          { _id: { $in: selectedItems } },
+          {
+            $set: {
+              isBanned: isBanned,
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Error updating products:", error);
+        return res
+          .status(500)
+          .json({ success: false, message: "Internal server error" });
+      }
     }
-
     return res.status(201).json({
       success: true,
-      data: updated,
       message: isBanned
         ? "Box has been banned successfully."
         : "Box has been Unbanned successfully.",
