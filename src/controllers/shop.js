@@ -676,6 +676,64 @@ const updateAssignInShopByAdmin = async (req, res) => {
   }
 };
 
+const updateMulitpleAssignInShopsByAdmin = async (req, res) => {
+  try {
+    const user = getUserFromToken(req);
+    if (!user) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Please Login To Continue" });
+    }
+
+    const { selectedItems, selectedUsers, selectedUserDetails } = req.body;
+
+    if (!selectedItems?.length || !selectedUsers?.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select at least one order and one user.",
+      });
+    }
+
+    // iterate over all orders
+    for (const shopId of selectedItems) {
+      const shop = await Shop.findById(shopId);
+      if (!shop) continue; // skip invalid shops
+
+      const assignTo = shop.assignTo || [];
+      const assignToDetails = shop.assignToDetails || [];
+
+      // iterate over each selected user
+      selectedUsers.forEach((userId, index) => {
+        if (!assignTo.includes(userId)) {
+          assignTo.push(userId);
+          assignToDetails.push(selectedUserDetails[index]);
+        }
+      });
+
+      shop.assignTo = assignTo;
+      shop.assignToDetails = assignToDetails;
+      shop.assignedBy = user._id;
+      shop.assignedByDetails = {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      };
+
+      await shop.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Users assigned successfully to selected Influencers.",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Something went wrong.",
+    });
+  }
+};
+
 const deleteOneShopByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -1196,6 +1254,7 @@ module.exports = {
   updateShopActiveInactiveByAdmin,
   bannedShopByAdmin,
   updateAssignInShopByAdmin,
+  updateMulitpleAssignInShopsByAdmin,
   createShopByVendor,
   getOneShopByVendor,
   updateOneShopByVendor,

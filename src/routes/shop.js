@@ -42,6 +42,12 @@ router.get(
 );
 
 router.put(
+  "/admin/shops/multiple-assign",
+  verifyToken,
+  shop.updateMulitpleAssignInShopsByAdmin
+);
+
+router.put(
   "/admin/shops/:slug",
   verifyToken,
   withSlug(shop.updateOneShopByAdmin, "edit_influencer")
