@@ -65,6 +65,9 @@ const ItemSubSchema = new mongoose.Schema({
   images: {
     type: [ImageSubSchema],
   },
+  quantity: {
+    type: Number,
+  },
   value: {
     type: Number,
   },
@@ -77,6 +80,10 @@ const ItemSubSchema = new mongoose.Schema({
   status: {
     type: String,
     default: "available",
+  },
+
+  shopId: {
+    type: mongoose.Types.ObjectId,
   },
 
   associatedBox: ItemboxSubSchema,

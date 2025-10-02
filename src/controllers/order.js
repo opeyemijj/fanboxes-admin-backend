@@ -16,6 +16,7 @@ const transactionService = require("../services/transactionService");
 const { generateReferenceId } = require("../helpers/transactionHelpers");
 const Product = require("../models/Product");
 const { sendEmail } = require("../utils/sendEmail");
+const Spin = require("../models/Spin");
 
 function isExpired(expirationDate) {
   const currentDateTime = new Date();
@@ -203,7 +204,7 @@ const createOrder = async (req, res) => {
 const getOrderById = async (req, res) => {
   try {
     const id = req.params.id;
-    const orderGet = await Orders.findById(id); // Remove curly braces around _id: id
+    const orderGet = await Orders.findById(id);
 
     if (!orderGet) {
       return res
@@ -688,6 +689,7 @@ const createOrder2 = async (req, res) => {
       taxApplied = { percentage: "0%", amount: 0 },
       paymentMethod = "wallet",
     } = req.body;
+    console.log("SSS", req.body);
 
     let user = req?.user;
 
@@ -820,6 +822,7 @@ const createOrder2 = async (req, res) => {
 
           // Return the enhanced item with the exact structure from ItemSubSchema
           return {
+            ...item,
             _id: item._id,
             name: itemDetails.name,
             slug: itemDetails.slug,
@@ -830,6 +833,7 @@ const createOrder2 = async (req, res) => {
             odd: itemDetails.odd,
             status: itemDetails.status,
             associatedBox: associatedBox,
+            shopId: product.shopDetails?._id || null,
           };
         } catch (error) {
           console.error(
@@ -864,6 +868,15 @@ const createOrder2 = async (req, res) => {
     });
 
     await order.save({ session });
+
+    //update spin as processed for shipping
+    const spinId = spinData?._id;
+    if (spinId) {
+      await Spin.findOneAndUpdate(
+        { _id: spinId },
+        { processedForShipping: true, orderId: order._id }
+      ).session(session);
+    }
 
     // Use the transaction service to create debit transaction
     const metadata = {
@@ -960,13 +973,17 @@ const createOrder2 = async (req, res) => {
         currentYear: new Date().getFullYear(),
       };
       // console.log("CC::", context.user);
-      await sendEmail({
-        to: user.email,
-        subject: `Order Confirmation - #${orderNo}`,
-        template: "order-confirmation",
-        context,
-      });
-      console.log("Order confirmation email sent successfully");
+      try {
+        sendEmail({
+          to: user.email,
+          subject: `Order Confirmation - #${orderNo}`,
+          template: "order-confirmation",
+          context,
+        });
+        console.log("Order confirmation email sent successfully");
+      } catch (err) {
+        console.log("errorr sending mail::", err);
+      }
     } else {
       console.warn(
         "User email not available, skipping order confirmation email"

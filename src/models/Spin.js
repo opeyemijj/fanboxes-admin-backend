@@ -74,6 +74,8 @@ const SpinSchema = new mongoose.Schema(
     },
     processedForResell: Boolean,
     resellTransactionRef: String,
+    processedForShipping: Boolean,
+    orderId: mongoose.Schema.Types.ObjectId,
   },
   { timestamps: true }
 );
