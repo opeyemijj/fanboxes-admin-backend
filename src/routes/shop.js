@@ -47,18 +47,18 @@ router.put(
   withSlug(shop.updateOneShopByAdmin, "edit_influencer")
 );
 
+router.put(
+  "/admin/shops/active/:slug",
+  verifyToken,
+  withSlug(shop.updateShopActiveInactiveByAdmin, "approve_influencer")
+);
+
 router.put("/admin/shops/status/:slug", verifyToken);
 
 router.delete(
   "/admin/shops/:slug",
   verifyToken,
   withSlug(shop.deleteOneShopByAdmin, "delete_influencer")
-);
-
-router.put(
-  "/admin/shops/active/:slug",
-  verifyToken,
-  withSlug(shop.updateShopActiveInactiveByAdmin, "approve_influencer")
 );
 
 router.put(

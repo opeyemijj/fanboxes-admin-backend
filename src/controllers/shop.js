@@ -566,23 +566,53 @@ const updateShopActiveInactiveByAdmin = async (req, res) => {
 const bannedShopByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { isBanned } = req.body;
+    const { isBanned, mutationType } = req.body;
 
-    const updated = await Shop.findOneAndUpdate(
-      { slug: slug },
-      { $set: { isBanned: isBanned } },
-      { new: true, runValidators: true }
-    );
+    if (mutationType === "single") {
+      const updated = await Shop.findOneAndUpdate(
+        { slug: slug },
+        { $set: { isBanned: isBanned } },
+        { new: true, runValidators: true }
+      );
 
-    if (!updated) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Influencer not found to Banned" });
+      if (!updated) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Influencer not found to Banned" });
+      }
+    } else if (mutationType === "multiple") {
+      console.log("Come here to bann multiple");
+      try {
+        const { selectedItems } = req.body;
+
+        if (
+          !selectedItems ||
+          !Array.isArray(selectedItems) ||
+          selectedItems.length === 0
+        ) {
+          return res
+            .status(400)
+            .json({ success: false, message: "No Influencers selected" });
+        }
+
+        // Update all matching products
+        const result = await Shop.updateMany(
+          { _id: { $in: selectedItems } },
+          {
+            $set: {
+              isBanned: isBanned,
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Error updating shops:", error);
+        return res
+          .status(500)
+          .json({ success: false, message: "Internal server error" });
+      }
     }
-
     return res.status(201).json({
       success: true,
-      data: updated,
       message: isBanned
         ? "Influencer has been banned successfully."
         : "Influencer has been Unbanned successfully.",
