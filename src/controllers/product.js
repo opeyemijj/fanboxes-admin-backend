@@ -895,7 +895,7 @@ const getProductsByAdmin = async (request, response) => {
       },
       {
         $project: {
-          image: { url: "$image.url", blurDataURL: "$image.blurDataURL" },
+          images: { url: "$image.url", blurDataURL: "$image.blurDataURL" },
           name: 1,
           slug: 1,
           colors: 1,
