@@ -5,7 +5,7 @@ const {
   updatePrivacyPolicySettings,
   updatePrivacyPolicySection,
   addPrivacyPolicySection,
-} = require("../controllers/PrivacyPolicyController");
+} = require("../controllers/privacyPolicyController");
 
 // Public routes
 router.get("/privacy-policy", getPrivacyPolicy);
