@@ -93,6 +93,8 @@ const updatePayemntGateWayBySlug = async (req, res) => {
       { slug },
       {
         ...requestData,
+        primaryKey: requestData.primaryKey?.toLowerCase().trim(),
+        secretKey: requestData.secretKey?.toLowerCase().trim(),
       },
       { new: true, runValidators: true }
     );
@@ -125,6 +127,7 @@ const createPaymentGateWayByAdmin = async (req, res) => {
     const data = await PaymentGateway.create({
       ...requestData,
       primaryKey: requestData.primaryKey?.toLowerCase().trim(),
+      secretKey: requestData.secretKey?.toLowerCase().trim(),
       slug:
         requestData?.name
           .toLowerCase()

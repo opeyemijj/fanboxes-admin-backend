@@ -15,21 +15,20 @@ const PaymentGatewaySchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    secretKey: {
+      type: String,
+      required: [true, "Secret Key is required."],
+      unique: true,
+      trim: true,
+    },
     paymentMethod: {
       type: String,
       required: [true, "Payment Method is required."],
     },
 
-    otherKey1: {
-      type: String,
-      default: null,
-      trim: true,
-    },
-
-    otherKey2: {
-      type: String,
-      default: null,
-      trim: true,
+    otherKeys: {
+      type: [String], // array of strings
+      default: [],
     },
 
     slug: {
