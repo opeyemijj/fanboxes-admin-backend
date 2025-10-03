@@ -13,4 +13,16 @@ router.get(
   staticPage.getStaticPagesByAdmin
 );
 
+router.get(
+  "/admin/static-pages/:slug",
+  verifyToken,
+  staticPage.getStaticBySlug
+);
+
+router.put(
+  "/admin/static-pages/:slug",
+  verifyToken,
+  staticPage.updateStaticPageBySlug
+);
+
 module.exports = router;

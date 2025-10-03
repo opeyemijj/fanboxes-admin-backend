@@ -54,7 +54,59 @@ const getStaticPagesByAdmin = async (req, res) => {
   }
 };
 
+const getStaticBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const staticPage = await StaticPage.findOne({ slug });
+
+    if (!staticPage) {
+      return res.status(400).json({
+        success: false,
+        message: "We couldn't find the static you're looking for",
+      });
+    }
+
+    return res.status(201).json({ success: true, data: staticPage });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const updateStaticPageBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const requestData = req.body;
+
+    const updatedData = await StaticPage.findOneAndUpdate(
+      { slug },
+      {
+        ...requestData,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedData) {
+      return res.status(400).json({
+        success: false,
+        message: "Your static page did not found to update",
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Static Page details have been successfully updated.",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createStaticByAdmin,
   getStaticPagesByAdmin,
+  getStaticBySlug,
+  updateStaticPageBySlug,
 };
