@@ -25,4 +25,10 @@ router.put(
   staticPage.updateStaticPageBySlug
 );
 
+router.delete(
+  "/admin/static-pages/:slug",
+  verifyToken,
+  staticPage.deleteStaticPageBySlug
+);
+
 module.exports = router;

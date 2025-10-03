@@ -104,9 +104,31 @@ const updateStaticPageBySlug = async (req, res) => {
   }
 };
 
+const deleteStaticPageBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const credit = await StaticPage.findOneAndDelete({ slug });
+    if (!credit) {
+      return res.status(400).json({
+        success: false,
+        message: "We couldn't find the static you're looking for",
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Static has been successfully deleted.",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createStaticByAdmin,
   getStaticPagesByAdmin,
   getStaticBySlug,
   updateStaticPageBySlug,
+  deleteStaticPageBySlug,
 };
