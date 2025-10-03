@@ -89,6 +89,6 @@ router.patch(
 );
 
 // DELETE /api/users/account - Delete user account and all data
-router.post("/users/account", verifyToken, userController.deleteAccount);
+router.post("/users/delete-account", verifyToken, userController.deleteAccount);
 
 module.exports = router;
