@@ -107,6 +107,7 @@ const compaign = require("./routes/compaign");
 const slideRoute = require("./routes/slide");
 const adminTransactionRoutes = require("./routes/adminTransactionRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
+const privacyPolicyRoutes = require("./routes/privacyPolicy");
 
 app.use("/api", homeRoutes);
 app.use("/api", roleRoutes);
@@ -136,6 +137,7 @@ app.use("/api", compaign);
 app.use("/api", slideRoute);
 app.use("/api", adminTransactionRoutes);
 app.use("/api", transactionRoutes);
+app.use("/api", privacyPolicyRoutes);
 
 // GET API
 app.get("/", (req, res) => {
