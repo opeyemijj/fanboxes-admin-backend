@@ -108,6 +108,7 @@ const slideRoute = require("./routes/slide");
 const adminTransactionRoutes = require("./routes/adminTransactionRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
 const privacyPolicyRoutes = require("./routes/privacyPolicy");
+const staticPageRoutes = require("./routes/static-page");
 
 app.use("/api", homeRoutes);
 app.use("/api", roleRoutes);
@@ -138,6 +139,7 @@ app.use("/api", slideRoute);
 app.use("/api", adminTransactionRoutes);
 app.use("/api", transactionRoutes);
 app.use("/api", privacyPolicyRoutes);
+app.use("/api", staticPageRoutes);
 
 // GET API
 app.get("/", (req, res) => {
