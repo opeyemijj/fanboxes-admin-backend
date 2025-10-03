@@ -3,6 +3,7 @@ const Shop = require("../models/Shop");
 const Orders = require("../models/Order");
 const { getVendor } = require("../config/getUser");
 const moment = require("moment");
+const PaymentGateway = require("../models/PaymentGateWay");
 const getPaymentsByAdmin = async (req, res) => {
   try {
     let { limit, page = 1, shop, status } = req.query;
@@ -47,6 +48,36 @@ const createPayment = async (req, res) => {
       .json({ success: true, message: "Payment created", data: newPayment });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const createPaymentGateWayByAdmin = async (req, res) => {
+  try {
+    const requestData = req.body; // ✅ use 'permissions', not 'permittedItems'
+
+    const data = await PaymentGateway.create({
+      ...requestData,
+      slug:
+        requestData?.name
+          .toLowerCase()
+          .trim()
+          .replace(/\s+/g, "_")
+          .replace(/[^a-z0-9_]/g, "") +
+        "_" +
+        Math.random()
+          .toString(36)
+          .slice(2, 8),
+    });
+
+    return res.status(201).json({
+      message: "Payment Gateway saved successfully",
+      data: data,
+    });
+  } catch (error) {
+    console.error("Error saving pyament gateway:", error);
+    return res.status(400).json({
+      message: error.message,
+    });
   }
 };
 
@@ -613,4 +644,5 @@ module.exports = {
   getPayoutsByAdmin,
   getIncomeByShop,
   getIncomeByvendor,
+  createPaymentGateWayByAdmin,
 };

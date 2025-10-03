@@ -9,6 +9,11 @@ const { withSlug } = require("../helpers/routeSlugHelper");
 // admin routes
 
 router.post("/admin/payments", verifyToken, payment.createPayment);
+router.post(
+  "/admin/payments/gateway",
+  verifyToken,
+  payment.createPaymentGateWayByAdmin
+);
 
 router.get("/admin/payments", verifyToken, payment.getPaymentsByAdmin);
 router.get("/admin/payments/:pid", verifyToken, payment.getPaymentDetailsById);
