@@ -30,6 +30,31 @@ const createStaticByAdmin = async (req, res) => {
   }
 };
 
+const getStaticPagesByAdmin = async (req, res) => {
+  try {
+    let { limit, page = 1 } = req.query;
+
+    const skip = parseInt(limit) || 8;
+    let query = {};
+
+    const totalStaticPages = await StaticPage.countDocuments(query);
+
+    const staticPages = await StaticPage.find(query)
+      .skip(skip * (parseInt(page) - 1 || 0))
+      .limit(skip)
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      data: staticPages,
+      count: Math.ceil(totalStaticPages / skip),
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createStaticByAdmin,
+  getStaticPagesByAdmin,
 };

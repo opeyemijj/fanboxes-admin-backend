@@ -7,4 +7,10 @@ const { withSlug } = require("../helpers/routeSlugHelper");
 
 router.post("/admin/static-pages", verifyToken, staticPage.createStaticByAdmin);
 
+router.get(
+  "/admin/static-pages",
+  verifyToken,
+  staticPage.getStaticPagesByAdmin
+);
+
 module.exports = router;
