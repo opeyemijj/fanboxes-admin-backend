@@ -34,6 +34,12 @@ router.put(
   payment.updatePayemntGateWayBySlug
 );
 
+router.delete(
+  "/admin/payments/gateway/:slug",
+  verifyToken,
+  payment.deletePaymentGateWayBySlug
+);
+
 router.get("/admin/payments/:pid", verifyToken, payment.getPaymentDetailsById);
 router.get("/admin/shops/:slug/income", verifyToken, payment.getIncomeByShop);
 router.put("/admin/payments/:id", verifyToken, payment.updatePayment);

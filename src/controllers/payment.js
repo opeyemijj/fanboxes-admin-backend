@@ -108,6 +108,27 @@ const updatePayemntGateWayBySlug = async (req, res) => {
   }
 };
 
+const deletePaymentGateWayBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const credit = await PaymentGateway.findOneAndDelete({ slug });
+    if (!credit) {
+      return res.status(400).json({
+        success: false,
+        message: "We couldn't find the payment gateway you're looking for",
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Payment gateway has been successfully deleted.",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 // Create payment
 const createPayment = async (req, res) => {
   try {
@@ -710,6 +731,7 @@ module.exports = {
   getPaymentGateWaysByAdmin,
   getPaymentGateWayBySlug,
   updatePayemntGateWayBySlug,
+  deletePaymentGateWayBySlug,
   updatePayment,
   deletePayment,
   getPaymentsByVender,
