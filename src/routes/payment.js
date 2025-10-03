@@ -16,6 +16,24 @@ router.post(
 );
 
 router.get("/admin/payments", verifyToken, payment.getPaymentsByAdmin);
+router.get(
+  "/admin/payments/paymentgateways",
+  verifyToken,
+  payment.getPaymentGateWaysByAdmin
+);
+
+router.get(
+  "/admin/payments/paymentgateways/:slug",
+  verifyToken,
+  payment.getPaymentGateWayBySlug
+);
+
+router.put(
+  "/admin/payments/paymentgateways/:slug",
+  verifyToken,
+  payment.updatePayemntGateWayBySlug
+);
+
 router.get("/admin/payments/:pid", verifyToken, payment.getPaymentDetailsById);
 router.get("/admin/shops/:slug/income", verifyToken, payment.getIncomeByShop);
 router.put("/admin/payments/:id", verifyToken, payment.updatePayment);

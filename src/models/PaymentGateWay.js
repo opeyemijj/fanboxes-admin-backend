@@ -12,9 +12,9 @@ const PaymentGatewaySchema = new mongoose.Schema(
     primaryKey: {
       type: String,
       required: [true, "Primary Key is required."],
+      unique: true,
       trim: true,
     },
-
     paymentMethod: {
       type: String,
       required: [true, "Payment Method is required."],

@@ -39,6 +39,73 @@ const getPaymentsByAdmin = async (req, res) => {
   }
 };
 
+const getPaymentGateWaysByAdmin = async (req, res) => {
+  try {
+    let { limit, page = 1, shop, status } = req.query;
+
+    const skip = parseInt(limit) || 8;
+    let query = {};
+
+    const totalPaymentGateWays = await PaymentGateway.countDocuments(query);
+
+    const paymentgateways = await PaymentGateway.find(query)
+      .skip(skip * (parseInt(page) - 1 || 0))
+      .limit(skip)
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      data: paymentgateways,
+      count: Math.ceil(totalPaymentGateWays / skip),
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const getPaymentGateWayBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const credit = await PaymentGateway.findOne({ slug });
+
+    if (!credit) {
+      return res.status(400).json({
+        success: false,
+        message: "We couldn't find the payment gateway you're looking for",
+      });
+    }
+
+    return res.status(201).json({ success: true, data: credit });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const updatePayemntGateWayBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const requestData = req.body;
+
+    await PaymentGateway.findOneAndUpdate(
+      { slug },
+      {
+        ...requestData,
+      },
+      { new: true, runValidators: true }
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: "Payment gateway details have been successfully updated.",
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 // Create payment
 const createPayment = async (req, res) => {
   try {
@@ -57,6 +124,7 @@ const createPaymentGateWayByAdmin = async (req, res) => {
 
     const data = await PaymentGateway.create({
       ...requestData,
+      primaryKey: requestData.primaryKey?.toLowerCase().trim(),
       slug:
         requestData?.name
           .toLowerCase()
@@ -636,6 +704,9 @@ const getIncomeByvendor = async (req, res) => {
 module.exports = {
   createPayment,
   getPaymentsByAdmin,
+  getPaymentGateWaysByAdmin,
+  getPaymentGateWayBySlug,
+  updatePayemntGateWayBySlug,
   updatePayment,
   deletePayment,
   getPaymentsByVender,
