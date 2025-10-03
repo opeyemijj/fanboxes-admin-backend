@@ -5,6 +5,7 @@ const Product = require("../models/Product");
 const Spin = require("../models/Spin");
 const User = require("../models/User");
 const transactionService = require("../services/transactionService");
+const Shop = require("../models/Shop");
 
 const createSpin = async (req, res) => {
   try {
@@ -396,7 +397,7 @@ const spinVerify = async (req, res) => {
 
 const getSpinsByAdmin = async (req, res) => {
   try {
-    const { limit = 10, page = 1, search = "" } = req.query;
+    const { limit = 10, page = 1, search = "", shop } = req.query;
 
     const parsedLimit = parseInt(limit, 10) || 10;
     const parsedPage = parseInt(page, 10) || 1;
@@ -409,6 +410,14 @@ const getSpinsByAdmin = async (req, res) => {
     const pattern = escapeRegex(trimmed);
 
     let matchQuery = {};
+
+    if (shop) {
+      const currentShop = await Shop.findOne({
+        slug: shop,
+      }).select(["slug", "_id"]);
+
+      matchQuery.shop = currentShop._id;
+    }
 
     if (pattern) {
       matchQuery.$or = [

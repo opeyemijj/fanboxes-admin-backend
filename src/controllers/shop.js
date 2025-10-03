@@ -17,6 +17,7 @@ const Category = require("../models/Category");
 const SubCategory = require("../models/SubCategory");
 const { ASSIGN_TO_ME } = require("../helpers/const");
 const Order = require("../models/Order");
+const Spin = require("../models/Spin");
 // Admin apis
 const getShopsByAdmin = async (req, res) => {
   const user = getUserFromToken(req);
@@ -307,8 +308,12 @@ const getOneShopByAdmin = async (req, res) => {
       shop: shop._id?.toString(),
     });
 
+    const totalSpins = await Spin.countDocuments({
+      shop: shop._id,
+    });
+
     const totalOrders = await Orders.countDocuments({
-      "items.shop": shop._id,
+      "items.0.associatedBox.shopDetails._id": shop._id,
     });
 
     return res.status(200).json({
@@ -318,6 +323,7 @@ const getOneShopByAdmin = async (req, res) => {
       totalEarnings,
       totalCommission,
       totalProducts,
+      totalSpins,
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -362,8 +368,6 @@ const getShopwiseOrderByAdmin = async (req, res) => {
     const orders = await Order.find({
       "items.0.associatedBox.shopDetails._id": shop._id,
     });
-
-    console.log(orders, "Come here to getting orders");
 
     return res.status(200).json({
       success: true,
@@ -497,24 +501,59 @@ const updateShopStatusByAdmin = async (req, res) => {
 const updateShopActiveInactiveByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { isActive } = req.body;
+    const { isActive, mutationType } = req.body;
 
-    const updated = await Shop.findOneAndUpdate(
-      { slug: slug },
-      { $set: { isActive: isActive, status: isActive ? "approved" : "draft" } },
-      { new: true, runValidators: true }
-    );
+    if (mutationType === "single") {
+      const updated = await Shop.findOneAndUpdate(
+        { slug: slug },
+        {
+          $set: {
+            isActive: isActive,
+            status: isActive ? "approved" : "draft",
+          },
+        },
+        { new: true, runValidators: true }
+      );
 
-    if (!updated) {
-      return res.status(404).json({
-        success: false,
-        message: "Influencer not found to update status",
-      });
+      if (!updated) {
+        return res.status(404).json({
+          success: false,
+          message: "Influencer not found to update status",
+        });
+      }
+    } else if (mutationType === "multiple") {
+      try {
+        const { selectedItems } = req.body; // e.g. [ '68da4f05264926ae938a7ba1', '68d4faa8bee4a497b74cd94b' ]
+
+        if (
+          !selectedItems ||
+          !Array.isArray(selectedItems) ||
+          selectedItems.length === 0
+        ) {
+          return res
+            .status(400)
+            .json({ success: false, message: "No Boxes selected" });
+        }
+
+        // Update all matching products
+        const result = await Shop.updateMany(
+          { _id: { $in: selectedItems } },
+          {
+            $set: {
+              isActive: isActive,
+              status: isActive ? "approved" : "draft",
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Error updating shops:", error);
+        return res
+          .status(500)
+          .json({ success: false, message: "Internal server error" });
+      }
     }
-
     return res.status(201).json({
       success: true,
-      data: updated,
       message: isActive
         ? "Influencer has been activated successfully."
         : "Influencer is inactive now",
@@ -527,23 +566,53 @@ const updateShopActiveInactiveByAdmin = async (req, res) => {
 const bannedShopByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { isBanned } = req.body;
+    const { isBanned, mutationType } = req.body;
 
-    const updated = await Shop.findOneAndUpdate(
-      { slug: slug },
-      { $set: { isBanned: isBanned } },
-      { new: true, runValidators: true }
-    );
+    if (mutationType === "single") {
+      const updated = await Shop.findOneAndUpdate(
+        { slug: slug },
+        { $set: { isBanned: isBanned } },
+        { new: true, runValidators: true }
+      );
 
-    if (!updated) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Influencer not found to Banned" });
+      if (!updated) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Influencer not found to Banned" });
+      }
+    } else if (mutationType === "multiple") {
+      console.log("Come here to bann multiple");
+      try {
+        const { selectedItems } = req.body;
+
+        if (
+          !selectedItems ||
+          !Array.isArray(selectedItems) ||
+          selectedItems.length === 0
+        ) {
+          return res
+            .status(400)
+            .json({ success: false, message: "No Influencers selected" });
+        }
+
+        // Update all matching products
+        const result = await Shop.updateMany(
+          { _id: { $in: selectedItems } },
+          {
+            $set: {
+              isBanned: isBanned,
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Error updating shops:", error);
+        return res
+          .status(500)
+          .json({ success: false, message: "Internal server error" });
+      }
     }
-
     return res.status(201).json({
       success: true,
-      data: updated,
       message: isBanned
         ? "Influencer has been banned successfully."
         : "Influencer has been Unbanned successfully.",
@@ -604,6 +673,64 @@ const updateAssignInShopByAdmin = async (req, res) => {
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const updateMulitpleAssignInShopsByAdmin = async (req, res) => {
+  try {
+    const user = getUserFromToken(req);
+    if (!user) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Please Login To Continue" });
+    }
+
+    const { selectedItems, selectedUsers, selectedUserDetails } = req.body;
+
+    if (!selectedItems?.length || !selectedUsers?.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select at least one order and one user.",
+      });
+    }
+
+    // iterate over all orders
+    for (const shopId of selectedItems) {
+      const shop = await Shop.findById(shopId);
+      if (!shop) continue; // skip invalid shops
+
+      const assignTo = shop.assignTo || [];
+      const assignToDetails = shop.assignToDetails || [];
+
+      // iterate over each selected user
+      selectedUsers.forEach((userId, index) => {
+        if (!assignTo.includes(userId)) {
+          assignTo.push(userId);
+          assignToDetails.push(selectedUserDetails[index]);
+        }
+      });
+
+      shop.assignTo = assignTo;
+      shop.assignToDetails = assignToDetails;
+      shop.assignedBy = user._id;
+      shop.assignedByDetails = {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      };
+
+      await shop.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Users assigned successfully to selected Influencers.",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Something went wrong.",
+    });
   }
 };
 
@@ -1127,6 +1254,7 @@ module.exports = {
   updateShopActiveInactiveByAdmin,
   bannedShopByAdmin,
   updateAssignInShopByAdmin,
+  updateMulitpleAssignInShopsByAdmin,
   createShopByVendor,
   getOneShopByVendor,
   updateOneShopByVendor,

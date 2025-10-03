@@ -934,6 +934,64 @@ const getProductsByAdmin = async (request, response) => {
   }
 };
 
+const updateMulitpleAssignInProductsByAdmin = async (req, res) => {
+  try {
+    const user = getUserFromToken(req);
+    if (!user) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Please Login To Continue" });
+    }
+
+    const { selectedItems, selectedUsers, selectedUserDetails } = req.body;
+
+    if (!selectedItems?.length || !selectedUsers?.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Please select at least one order and one user.",
+      });
+    }
+
+    // iterate over all orders
+    for (const productId of selectedItems) {
+      const product = await Product.findById(productId);
+      if (!product) continue; // skip invalid products
+
+      const assignTo = product.assignTo || [];
+      const assignToDetails = product.assignToDetails || [];
+
+      // iterate over each selected user
+      selectedUsers.forEach((userId, index) => {
+        if (!assignTo.includes(userId)) {
+          assignTo.push(userId);
+          assignToDetails.push(selectedUserDetails[index]);
+        }
+      });
+
+      product.assignTo = assignTo;
+      product.assignToDetails = assignToDetails;
+      product.assignedBy = user._id;
+      product.assignedByDetails = {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      };
+
+      await product.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Users assigned successfully to selected boxes.",
+    });
+  } catch (error) {
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Something went wrong.",
+    });
+  }
+};
+
 const createProductByAdmin = async (req, res) => {
   try {
     const admin = await getAdmin(req, res);
@@ -1252,26 +1310,59 @@ const updateProductByAdmin = async (req, res) => {
 const updateProductActiveInactiveByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { isActive } = req.body;
+    const { isActive, mutationType } = req.body;
 
-    const updated = await Product.findOneAndUpdate(
-      { slug: slug },
-      { $set: { isActive: isActive, status: isActive ? "approved" : "draft" } },
-      { new: true, runValidators: true }
-    );
+    if (mutationType === "single") {
+      const updated = await Product.findOneAndUpdate(
+        { slug: slug },
+        {
+          $set: { isActive: isActive, status: isActive ? "approved" : "draft" },
+        },
+        { new: true, runValidators: true }
+      );
 
-    if (!updated) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Box not found to update status" });
+      if (!updated) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Box not found to update status" });
+      }
+    } else if (mutationType === "multiple") {
+      try {
+        const { selectedItems } = req.body; // e.g. [ '68da4f05264926ae938a7ba1', '68d4faa8bee4a497b74cd94b' ]
+
+        if (
+          !selectedItems ||
+          !Array.isArray(selectedItems) ||
+          selectedItems.length === 0
+        ) {
+          return res
+            .status(400)
+            .json({ success: false, message: "No Boxes selected" });
+        }
+
+        // Update all matching products
+        const result = await Product.updateMany(
+          { _id: { $in: selectedItems } },
+          {
+            $set: {
+              isActive: isActive,
+              status: isActive ? "approved" : "draft",
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Error updating products:", error);
+        return res
+          .status(500)
+          .json({ success: false, message: "Internal server error" });
+      }
     }
 
     return res.status(201).json({
       success: true,
-      data: updated,
       message: isActive
-        ? "Box has been activated successfully."
-        : "Box is inactive now",
+        ? "Box has been approved successfully."
+        : "Box is draft now",
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -1335,28 +1426,58 @@ const updateAssignInProductByAdmin = async (req, res) => {
 const updateItemOddHideShowByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { isItemOddsHidden } = req.body;
+    const { isItemOddsHidden, mutationType } = req.body;
 
-    const updated = await Product.findOneAndUpdate(
-      { slug: slug },
-      {
-        $set: {
-          isItemOddsHidden: isItemOddsHidden,
+    if (mutationType === "single") {
+      const updated = await Product.findOneAndUpdate(
+        { slug: slug },
+        {
+          $set: {
+            isItemOddsHidden: isItemOddsHidden,
+          },
         },
-      },
-      { new: true, runValidators: true }
-    );
+        { new: true, runValidators: true }
+      );
 
-    if (!updated) {
-      return res.status(404).json({
-        success: false,
-        message: "Box not found to update item odds visibility",
-      });
+      if (!updated) {
+        return res.status(404).json({
+          success: false,
+          message: "Box not found to update item odds visibility",
+        });
+      }
+    } else if (mutationType === "multiple") {
+      try {
+        const { selectedItems } = req.body; // e.g. [ '68da4f05264926ae938a7ba1', '68d4faa8bee4a497b74cd94b' ]
+
+        if (
+          !selectedItems ||
+          !Array.isArray(selectedItems) ||
+          selectedItems.length === 0
+        ) {
+          return res
+            .status(400)
+            .json({ success: false, message: "No Boxes selected" });
+        }
+
+        // Update all matching products
+        const result = await Product.updateMany(
+          { _id: { $in: selectedItems } },
+          {
+            $set: {
+              isItemOddsHidden: isItemOddsHidden,
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Error updating products:", error);
+        return res
+          .status(500)
+          .json({ success: false, message: "Internal server error" });
+      }
     }
 
     return res.status(201).json({
       success: true,
-      data: updated,
       message: isItemOddsHidden
         ? "Box item's odds are hidden now."
         : "Box item's odds are visible now.",
@@ -1369,23 +1490,52 @@ const updateItemOddHideShowByAdmin = async (req, res) => {
 const bannedProductByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { isBanned } = req.body;
+    const { isBanned, mutationType } = req.body;
 
-    const updated = await Product.findOneAndUpdate(
-      { slug: slug },
-      { $set: { isBanned: isBanned } },
-      { new: true, runValidators: true }
-    );
+    if (mutationType === "single") {
+      const updated = await Product.findOneAndUpdate(
+        { slug: slug },
+        { $set: { isBanned: isBanned } },
+        { new: true, runValidators: true }
+      );
 
-    if (!updated) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Box not found to Banned" });
+      if (!updated) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Box not found to Banned" });
+      }
+    } else if (mutationType === "multiple") {
+      try {
+        const { selectedItems } = req.body;
+
+        if (
+          !selectedItems ||
+          !Array.isArray(selectedItems) ||
+          selectedItems.length === 0
+        ) {
+          return res
+            .status(400)
+            .json({ success: false, message: "No Boxes selected" });
+        }
+
+        // Update all matching products
+        const result = await Product.updateMany(
+          { _id: { $in: selectedItems } },
+          {
+            $set: {
+              isBanned: isBanned,
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Error updating products:", error);
+        return res
+          .status(500)
+          .json({ success: false, message: "Internal server error" });
+      }
     }
-
     return res.status(201).json({
       success: true,
-      data: updated,
       message: isBanned
         ? "Box has been banned successfully."
         : "Box has been Unbanned successfully.",
@@ -1988,4 +2138,5 @@ module.exports = {
   getOneProductBySlug,
   getProductsByCompaign,
   getCompareProducts,
+  updateMulitpleAssignInProductsByAdmin,
 };

@@ -17,6 +17,12 @@ router.post(
 );
 
 router.put(
+  "/admin/products/multiple-assign",
+  verifyToken,
+  product.updateMulitpleAssignInProductsByAdmin
+);
+
+router.put(
   "/admin/products/:slug",
   verifyToken,
   product.updateProductByAdmin,

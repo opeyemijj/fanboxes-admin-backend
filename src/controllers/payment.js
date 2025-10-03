@@ -1,8 +1,8 @@
-const Payment = require('../models/Payment');
-const Shop = require('../models/Shop');
-const Orders = require('../models/Order');
-const { getVendor } = require('../config/getUser');
-const moment = require('moment');
+const Payment = require("../models/Payment");
+const Shop = require("../models/Shop");
+const Orders = require("../models/Order");
+const { getVendor } = require("../config/getUser");
+const moment = require("moment");
 const getPaymentsByAdmin = async (req, res) => {
   try {
     let { limit, page = 1, shop, status } = req.query;
@@ -12,7 +12,7 @@ const getPaymentsByAdmin = async (req, res) => {
 
     // Add shopid filter if provided
     if (shop) {
-      const currentShop = await Shop.findOne({ slug: shop }).select(['_id']);
+      const currentShop = await Shop.findOne({ slug: shop }).select(["_id"]);
       query.shop = currentShop._id;
     }
 
@@ -44,7 +44,7 @@ const createPayment = async (req, res) => {
     const newPayment = await Payment.create(req.body);
     res
       .status(201)
-      .json({ success: true, message: 'Payment created', data: newPayment });
+      .json({ success: true, message: "Payment created", data: newPayment });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -60,7 +60,7 @@ const updatePayment = async (req, res) => {
     if (!existingPayment) {
       return res
         .status(404)
-        .json({ success: false, message: 'Payment not found' });
+        .json({ success: false, message: "Payment not found" });
     }
 
     const updatedPayment = await Payment.findByIdAndUpdate(
@@ -74,12 +74,12 @@ const updatePayment = async (req, res) => {
     if (!updatedPayment) {
       return res
         .status(404)
-        .json({ success: false, message: 'Payment not found' });
+        .json({ success: false, message: "Payment not found" });
     }
 
     res.status(200).json({
       success: true,
-      message: 'Payment updated',
+      message: "Payment updated",
       data: updatedPayment,
     });
   } catch (error) {
@@ -95,9 +95,9 @@ const deletePayment = async (req, res) => {
     if (!deletedPayment) {
       return res
         .status(404)
-        .json({ success: false, message: 'Payment not found' });
+        .json({ success: false, message: "Payment not found" });
     }
-    res.status(200).json({ success: true, message: 'Payment deleted' });
+    res.status(200).json({ success: true, message: "Payment deleted" });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -106,7 +106,7 @@ const getPaymentsByVender = async (req, res) => {
   try {
     const vendor = await getVendor(req, res);
     if (!vendor) {
-      return res.status(400).json({ success: false, message: 'Not Allowed' });
+      return res.status(400).json({ success: false, message: "Not Allowed" });
     }
     const { limit, page = 1 } = req.query;
 
@@ -136,28 +136,28 @@ const getPaymentDetailsById = async (req, res) => {
       _id: pid,
     })
       .populate({
-        path: 'shop',
+        path: "shop",
         select: [
-          'title',
-          'cover',
-          'logo',
-          'approved',
-          'approvedAt',
-          'description',
-          'status',
-          'phone',
-          'address',
+          "title",
+          "cover",
+          "logo",
+          "approved",
+          "approvedAt",
+          "description",
+          "status",
+          "phone",
+          "address",
         ],
       })
       .populate({
-        path: 'orders',
+        path: "orders",
         select: [
-          'items',
-          'createdAt',
-          'total',
-          'status',
-          'paymentMethod',
-          'user',
+          "items",
+          "createdAt",
+          "total",
+          "status",
+          "paymentMethod",
+          "user",
         ],
       });
 
@@ -206,7 +206,7 @@ const updatePaymentStatus = async (req, res) => {
     );
 
     if (!payment) {
-      res.status(404).json({ success: false, message: 'Not found' });
+      res.status(404).json({ success: false, message: "Not found" });
     }
 
     res.status(200).json({
@@ -231,7 +231,7 @@ const getPayoutsByAdmin = async (req, res) => {
       ...(shop && { shop }),
       ...(status && { status }),
     })
-      .populate({ path: 'shop', select: ['logo', 'title'] })
+      .populate({ path: "shop", select: ["logo", "title"] })
       .skip(limit * (parseInt(page) - 1))
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -253,8 +253,8 @@ const lastMonthOrders = async (shopId) => {
   const pipeline = [
     {
       $match: {
-        'items.shop': shopId,
-        status: 'delivered',
+        "items.shopId": shopId, //changed by victor
+        status: "delivered",
         createdAt: {
           $gte: lastMonth, // Filter orders created after or on last month's first day
           $lt: firstDayThisMonth, // Filter orders created before this month's first day
@@ -264,34 +264,34 @@ const lastMonthOrders = async (shopId) => {
     {
       $project: {
         // Existing projection fields (if any)
-        month: { $month: '$createdAt' },
-        year: { $year: '$createdAt' },
+        month: { $month: "$createdAt" },
+        year: { $year: "$createdAt" },
         income: {
           $sum: {
             $map: {
               input: {
                 $filter: {
-                  input: '$items',
-                  as: 'item',
-                  cond: { $eq: ['$$item.shop', shopId] },
+                  input: "$items",
+                  as: "item",
+                  cond: { $eq: ["$$item.shopId", shopId] }, //shopId by victor
                 },
               },
-              as: 'item',
-              in: { $multiply: ['$$item.quantity', '$$item.priceSale'] }, // Calculate income per item
+              as: "item",
+              in: { $multiply: ["$$item.quantity", "$$item.value"] }, // quantity vicotor in dbinsdie item
             },
           },
         },
-        orderId: '$_id',
+        orderId: "$orderNo",
       },
     },
     {
       $group: {
         _id: {
-          month: '$month',
-          year: '$year',
+          month: "$month",
+          year: "$year",
         },
-        orders: { $push: '$$ROOT' },
-        totalIncome: { $sum: '$income' },
+        orders: { $push: "$$ROOT" },
+        totalIncome: { $sum: "$income" },
       },
     },
   ];
@@ -308,8 +308,8 @@ const thisMonthOrders = async (shopId) => {
   const pipeline = [
     {
       $match: {
-        'items.shop': shopId,
-        status: 'delivered',
+        "items.shopId": shopId,
+        status: "delivered",
         createdAt: {
           $gte: firstDayThisMonth,
           $lt: tomorrow,
@@ -319,34 +319,34 @@ const thisMonthOrders = async (shopId) => {
     {
       $project: {
         // Existing projection fields (if any)
-        month: { $month: '$createdAt' },
-        year: { $year: '$createdAt' },
+        month: { $month: "$createdAt" },
+        year: { $year: "$createdAt" },
         income: {
           $sum: {
             $map: {
               input: {
                 $filter: {
-                  input: '$items',
-                  as: 'item',
-                  cond: { $eq: ['$$item.shop', shopId] },
+                  input: "$items",
+                  as: "item",
+                  cond: { $eq: ["$$item.shopId", shopId] },
                 },
               },
-              as: 'item',
-              in: { $multiply: ['$$item.quantity', '$$item.priceSale'] }, // Calculate income per item
+              as: "item",
+              in: { $multiply: ["$$item.quantity", "$$item.value"] }, // Calculate income per item
             },
           },
         },
-        orderId: '$_id',
+        orderId: "orderNo",
       },
     },
     {
       $group: {
         _id: {
-          month: '$month',
-          year: '$year',
+          month: "$month",
+          year: "$year",
         },
-        orders: { $push: '$$ROOT' },
-        totalIncome: { $sum: '$income' },
+        orders: { $push: "$$ROOT" },
+        totalIncome: { $sum: "$income" },
       },
     },
   ];
@@ -375,22 +375,24 @@ const getIncomeByShop = async (req, res) => {
       slug: req.params.slug,
     });
     if (!shop) {
-      res.status(404).json({ success: false, message: 'Shop not found' });
+      res.status(404).json({ success: false, message: "Shop not found" });
     }
     const { limit = 10, page = 1 } = req.query;
 
     const skip = parseInt(limit) * (parseInt(page) - 1) || 0;
 
     function getTotalAfterComission(param) {
-      const commissionRate = process.env.COMMISSION / 100;
+      const commissionRate = shop.commission / 100;
       const finalPaymentAfterComission = param * (1 - commissionRate);
       return finalPaymentAfterComission;
     }
+
     function getComission(param) {
-      const commissionRate = process.env.COMMISSION / 100;
+      const commissionRate = shop.commission / 100;
       const finalPaymentAfterComission = param * (1 - commissionRate);
 
       const totalComission = param - finalPaymentAfterComission;
+
       return totalComission;
     }
 
@@ -406,7 +408,7 @@ const getIncomeByShop = async (req, res) => {
       .sort({ createdAt: 1 });
 
     const lastMonthTotal = await lastMonthOrders(shop._id);
-    const thisMonthTotal = await thisMonthOrders(shop._id);
+    const thisMonthTotal = await thisMonthOrders(shop._id); //I need to do this as like as lastMonthOrders
     const today = new Date();
 
     const lastMonthDate = new Date(
@@ -431,7 +433,7 @@ const getIncomeByShop = async (req, res) => {
         $gte: startDate, // Greater than or equal to start of the month
         $lt: endDate, // Less than the end of the month (next month's 1st day)
       },
-    }).select('createdAt');
+    }).select("createdAt");
     const lastMonthPayment = {
       date: new Date(
         `${lastMonthTotal?._id?.year ||
@@ -447,7 +449,7 @@ const getIncomeByShop = async (req, res) => {
       totalCommission: Number(
         getComission(lastMonthTotal?.totalIncome || 0)?.toFixed(1)
       ),
-      status: 'pending',
+      status: "pending",
     };
 
     const thisMonthPayment = {
@@ -465,7 +467,7 @@ const getIncomeByShop = async (req, res) => {
       totalCommission: Number(
         getComission(thisMonthTotal?.totalIncome)?.toFixed(1)
       ),
-      status: 'pending',
+      status: "pending",
       thisMonth: true,
     };
 
@@ -491,19 +493,19 @@ const getIncomeByvendor = async (req, res) => {
       vendor: req.user._id,
     });
     if (!shop) {
-      res.status(404).json({ success: false, message: 'Shop not found' });
+      res.status(404).json({ success: false, message: "Shop not found" });
     }
     const { limit = 10, page = 1 } = req.query;
 
     const skip = parseInt(limit) * (parseInt(page) - 1) || 0;
 
     function getTotalAfterComission(param) {
-      const commissionRate = process.env.COMMISSION / 100;
+      const commissionRate = shop.commission / 100;
       const finalPaymentAfterComission = param * (1 - commissionRate);
       return finalPaymentAfterComission;
     }
     function getComission(param) {
-      const commissionRate = process.env.COMMISSION / 100;
+      const commissionRate = shop.commission / 100;
       const finalPaymentAfterComission = param * (1 - commissionRate);
 
       const totalComission = param - finalPaymentAfterComission;
@@ -547,7 +549,7 @@ const getIncomeByvendor = async (req, res) => {
         $gte: startDate, // Greater than or equal to start of the month
         $lt: endDate, // Less than the end of the month (next month's 1st day)
       },
-    }).select('createdAt');
+    }).select("createdAt");
     const lastMonthPayment = {
       date: new Date(
         `${lastMonthTotal?._id?.year ||
@@ -563,7 +565,7 @@ const getIncomeByvendor = async (req, res) => {
       totalCommission: Number(
         getComission(lastMonthTotal?.totalIncome || 0)?.toFixed(1)
       ),
-      status: 'pending',
+      status: "pending",
     };
 
     const thisMonthPayment = {
@@ -581,7 +583,7 @@ const getIncomeByvendor = async (req, res) => {
       totalCommission: Number(
         getComission(thisMonthTotal?.totalIncome)?.toFixed(1)
       ),
-      status: 'pending',
+      status: "pending",
       thisMonth: true,
     };
 
